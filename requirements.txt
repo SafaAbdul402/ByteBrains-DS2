@@ -5,5 +5,5 @@ sounddevice==0.5.3
 torch==2.9.1
 scikit-learn==1.7.2
 openai-whisper==20250625
-pandas==2.1.4
+#pandas==2.1.4
 matplotlib==3.10.8
