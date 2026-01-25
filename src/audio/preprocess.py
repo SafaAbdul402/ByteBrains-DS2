@@ -1,59 +1,45 @@
-import subprocess
 from pathlib import Path
-from tqdm import tqdm
+import numpy as np
+import librosa
+import soundfile as sf
 
-# ===============================
-# PATH CONFIG
-# ===============================
-
-INPUT_DIR = Path("data/recordings")
-OUTPUT_DIR = Path("data/outputs/processed_audio")
-
-TARGET_SR = 16000
-TARGET_CHANNELS = 1  # mono
-
-SUPPORTED_EXTENSIONS = {
-    ".wav", ".mp3", ".mp4", ".m4a",
-    ".aac", ".flac", ".ogg", ".webm"
-}
+from src.utils.io import ensure_dir, safe_stem
+from src.utils.paths import RECORDINGS, SUPPORTED_AUDIO_EXTS, PROCESSED_AUDIO
 
 
-def preprocess_all_audio():
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
+def get_latest_recording() -> Path:
     files = [
-        f for f in INPUT_DIR.iterdir()
-        if f.suffix.lower() in SUPPORTED_EXTENSIONS
+        p for p in RECORDINGS.iterdir()
+        if p.suffix.lower() in SUPPORTED_AUDIO_EXTS
     ]
-
     if not files:
-        print("❌ No audio/video files found in data/recordings")
-        return
-
-    print(f"🎧 Processing {len(files)} files...\n")
-
-    for file in tqdm(files):
-        output_file = OUTPUT_DIR / f"{file.stem}.wav"
-
-        command = [
-            "ffmpeg",
-            "-y",
-            "-i", str(file),
-            "-ac", str(TARGET_CHANNELS),
-            "-ar", str(TARGET_SR),
-            "-vn",
-            str(output_file)
-        ]
-
-        subprocess.run(
-            command,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
-    print("\n✅ All files processed successfully!")
-    print(f"📂 Output folder: {OUTPUT_DIR}")
+        raise RuntimeError("No supported audio files found in data/recordings")
+    return max(files, key=lambda p: p.stat().st_mtime)
 
 
-if __name__ == "__main__":
-    preprocess_all_audio()
+def preprocess_latest_to_wav16k() -> Path:
+    """
+    Take the latest recording and convert to mono 16k WAV.
+    """
+    ensure_dir(PROCESSED_AUDIO)
+
+    latest = get_latest_recording()
+    out = PROCESSED_AUDIO / f"{safe_stem(latest)}_16k.wav"
+
+    if out.exists():
+        print("Preprocessed audio already exists, skipping preprocessing.")
+        return out
+
+    print(f"Preprocessing latest audio: {latest}")
+
+    y, sr = librosa.load(str(latest), sr=None, mono=True)
+
+    if sr != 16000:
+        y = librosa.resample(y, orig_sr=sr, target_sr=16000)
+
+    peak = float(np.max(np.abs(y))) if y.size else 0.0
+    if peak > 0:
+        y = 0.95 * y / peak
+
+    sf.write(out, y, 16000)
+    return out
