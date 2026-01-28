@@ -1,35 +1,73 @@
+from collections import defaultdict
 from pathlib import Path
 import json
-import pandas as pd
-
-from src.utils.io import ensure_dir
-from src.utils.paths import CLUSTERING, DIARIZATION
 
 
-def diarize_latest() -> Path:
-    ensure_dir(DIARIZATION)
+def build_speaker_timeline(segments):
+    """
+    Build speaker -> [(start, end), ...] mapping
+    """
+    timeline = defaultdict(list)
 
-    rec_dirs = [d for d in CLUSTERING.iterdir() if d.is_dir()]
-    if not rec_dirs:
-        raise RuntimeError("No clustering results found")
+    for seg in segments:
+        timeline[seg["speaker"]].append(
+            (seg["start"], seg["end"])
+        )
 
-    latest = max(rec_dirs, key=lambda p: p.stat().st_mtime)
-    clusters_csv = latest / "clusters.csv"
+    return timeline
 
-    df = pd.read_csv(clusters_csv)
 
-    timeline = [
-        {
-            "start": float(r.start_s),
-            "end": float(r.end_s),
-            "speaker": r.speaker,
-        }
-        for r in df.itertuples()
-    ]
+def timeline_to_segments(timeline):
+    """
+    Convert:
+      { speaker: [(start, end), ...] }
 
-    out = DIARIZATION / f"{latest.name}_diarization.json"
-    with open(out, "w") as f:
-        json.dump(timeline, f, indent=2)
+    Into:
+      [
+        { "start": x, "end": y, "speaker": speaker },
+        ...
+      ]
+    """
+    flat_segments = []
 
-    print(f"Diarization written to {out}")
-    return out
+    for speaker, intervals in timeline.items():
+        for start, end in intervals:
+            flat_segments.append({
+                "start": round(float(start), 2),
+                "end": round(float(end), 2),
+                "speaker": speaker
+            })
+
+    # IMPORTANT: sort by time
+    flat_segments.sort(key=lambda x: x["start"])
+
+    return flat_segments
+
+
+def save_diarization(timeline, output_dir: Path):
+    """
+    Save diarization output in flat JSON format
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    flat_segments = timeline_to_segments(timeline)
+
+    # JSON (UI + Whisper friendly)
+    json_path = output_dir / "diarization.json"
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(flat_segments, f, indent=2)
+
+    # Optional human-readable TXT
+    txt_path = output_dir / "diarization.txt"
+    with open(txt_path, "w", encoding="utf-8") as f:
+        for seg in flat_segments:
+            f.write(
+                f"{seg['speaker']}: "
+                f"{seg['start']:.2f} → {seg['end']:.2f}\n"
+            )
+
+    print(f"Diarization saved to: {output_dir}")
+    print("DEBUG — segments being saved:", len(flat_segments))
+    print(flat_segments[:5])
+    print(f"- {json_path}")
+    print(f"- {txt_path}")
