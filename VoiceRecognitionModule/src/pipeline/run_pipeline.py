@@ -1,20 +1,19 @@
 from pathlib import Path
 
-from src.audio.preprocess import preprocess_audio
-from src.speaker.segmentation import load_diarization_pipeline
-from src.speaker.embedding_model import ECAPAEmbedder
-from src.speaker.extract_embeddings import extract_embeddings_from_latest
-from src.speaker.clustering import cluster_embeddings
-from src.speaker.diarization_pipeline import (
+from ..audio.preprocess import preprocess_audio
+from ..speaker.segmentation import load_diarization_pipeline
+from ..speaker.embedding_model import ECAPAEmbedder
+from ..speaker.extract_embeddings import extract_embeddings_from_latest
+from ..speaker.clustering import cluster_embeddings
+from ..speaker.diarization_pipeline import (
     build_speaker_timeline,
     save_diarization,
 )
-from src.transcription.transcriber import (
+from ..transcription.transcriber import (
     transcribe_with_diarization,
     save_transcript_with_speakers
 )
-from src.speaker.audio_snippets import save_speaker_audio_snippets
-
+from ..speaker.audio_snippets import save_speaker_audio_snippets
 
 
 def annotation_to_segments(annotation):

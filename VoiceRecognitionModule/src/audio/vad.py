@@ -10,7 +10,7 @@ import soundfile as sf
 import webrtcvad
 from tqdm import tqdm
 
-from src.utils.io import ensure_dir, safe_stem
+from ..utils.io import ensure_dir, safe_stem
 
 
 @dataclass

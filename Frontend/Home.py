@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from Backend.pipeline_stub import vr_process, build_final_transcript, n8n_run
+from Backend.pipeline_stub import vr_process, n8n_run
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
@@ -281,7 +281,7 @@ if st.session_state.workflow_step == "VR_RECOGNITION":
     log("Speaker Recognition")
 
     speakers = st.session_state.vr_result.get("speakers", [])
-    speaker_clips = st.session_state.vr_result.get("speaker_clips", {})
+    st.session_state.detected_speakers = speakers
 
     st.session_state.workflow_step = "UI_ASSIGNMENT"
     st.rerun()
@@ -296,47 +296,83 @@ if st.session_state.workflow_step == "UI_ASSIGNMENT":
 
 with right:
     if st.session_state.workflow_step == "UI_ASSIGNMENT_2":
-        
         st.subheader("")
         st.subheader("")
         st.subheader("Assign speakers to team members")
 
-        speakers = st.session_state.get("detected_speakers", ["Speaker A", "Speaker B", "Speaker C"])
-        
-        base_team = st.session_state.team
-        demo_team = st.session_state.team_demo_override
+        meeting_id = st.session_state.meeting_id
+
+        # Use speakers detected by VR
+        speakers = st.session_state.get("detected_speakers") or st.session_state.vr_result.get("speakers", [])
+        if not speakers:
+            st.error("No speakers found from Voice Recognition module.")
+            st.stop()
+
+        # Active team
+        base_team = st.session_state.get("team", [])
+        demo_team = st.session_state.get("team_demo_override")
         active_team = demo_team if demo_team is not None else base_team
 
         eligible_profiles = [p for p in active_team if profile_state(p) == "eligible"]
-        team_members = [p.get("name","") for p in eligible_profiles if p.get("name")]
+        team_members = [p.get("name", "") for p in eligible_profiles if p.get("name")]
+
         if not team_members:
             st.warning("No eligible profiles for speaker mapping.")
             st.info("To be eligible, a profile must NOT be deleted and must have: Role + at least 1 Skill.")
             st.stop()
-        options = ["— Select person —"] + team_members
 
-        # --- Initialize mapping (important!)
+        # Add Noise/Ignore option
+        options = ["— Select person —", "Noise / Ignore"] + team_members
+
+        # --- Locate speaker audio folder (Option B)
+        speakers_audio_dir = RUNS_DIR / meeting_id / "speakers_audio"
+
+        def find_speaker_wavs(speaker_id: str) -> list[Path]:
+            """
+            Return list of wav snippets for a speaker.
+            We match by filename containing the speaker id (robust to naming).
+            """
+            if not speakers_audio_dir.exists():
+                return []
+            wavs = []
+            for p in speakers_audio_dir.glob("*.wav"):
+                if speaker_id in p.name:
+                    wavs.append(p)
+            return sorted(wavs)
+
+        # --- Initialize mapping
         for speaker in speakers:
             if speaker not in st.session_state.speaker_mapping:
                 st.session_state.speaker_mapping[speaker] = None
 
         # --- UI
+        if not speakers_audio_dir.exists():
+            st.warning(f"Speaker audio folder not found: {speakers_audio_dir}")
+            st.info("UI will still work, but no speaker audio snippets can be played.")
+
         for speaker in speakers:
             col_speaker, col_profile = st.columns([2, 3])
 
             with col_speaker:
                 st.markdown(f"**{speaker}**")
-                clip = None
-                if st.session_state.vr_result:
-                    clip = st.session_state.vr_result.get("speaker_clips", {}).get(speaker)
 
-                st.audio(clip)  # placeholder for voice clip
+                wavs = find_speaker_wavs(speaker)
+                if wavs:
+                    # Show a few snippets (avoid flooding UI)
+                    max_snippets = 5
+                    for w in wavs[:max_snippets]:
+                        st.caption(w.name)
+                        st.audio(str(w), format="audio/wav")
+                    if len(wavs) > max_snippets:
+                        st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
+                else:
+                    st.caption("No .wav snippets found for this speaker.")
 
             with col_profile:
                 selection = st.selectbox(
                     "",
                     options,
-                    key=f"assign_{st.session_state.meeting_id}_{speaker}",
+                    key=f"assign_{meeting_id}_{speaker}",
                     placeholder="Select person",
                 )
 
@@ -344,46 +380,51 @@ with right:
                     None if selection == "— Select person —" else selection
                 )
 
-        # --- Validation
+        # --- Validation (must choose something: person OR Noise/Ignore)
         all_assigned = all(
-            st.session_state.speaker_mapping[s] is not None
+            st.session_state.speaker_mapping.get(s) is not None
             for s in speakers
         )
 
         if not all_assigned:
-            st.warning("Please assign all speakers before continuing.")
+            st.warning("Please assign all speakers before continuing (choose a person or Noise / Ignore).")
 
         c1, c2 = st.columns([2, 3])
-        with c1: 
-            confirm = st.button(
-                "Confirm speaker assignment",
-                disabled=not all_assigned
-                )
+
+        with c1:
+            confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
 
             if confirm and all_assigned:
                 log("Speaker assignment confirmed")
 
-                transcript = st.session_state.vr_result["transcript"]  # or raw_transcript if you use that
-                final_transcript = build_final_transcript(transcript, st.session_state.speaker_mapping)
-                if "final_transcript" not in st.session_state:
-                    st.session_state.final_transcript = None
+                transcript = st.session_state.vr_result.get("transcript")
+                if transcript is None:
+                    st.error("No transcript returned from Voice Recognition module.")
+                    st.stop()
 
-                profiles = eligible_profiles  # only completed + non-deleted
-                st.session_state.n8n_result = n8n_run(final_transcript, profiles)
+                speaker_mapping = st.session_state.speaker_mapping
+
+                # Pass-through to n8n (no final transcript building)
+                profiles = eligible_profiles
+                st.session_state.n8n_result = n8n_run(
+                    transcript=transcript,
+                    speaker_mapping=speaker_mapping,
+                    profiles=profiles,
+                    meeting_id=meeting_id,
+                )
 
                 st.session_state.workflow_step = "n8n_SUMMARIZING"
                 st.rerun()
-        with c2: 
+
+        with c2:
             if st.button("Use completed profiles"):
                 demo_profiles = load_completed_profiles()
                 if not demo_profiles:
-                    st.error("profiles_completed.json not found or empty.")
+                    st.error("profiles_complete.json not found or empty.")
                 else:
                     st.session_state.team_demo_override = demo_profiles
                     st.success("Switched to completed demo profiles.")
                     st.rerun()
-
-
         
 
 if st.session_state.workflow_step == "n8n_SUMMARIZING":

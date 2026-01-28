@@ -1,49 +1,35 @@
-from typing import Dict, List, Any
 from pathlib import Path
 import json
+from typing import Dict, List, Any
 from Backend.config import RUNS_DIR
-from VoiceRecognitionModule.pipeline import process_meeting #change?
+from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
+
 
 def vr_process(meeting_id: str) -> dict:
     run_dir = RUNS_DIR / meeting_id
-    process_meeting(str(run_dir))  # VR writes outputs
-    return load_vr_outputs(meeting_id)
+
+    # VR team handles EVERYTHING internally
+    process_meeting(run_dir)
+
+    return {
+        "transcript": json.loads((run_dir / "transcript.json").read_text()),
+        "speakers": json.loads((run_dir / "speakers.json").read_text()),
+        "status": json.loads((run_dir / "status.json").read_text()),
+    }
 
 
-def load_vr_outputs(meeting_id: str):
-    run_dir = RUNS_DIR / meeting_id
-    out = {}
+def n8n_run(transcript: Any, speaker_mapping: Dict[str, Any], profiles: List[dict], meeting_id: str,) -> Dict[str, Any]:
+    payload = {
+        "meeting_id": meeting_id,
+        "transcript": transcript,
+        "speaker_mapping": speaker_mapping,
+        "profiles": profiles,
+    }
 
-    status_path = run_dir / "vr_status.json"
-    if status_path.exists():
-        out["status"] = json.loads(status_path.read_text(encoding="utf-8"))
-
-    speakers_path = run_dir / "vr_speakers.json"
-    if speakers_path.exists():
-        out["speakers"] = json.loads(speakers_path.read_text(encoding="utf-8"))
-
-    transcript_path = run_dir / "vr_transcript.json"
-    if transcript_path.exists():
-        out["transcript"] = json.loads(transcript_path.read_text(encoding="utf-8"))
-
-    return out
-
-def n8n_run(final_transcript: str, profiles: List[dict]) -> Dict[str, Any]:
-    """
-    Placeholder for n8n agent pipeline.
-    Later replace with HTTP POST to n8n webhook and parse result.
-    """
+    # TODO: requests.post(n8n_webhook_url, json=payload).json()
     return {
         "summary": "Short summary...",
         "notes": "• Decision 1...\n• Decision 2...",
         "email_draft": "Hi all,\n\nThanks for today...\n\nBest,",
-        "tasks": [
-            {
-                "task": "Example task",
-                "assigned_to": profiles[0]["name"] if profiles else "Unassigned",
-                "deadline": "2026-01-20",
-                "reason": "Matched skills",
-                "status": "Open",
-            }
-        ],
+        "tasks": [],
     }
