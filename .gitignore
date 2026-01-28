@@ -10,3 +10,32 @@ venv/
 
 # PyCharm settings
 .idea/
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual envs
+.venv/
+.venv-*/
+.venv-vr/
+venv/
+env/
+
+# Streamlit
+.streamlit/
+
+# Local runs / generated outputs
+data/runs/
+VoiceRecognitionModule/data/runs/
+VoiceRecognitionModule/data/outputs/
+VoiceRecognitionModule/data/segments/
+*.wav
+*.mp3
+*.mp4
+
+# HuggingFace cache (optional)
+.huggingface/
