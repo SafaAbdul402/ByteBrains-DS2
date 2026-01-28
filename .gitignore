@@ -39,3 +39,14 @@ VoiceRecognitionModule/data/segments/
 
 # HuggingFace cache (optional)
 .huggingface/
+
+# local envs
+.venv*/
+.venv-vr/
+
+# run artifacts
+data/runs/
+VoiceRecognitionModule/data/runs/
+
+# mac
+.DS_Store
