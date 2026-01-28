@@ -1,84 +1,112 @@
-import json
 from pathlib import Path
-import torch
+import json
 import torchaudio
-import whisper
+from faster_whisper import WhisperModel
+from typing import List, Dict
 
-# ------------------------------
-# 1. Paths
-# ------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DIAR_FILE = PROJECT_ROOT / "data" / "diarization" / "WhatsApp Video 2026-01-17 at 6.01.58 PM_diarization.json"
-AUDIO_FILE = PROJECT_ROOT / "data" / "outputs" / "processed_audio" / "WhatsApp Video 2026-01-17 at 6.01.58 PM.wav"
-OUTPUT_FILE = PROJECT_ROOT / "data" / "outputs" / "finaltranscript" / "whisper_segment_transcript.json"
+# ===============================
+# MODEL LOADING (cached singleton)
+# ===============================
 
-# ------------------------------
-# 2. Load diarization
-# ------------------------------
-with open(DIAR_FILE, "r") as f:
-    diarization = json.load(f)
+_MODEL = None
 
-# ------------------------------
-# 3. Load audio
-# ------------------------------
-waveform, sr = torchaudio.load(AUDIO_FILE)
-if waveform.shape[0] > 1:
-    waveform = waveform.mean(dim=0, keepdim=True)
-waveform = waveform[0]
+def get_whisper_model(
+    model_size: str = "medium",
+    device: str = "cpu"
+) -> WhisperModel:
+    global _MODEL
+    if _MODEL is None:
+        _MODEL = WhisperModel(model_size, device=device)
+    return _MODEL
 
-TARGET_SR = 16000
-if sr != TARGET_SR:
-    waveform = torchaudio.transforms.Resample(sr, TARGET_SR)(waveform)
-    sr = TARGET_SR
 
-# ------------------------------
-# 4. Load Whisper
-# ------------------------------
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model = whisper.load_model("base", device=device)
+# ===============================
+# MAIN TRANSCRIPTION FUNCTION
+# ===============================
 
-# ------------------------------
-# 5. Transcribe per diarization segment
-# ------------------------------
-results = []
+def transcribe_with_diarization(
+    audio_path: Path,
+    diarization_json_path: Path,
+    *,
+    model_size: str = "medium",
+    device: str = "cpu",
+    language: str = "en"
+) -> List[Dict]:
+    """
+    Transcribe audio per diarization segment and return
+    time-aligned speaker segments.
 
-for seg in diarization:
-    start_sample = int(seg["start"] * sr)
-    end_sample = int(seg["end"] * sr)
-    speaker = seg["speaker"]
+    Returns:
+        List of segments sorted by start time.
+    """
 
-    audio_chunk = waveform[start_sample:end_sample].numpy()
+    if not audio_path.exists():
+        raise FileNotFoundError(audio_path)
 
-    if audio_chunk.shape[0] == 0:
-        continue
+    if not diarization_json_path.exists():
+        raise FileNotFoundError(diarization_json_path)
 
-    # Whisper expects [samples], not [1, samples]
-    transcription = model.transcribe(audio_chunk, language="en", word_timestamps=True)
+    # Load audio
+    waveform, sr = torchaudio.load(audio_path)
 
-    words = transcription.get("segments", [])
-    word_list = []
-    for w in words:
-        # each word has start, end, text
-        word_list.append({
-            "start": round(w["start"], 3),
-            "end": round(w["end"], 3),
-            "word": w["text"]
-        })
+    # Load diarization
+    with open(diarization_json_path, "r", encoding="utf-8") as f:
+        diarization_segments = json.load(f)
 
-    results.append({
-        "speaker": speaker,
-        "start": round(seg["start"], 3),
-        "end": round(seg["end"], 3),
-        "words": word_list,
-        "text": " ".join([w["word"] for w in word_list])
-    })
+    model = get_whisper_model(model_size=model_size, device=device)
 
-# ------------------------------
-# 6. Save JSON
-# ------------------------------
-OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2)
+    all_segments: List[Dict] = []
 
-print(f"✅ Segment-level word-level transcript saved to {OUTPUT_FILE}")
-print(f"Total diarized segments: {len(results)}")
+    for seg in diarization_segments:
+        start_sec = float(seg["start"])
+        end_sec = float(seg["end"])
+        speaker = seg["speaker"]
+
+        if end_sec <= start_sec:
+            continue
+
+        start_frame = int(start_sec * sr)
+        end_frame = int(end_sec * sr)
+
+        segment_waveform = waveform[:, start_frame:end_frame]
+        if segment_waveform.numel() == 0:
+            continue
+
+        segment_audio = segment_waveform.squeeze().numpy()
+
+        segments, _ = model.transcribe(
+            segment_audio,
+            beam_size=5,
+            language=language,
+            word_timestamps=False
+        )
+
+        for s in segments:
+            all_segments.append({
+                "start": s.start + start_sec,
+                "end": s.end + start_sec,
+                "speaker": speaker,
+                "text": s.text.strip()
+            #'''""""words": [{"word": w.word,"start": w.start + start_sec,"end": w.end + start_sec}(s.words or [])] '''
+            })
+
+
+
+    # Critical: global ordering
+    all_segments.sort(key=lambda x: x["start"])
+    return all_segments
+
+def save_transcript_with_speakers(
+    segments: List[Dict],
+    output_path: Path
+):
+    """
+    Save final transcript_with_speakers.json for UI.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(segments, f, indent=2, ensure_ascii=False)
+
+    print("Transcript with speakers saved at:")
+    print(output_path.resolve())

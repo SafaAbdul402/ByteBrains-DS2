@@ -1,45 +1,60 @@
+import subprocess
 from pathlib import Path
-import numpy as np
-import librosa
-import soundfile as sf
-
-from src.utils.io import ensure_dir, safe_stem
-from src.utils.paths import RECORDINGS, SUPPORTED_AUDIO_EXTS, PROCESSED_AUDIO
+import torchaudio
 
 
-def get_latest_recording() -> Path:
-    files = [
-        p for p in RECORDINGS.iterdir()
-        if p.suffix.lower() in SUPPORTED_AUDIO_EXTS
+SUPPORTED_INPUT_EXTENSIONS = [
+    ".wav", ".mp3", ".mp4", ".m4a", ".aac",
+    ".ogg", ".flac", ".webm", ".mkv", ".mov"
+]
+
+
+def convert_any_to_wav(input_audio: Path, output_wav: Path) -> None:
+    """
+    Convert ANY audio/video file to 16kHz mono WAV using ffmpeg.
+    """
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", str(input_audio),
+        "-vn",
+        "-ac", "1",
+        "-ar", "16000",
+        "-f", "wav",
+        str(output_wav)
     ]
-    if not files:
-        raise RuntimeError("No supported audio files found in data/recordings")
-    return max(files, key=lambda p: p.stat().st_mtime)
+
+    subprocess.run(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False
+    )
+
+    if not output_wav.exists():
+        raise RuntimeError(f"FFmpeg failed to convert: {input_audio}")
 
 
-def preprocess_latest_to_wav16k() -> Path:
+def preprocess_audio(input_audio: Path, output_wav: Path) -> Path:
     """
-    Take the latest recording and convert to mono 16k WAV.
+    Normalize ANY input audio to 16kHz mono WAV.
     """
-    ensure_dir(PROCESSED_AUDIO)
 
-    latest = get_latest_recording()
-    out = PROCESSED_AUDIO / f"{safe_stem(latest)}_16k.wav"
+    if not input_audio.exists():
+        raise FileNotFoundError(input_audio)
 
-    if out.exists():
-        print("Preprocessed audio already exists, skipping preprocessing.")
-        return out
+    output_wav.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Preprocessing latest audio: {latest}")
+    # Always convert (even wav → normalized wav)
+    convert_any_to_wav(input_audio, output_wav)
 
-    y, sr = librosa.load(str(latest), sr=None, mono=True)
+    # Final safety check
+    waveform, sr = torchaudio.load(output_wav)
 
     if sr != 16000:
-        y = librosa.resample(y, orig_sr=sr, target_sr=16000)
+        waveform = torchaudio.functional.resample(waveform, sr, 16000)
 
-    peak = float(np.max(np.abs(y))) if y.size else 0.0
-    if peak > 0:
-        y = 0.95 * y / peak
+    torchaudio.save(output_wav, waveform, 16000)
 
-    sf.write(out, y, 16000)
-    return out
+    return output_wav

@@ -4,6 +4,9 @@ __pycache__/
 
 # Virtual environment
 .venv/
+.env
+pyannote/
+venv/
 
 # PyCharm settings
 .idea/
