@@ -1,59 +1,60 @@
 import subprocess
 from pathlib import Path
-from tqdm import tqdm
-
-# ===============================
-# PATH CONFIG
-# ===============================
-
-INPUT_DIR = Path("data/recordings")
-OUTPUT_DIR = Path("data/outputs/processed_audio")
-
-TARGET_SR = 16000
-TARGET_CHANNELS = 1  # mono
-
-SUPPORTED_EXTENSIONS = {
-    ".wav", ".mp3", ".mp4", ".m4a",
-    ".aac", ".flac", ".ogg", ".webm"
-}
+import torchaudio
 
 
-def preprocess_all_audio():
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+SUPPORTED_INPUT_EXTENSIONS = [
+    ".wav", ".mp3", ".mp4", ".m4a", ".aac",
+    ".ogg", ".flac", ".webm", ".mkv", ".mov"
+]
 
-    files = [
-        f for f in INPUT_DIR.iterdir()
-        if f.suffix.lower() in SUPPORTED_EXTENSIONS
+
+def convert_any_to_wav(input_audio: Path, output_wav: Path) -> None:
+    """
+    Convert ANY audio/video file to 16kHz mono WAV using ffmpeg.
+    """
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", str(input_audio),
+        "-vn",
+        "-ac", "1",
+        "-ar", "16000",
+        "-f", "wav",
+        str(output_wav)
     ]
 
-    if not files:
-        print("❌ No audio/video files found in data/recordings")
-        return
+    subprocess.run(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False
+    )
 
-    print(f"🎧 Processing {len(files)} files...\n")
-
-    for file in tqdm(files):
-        output_file = OUTPUT_DIR / f"{file.stem}.wav"
-
-        command = [
-            "ffmpeg",
-            "-y",
-            "-i", str(file),
-            "-ac", str(TARGET_CHANNELS),
-            "-ar", str(TARGET_SR),
-            "-vn",
-            str(output_file)
-        ]
-
-        subprocess.run(
-            command,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
-    print("\n✅ All files processed successfully!")
-    print(f"📂 Output folder: {OUTPUT_DIR}")
+    if not output_wav.exists():
+        raise RuntimeError(f"FFmpeg failed to convert: {input_audio}")
 
 
-if __name__ == "__main__":
-    preprocess_all_audio()
+def preprocess_audio(input_audio: Path, output_wav: Path) -> Path:
+    """
+    Normalize ANY input audio to 16kHz mono WAV.
+    """
+
+    if not input_audio.exists():
+        raise FileNotFoundError(input_audio)
+
+    output_wav.parent.mkdir(parents=True, exist_ok=True)
+
+    # Always convert (even wav → normalized wav)
+    convert_any_to_wav(input_audio, output_wav)
+
+    # Final safety check
+    waveform, sr = torchaudio.load(output_wav)
+
+    if sr != 16000:
+        waveform = torchaudio.functional.resample(waveform, sr, 16000)
+
+    torchaudio.save(output_wav, waveform, 16000)
+
+    return output_wav
