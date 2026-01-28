@@ -1,14 +1,16 @@
 from pathlib import Path
 import json
+import os
 from typing import Dict, List, Any
 from Backend.config import RUNS_DIR
 from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
+import requests
 
+API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "byte-test-tk")
 
 def vr_process(meeting_id: str) -> dict:
     run_dir = RUNS_DIR / meeting_id
-
-    # VR team handles EVERYTHING internally
     process_meeting(run_dir)
 
     return {
@@ -17,8 +19,7 @@ def vr_process(meeting_id: str) -> dict:
         "status": json.loads((run_dir / "status.json").read_text()),
     }
 
-
-def n8n_run(transcript: Any, speaker_mapping: Dict[str, Any], profiles: List[dict], meeting_id: str,) -> Dict[str, Any]:
+def n8n_run(transcript: Any, speaker_mapping: Dict[str, Any], profiles: List[dict], meeting_id: str) -> Dict[str, Any]:
     payload = {
         "meeting_id": meeting_id,
         "transcript": transcript,
@@ -26,10 +27,11 @@ def n8n_run(transcript: Any, speaker_mapping: Dict[str, Any], profiles: List[dic
         "profiles": profiles,
     }
 
-    # TODO: requests.post(n8n_webhook_url, json=payload).json()
-    return {
-        "summary": "Short summary...",
-        "notes": "• Decision 1...\n• Decision 2...",
-        "email_draft": "Hi all,\n\nThanks for today...\n\nBest,",
-        "tasks": [],
-    }
+    r = requests.post(
+        f"{API_BASE}/n8n/start/{meeting_id}",
+        json=payload,
+        headers={"X-BB-SECRET": TEST_SHARED_SECRET},
+        timeout=60,
+    )
+    r.raise_for_status()
+    return r.json()

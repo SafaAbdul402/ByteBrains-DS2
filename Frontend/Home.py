@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from Backend.pipeline_stub import vr_process, n8n_run
+from Backend.pipeline_stub import vr_process
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
@@ -46,6 +46,59 @@ def profile_state(p: dict) -> str:
     if role_ok and skills_ok:
         return "eligible"
     return "incomplete"
+
+#n8n status updates:
+STATUS_PROGRESS = {
+    "n8n": 0.45,
+    "input": 0.50,
+    "summary": 0.65,
+    "tasks": 0.80,
+    "trello": 0.90,
+    "done": 1.0,
+}
+
+STATUS_LABELS = {
+    "n8n": "n8n: Workflow started...",
+    "input": "n8n: Input received...",
+    "summary": "n8n: Creating summary...",
+    "tasks": "n8n: Extracting tasks...",
+    "trello": "n8n: Creating Trello cards...",
+    "done": "n8n: Finished.",
+}
+
+def apply_n8n_status(status: dict):
+    text = (status.get("text") or status.get("status") or "").strip()
+    low = text.lower()
+
+    matched_key = None
+    for key in STATUS_PROGRESS.keys():
+        if key in low:
+            matched_key = key
+            break
+
+    if matched_key:
+        st.session_state.status_text = STATUS_LABELS.get(matched_key, f"n8n: {text}")
+        st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[matched_key])
+    else:
+        st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
+
+def api_get_n8n_status(meeting_id: str) -> dict:
+    r = requests.get(
+        f"{API_BASE}/n8n/status/{meeting_id}",
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json()
+
+def api_get_n8n_result(meeting_id: str) -> dict:
+    r = requests.get(
+        f"{API_BASE}/n8n/result/{meeting_id}",
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json()
 
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
@@ -82,6 +135,10 @@ if "file_buffer" not in st.session_state:
     st.session_state.file_buffer = None
 if "team_demo_override" not in st.session_state:
     st.session_state.team_demo_override = None
+if "n8n_started" not in st.session_state:
+    st.session_state.n8n_started = False
+if "n8n_poll_count" not in st.session_state:
+    st.session_state.n8n_poll_count = 0
 if st.session_state.workflow_step == "READY":
     try:
         st.session_state.team = api_get_profiles().get("team", [])
@@ -109,6 +166,7 @@ def reset_session():
     st.session_state.file_buffer = None
     st.session_state.participants = None
     st.session_state.team_demo_override = None
+    st.session_state.n8n_started = False
 
 def request_cancel():
     st.session_state.cancel_requested = True
@@ -174,7 +232,7 @@ with left:
     else:
         file = st.file_uploader(
             "Meeting Recording:",
-            type=["wav", "mp3"],
+            type=["wav", "mp3", "m4a"],
             key=f"uploader_{st.session_state.upload_key}",
         )
 
@@ -216,6 +274,24 @@ with left:
         st.session_state.status_text = "Processing meeting..."
         st.session_state.progress = 0.1
         st.session_state.workflow_step = "VR_TRANSCRIPTION"
+        st.rerun()
+
+    if st.button("Skip VR (demo)", use_container_width=True):
+        st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
+        run_dir = RUNS_DIR / st.session_state.meeting_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        # fake vr_result so UI can continue
+        st.session_state.vr_result = {
+            "speakers": ["Speaker 0", "Speaker 1"],
+            "transcript": [
+                {"speaker": "Speaker 0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
+                {"speaker": "Speaker 1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
+            ],
+        }
+
+        st.session_state.detected_speakers = st.session_state.vr_result["speakers"]
+        st.session_state.workflow_step = "UI_ASSIGNMENT_2"
         st.rerun()
 
     ###Track Status
@@ -394,7 +470,7 @@ with right:
         with c1:
             confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
 
-            if confirm and all_assigned:
+            if confirm and all_assigned and not st.session_state.n8n_started:
                 log("Speaker assignment confirmed")
 
                 transcript = st.session_state.vr_result.get("transcript")
@@ -404,16 +480,29 @@ with right:
 
                 speaker_mapping = st.session_state.speaker_mapping
 
+                st.session_state.n8n_started = True
+
                 # Pass-through to n8n (no final transcript building)
                 profiles = eligible_profiles
-                st.session_state.n8n_result = n8n_run(
-                    transcript=transcript,
-                    speaker_mapping=speaker_mapping,
-                    profiles=profiles,
-                    meeting_id=meeting_id,
-                )
+                payload = {
+                    "meeting_id": meeting_id,
+                    "transcript": transcript,
+                    "speaker_mapping": speaker_mapping,
+                    "profiles": profiles,
+                }
 
-                st.session_state.workflow_step = "n8n_SUMMARIZING"
+                # call backend to start the workflow
+                r = requests.post(
+                    f"{API_BASE}/n8n/start/{meeting_id}",
+                    json=payload,
+                    headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+                    timeout=20,
+                )
+                r.raise_for_status()
+
+                st.session_state.workflow_step = "n8n_RUNNING"
+                st.session_state.progress = max(st.session_state.progress, 0.45)
+                st.session_state.status_text = "n8n: Workflow started..."
                 st.rerun()
 
         with c2:
@@ -425,47 +514,71 @@ with right:
                     st.session_state.team_demo_override = demo_profiles
                     st.success("Switched to completed demo profiles.")
                     st.rerun()
+
+if st.session_state.workflow_step == "n8n_RUNNING":
+    st.session_state.n8n_poll_count += 1
+
+    status = api_get_n8n_status(st.session_state.meeting_id)
+    apply_n8n_status(status)
+
+    text = (status.get("text") or status.get("status") or "").lower()
+
+    if "error" in text:
+        st.error(f"n8n error: {status}")
+        st.stop()
+
+    if "done" in text:
+        result = api_get_n8n_result(st.session_state.meeting_id)
+        if result:
+            st.session_state.n8n_result = result
+        st.session_state.progress = 1.0
+        st.session_state.status_text = "n8n: Finished."
+        st.session_state.workflow_step = "DONE"
+        st.rerun()
+
+    time.sleep(1.0)
+    st.rerun()
         
 
-if st.session_state.workflow_step == "n8n_SUMMARIZING":
-    st.session_state.status_text = "Summarizing Meeting Transcript..."
-    st.session_state.progress = 0.5
-    log("Meeting Summary")
-
-    st.session_state.workflow_step = "n8n_NOTES"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_NOTES":
-    st.session_state.status_text = "Creating Meeting Notes..."
-    st.session_state.progress = 0.6
-    log("Meeting Notes")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_TASK_EXTR"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_TASK_EXTR":
-    st.session_state.status_text = "Extracting Tasks..."
-    st.session_state.progress = 0.7
-    log("Task Extraction")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_TASK_ASSI"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_TASK_ASSI":
-    st.session_state.status_text = "Assigning Tasks..."
-    st.session_state.progress = 0.8
-    log("Task Assignment")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_MAIL"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_MAIL":
-    st.session_state.status_text = "Writing E-Mail Draft..."
-    st.session_state.progress = 0.9
-    log("Mail Draft")
-    time.sleep(1)
-    st.session_state.workflow_step = "DONE"
-    st.rerun()
+#if st.session_state.workflow_step == "n8n_SUMMARIZING":
+#    st.session_state.status_text = "Summarizing Meeting Transcript..."
+#    st.session_state.progress = 0.5
+#    log("Meeting Summary")
+#
+#    st.session_state.workflow_step = "n8n_NOTES"
+#    st.rerun()
+#
+#if st.session_state.workflow_step == "n8n_NOTES":
+#    st.session_state.status_text = "Creating Meeting Notes..."
+#    st.session_state.progress = 0.6
+#    log("Meeting Notes")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_TASK_EXTR"
+#    st.rerun()
+#
+#if st.session_state.workflow_step == "n8n_TASK_EXTR":
+#    st.session_state.status_text = "Extracting Tasks..."
+#    st.session_state.progress = 0.7
+#    log("Task Extraction")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_TASK_ASSI"
+#    st.rerun()
+#
+#if st.session_state.workflow_step == "n8n_TASK_ASSI":
+#    st.session_state.status_text = "Assigning Tasks..."
+#    st.session_state.progress = 0.8
+#   log("Task Assignment")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_MAIL"
+#    st.rerun()
+#
+#if st.session_state.workflow_step == "n8n_MAIL":
+#    st.session_state.status_text = "Writing E-Mail Draft..."
+#   st.session_state.progress = 0.9
+#    log("Mail Draft")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "DONE"
+#    st.rerun()
 
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"
