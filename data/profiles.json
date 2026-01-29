@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-01-28T21:13:21",
+  "updated_at": "2026-01-29T11:55:13",
   "team": [
     {
       "id": "trello-691cfb6877a5455b0f060b6b",
@@ -9,7 +9,8 @@
       "email": "",
       "role": "AI Engineer",
       "skills": [
-        "Python"
+        "Python",
+        "Voice Recognition"
       ],
       "notes": "",
       "photo": null,
@@ -101,5 +102,5 @@
     }
   ],
   "trello_board": "https://trello.com/b/yXS7VY3T/bytebrains-dsii",
-  "trello_last_sync": "2026-01-28T21:12:49"
+  "trello_last_sync": "2026-01-29T11:54:49"
 }

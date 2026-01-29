@@ -401,7 +401,7 @@ with right:
         options = ["— Select person —", "Noise / Ignore"] + team_members
 
         # --- Locate speaker audio folder (Option B)
-        speakers_audio_dir = RUNS_DIR / meeting_id / "speakers_audio"
+        speakers_audio_dir = RUNS_DIR / meeting_id / "speaker_audio"
 
         def find_speaker_wavs(speaker_id: str) -> list[Path]:
             """
@@ -446,10 +446,10 @@ with right:
 
             with col_profile:
                 selection = st.selectbox(
-                    "",
+                    "Assign speaker",
                     options,
                     key=f"assign_{meeting_id}_{speaker}",
-                    placeholder="Select person",
+                    label_visibility="collapsed",
                 )
 
                 st.session_state.speaker_mapping[speaker] = (
