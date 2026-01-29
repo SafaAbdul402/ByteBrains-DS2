@@ -5,6 +5,7 @@ import time
 import json
 import os
 import sys
+import re
 from datetime import datetime
 import requests
 from pathlib import Path
@@ -46,6 +47,38 @@ def profile_state(p: dict) -> str:
     if role_ok and skills_ok:
         return "eligible"
     return "incomplete"
+
+def pretty_speaker_label(raw: str, scheme: str = "letters") -> str:
+    """
+    raw: e.g. 'SPEAKER_0' or filename stem like 'SPEAKER_0'
+    scheme:
+      - "letters": Speaker A, Speaker B, ...
+      - "numbers": Speaker 1, Speaker 2, ...
+    """
+    if not raw:
+        return "Speaker"
+
+    # try to extract the number at the end
+    m = re.search(r"(\d+)$", raw)
+    if not m:
+        # fallback: just normalize SPEAKER_ -> Speaker _
+        return raw.replace("SPEAKER_", "Speaker ").replace("_", " ")
+
+    idx = int(m.group(1))  # SPEAKER_0 -> 0
+
+    if scheme == "numbers":
+        return f"Speaker {idx + 1}"
+
+    # letters: 0->A, 1->B ... (supports beyond Z -> AA, AB ...)
+    def idx_to_letters(i: int) -> str:
+        letters = ""
+        i += 1
+        while i > 0:
+            i, rem = divmod(i - 1, 26)
+            letters = chr(65 + rem) + letters
+        return letters
+
+    return f"Speaker {idx_to_letters(idx)}"
 
 #n8n status updates:
 STATUS_PROGRESS = {
@@ -430,14 +463,15 @@ with right:
             col_speaker, col_profile = st.columns([2, 3])
 
             with col_speaker:
-                st.markdown(f"**{speaker}**")
+                st.markdown(f"**{pretty_speaker_label(speaker, scheme='letters')}**")
+                #st.caption(f"Internal ID: {speaker}")  # optional, remove if you don’t want it shown            
 
                 wavs = find_speaker_wavs(speaker)
                 if wavs:
                     # Show a few snippets (avoid flooding UI)
                     max_snippets = 5
                     for w in wavs[:max_snippets]:
-                        st.caption(w.name)
+                        #st.caption(w.name)
                         st.audio(str(w), format="audio/wav")
                     if len(wavs) > max_snippets:
                         st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
