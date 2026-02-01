@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "meeting_id": "meeting-1769642977",
+  "latest": {
+    "type": "Error",
+    "text": "n8n call failed: Invalid URL '...': No scheme supplied. Perhaps you meant https://...?"
+  },
+  "timeline": [
+    {
+      "at": "2026-01-29 00:30:30",
+      "type": "Status",
+      "text": "n8n"
+    },
+    {
+      "at": "2026-01-29 00:30:31",
+      "type": "Error",
+      "text": "n8n call failed: Invalid URL '...': No scheme supplied. Perhaps you meant https://...?"
+    }
+  ],
+  "updated_at": "2026-01-29 00:30:31",
+  "result": null
+}

@@ -265,7 +265,7 @@ with left:
     else:
         file = st.file_uploader(
             "Meeting Recording:",
-            type=["wav", "mp3", "m4a"],
+            type=["wav", "mp3", "m4a", "mp4"],
             key=f"uploader_{st.session_state.upload_key}",
         )
 
