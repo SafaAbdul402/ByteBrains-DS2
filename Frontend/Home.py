@@ -25,7 +25,7 @@ from Backend.pipeline_stub import vr_process
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_profiles():

@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 
 def api_get_settings():
     r = requests.get(f"{API_BASE}/settings", timeout=10)

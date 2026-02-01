@@ -3,4 +3,4 @@ uvicorn
 requests
 python-dotenv
 pydantic
-streamlit
+streamlit>=1.30

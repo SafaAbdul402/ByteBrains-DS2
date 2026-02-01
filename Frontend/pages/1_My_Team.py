@@ -5,7 +5,7 @@ import uuid
 import json
 import requests
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
