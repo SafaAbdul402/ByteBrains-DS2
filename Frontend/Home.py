@@ -9,23 +9,9 @@ import re
 from datetime import datetime
 import requests
 from pathlib import Path
+from Frontend.auth import require_password
 
-APP_PASSWORD = os.getenv("APP_PASSWORD")
-
-def require_password():
-    if not APP_PASSWORD:
-        return  # no password configured
-
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
-
-    if not st.session_state.authenticated:
-        pw = st.text_input("Enter app password", type="password")
-        if pw == APP_PASSWORD:
-            st.session_state.authenticated = True
-            st.rerun()
-        else:
-            st.stop()
+require_password()
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:

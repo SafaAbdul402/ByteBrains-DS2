@@ -1,5 +1,7 @@
 import streamlit as st
 import requests
+import os
+from Frontend.auth import require_password
 
 require_password()
 

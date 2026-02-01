@@ -7,10 +7,15 @@ import requests
 import streamlit as st
 from Backend.config import MEETINGS_PATH, RUNS_DIR
 from pathlib import Path
+from Frontend.auth import require_password
 
 require_password()
 
-run_dir = RUNS_DIR / meeting["meeting_id"]
+meeting_id = st.session_state.get("meeting_id")
+if not meeting_id:
+    st.error("No meeting selected.")
+
+run_dir = RUNS_DIR / meeting_id
 transcript_path = run_dir / "vr_transcript.json"
 
 st.set_page_config(page_title="Meetings / Results", layout="wide")
