@@ -118,7 +118,7 @@ def apply_n8n_status(status: dict):
 def api_get_n8n_status(meeting_id: str) -> dict:
     r = requests.get(
         f"{API_BASE}/n8n/status/{meeting_id}",
-        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
         timeout=10,
     )
     r.raise_for_status()
@@ -127,7 +127,7 @@ def api_get_n8n_status(meeting_id: str) -> dict:
 def api_get_n8n_result(meeting_id: str) -> dict:
     r = requests.get(
         f"{API_BASE}/n8n/result/{meeting_id}",
-        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
         timeout=10,
     )
     r.raise_for_status()
@@ -529,7 +529,7 @@ with right:
                 r = requests.post(
                     f"{API_BASE}/n8n/start/{meeting_id}",
                     json=payload,
-                    headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+                    headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
                     timeout=20,
                 )
                 r.raise_for_status()

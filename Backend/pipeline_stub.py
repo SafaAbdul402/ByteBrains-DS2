@@ -7,7 +7,7 @@ from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
 import requests
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8000")
-TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "byte-test-tk")
+TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "")
 
 def _read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))

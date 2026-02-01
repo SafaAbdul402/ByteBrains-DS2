@@ -1,11 +1,12 @@
 import streamlit as st
 import requests
+import os
 
 st.set_page_config(page_title="HTTP Test (via FastAPI)", layout="centered")
 st.title("🔌 Test HTTP Connection (Streamlit → FastAPI → n8n)")
 
 API_BASE = "http://localhost:8000"   # FastAPI address (local for now)
-SECRET = "byte-test-tk"            # must match TEST_SHARED_SECRET in backend
+SECRET = os.getenv("TEST_SHARED_SECRET", "")            # must match TEST_SHARED_SECRET in backend
 
 st.caption("This page calls FastAPI, which then calls the n8n webhook and returns the response.")
 st.divider()
