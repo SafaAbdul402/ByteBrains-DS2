@@ -8,6 +8,8 @@ import streamlit as st
 from Backend.config import MEETINGS_PATH, RUNS_DIR
 from pathlib import Path
 
+require_password()
+
 run_dir = RUNS_DIR / meeting["meeting_id"]
 transcript_path = run_dir / "vr_transcript.json"
 

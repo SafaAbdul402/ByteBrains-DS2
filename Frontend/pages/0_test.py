@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import os
 
+require_password()
+
 st.set_page_config(page_title="HTTP Test (via FastAPI)", layout="centered")
 st.title("🔌 Test HTTP Connection (Streamlit → FastAPI → n8n)")
 
