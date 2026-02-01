@@ -10,6 +10,13 @@ from datetime import datetime
 import requests
 from pathlib import Path
 
+APP_PASSWORD = os.getenv("APP_PASSWORD")
+
+if APP_PASSWORD:
+    pw = st.text_input("Password", type="password")
+    if pw != APP_PASSWORD:
+        st.stop()
+
 REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
