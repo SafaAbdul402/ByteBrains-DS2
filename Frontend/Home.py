@@ -127,20 +127,19 @@ def apply_n8n_status(status: dict | None):
     st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
 
 def api_get_n8n_status(meeting_id: str) -> dict:
-    r = requests.get(
-        f"{API_BASE}/n8n/status/{meeting_id}",
-        timeout=10,
-    )
+    r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
     r.raise_for_status()
     return r.json()
 
-def api_get_n8n_result(meeting_id: str) -> dict:
-    r = requests.get(
-        f"{API_BASE}/n8n/result/{meeting_id}",
-        timeout=10,
-    )
-    r.raise_for_status()
-    return r.json()
+#def api_get_n8n_result(meeting_id: str) -> dict | None:
+#    r = requests.get(
+#        f"{API_BASE}/n8n/result/{meeting_id}",
+#        timeout=10,
+#    )
+#    if r.status_code == 404:
+#        return None   # result not ready yet
+#    r.raise_for_status()
+#    return r.json()
 
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
@@ -581,16 +580,15 @@ with right:
                     st.rerun()
 
 if st.session_state.workflow_step == "n8n_RUNNING":
-
     meeting_id = st.session_state.meeting_id
-    status = api_get_n8n_status(st.session_state.meeting_id)
-    apply_n8n_status(status)
-    result = api_get_n8n_result(st.session_state.meeting_id)
+    data = api_get_n8n_status(meeting_id)
 
-    # Check if result has the required fields (notes, email_draft, tasks)
-    has_result = bool(result and any(key in result for key in ["notes", "email_draft", "tasks"]))
-    
-    if has_result:
+    latest = data.get("latest")
+    result = data.get("result")
+
+    apply_n8n_status(latest)
+
+    if result:
         st.session_state.n8n_result = result
         st.session_state.status_text = "n8n: Finished."
         st.session_state.progress = 1.0
