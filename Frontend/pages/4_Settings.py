@@ -5,7 +5,7 @@ from Frontend.auth import require_password
 
 require_password()
 
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv("API_BASE", "")
 
 def api_get_settings():
     r = requests.get(f"{API_BASE}/settings", timeout=10)

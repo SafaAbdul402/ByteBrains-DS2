@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "meeting_id": "meeting-1770030502",
+  "latest": {
+    "message": "Workflow was started"
+  },
+  "timeline": [
+    {
+      "at": "2026-02-02 12:08:27",
+      "type": "Status",
+      "text": "n8n"
+    },
+    {
+      "at": "2026-02-02 12:08:27",
+      "message": "Workflow was started"
+    }
+  ],
+  "updated_at": "2026-02-02 12:08:27",
+  "result": null
+}

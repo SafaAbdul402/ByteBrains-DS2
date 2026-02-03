@@ -9,7 +9,7 @@ from Frontend.auth import require_password
 
 require_password()
 
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv("API_BASE", "")
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
@@ -128,7 +128,7 @@ with top_l:
     )
 
 with top_r:
-    if st.button("Update/Import members", use_container_width=True):
+    if st.button("Update/Import members", width="stretch"):
         api_sync_trello(st.session_state.trello_board)
         #st.session_state.show_add = True
         #reset_edit()
@@ -178,8 +178,8 @@ if edit_mode: #st.session_state.show_add or
                 )
                 st.caption("If empty, a default avatar is shown.")
 
-            save = st.form_submit_button("Save", use_container_width=True)
-            cancel = st.form_submit_button("Cancel", use_container_width=True)
+            save = st.form_submit_button("Save", width="stretch")
+            cancel = st.form_submit_button("Cancel", width="stretch")
 
         if cancel:
             #st.session_state.show_add = False
@@ -270,7 +270,7 @@ with st.expander("Table view", expanded=False):
             for m in st.session_state.team
         ]
     )
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
 if not st.session_state.team:
     st.warning("No team members yet. Pleaes import your Trello board members.")
@@ -307,7 +307,7 @@ else:
                             unsafe_allow_html=True,)
 
                         # Only clickable control:
-                        if st.button("Delete", key=f"del_{m['id']}", type="secondary", use_container_width=True):
+                        if st.button("Delete", key=f"del_{m['id']}", type="secondary", width="stretch"):
                             delete_member(m["id"])
                             st.rerun()
                     continue
@@ -340,11 +340,11 @@ else:
                         
                         top_l, top_r = st.columns([1, 1])
                         with top_l:
-                            if st.button("Edit", key=f"edit_{m['id']}", use_container_width=True):
+                            if st.button("Edit", key=f"edit_{m['id']}", width="stretch"):
                                 st.session_state.team_edit_id = m["id"]
                                 #st.session_state.show_add = False
                                 st.rerun()
                         with top_r:
-                            if st.button("Delete", key=f"del_{m['id']}", type="secondary", use_container_width=True):
+                            if st.button("Delete", key=f"del_{m['id']}", type="secondary", width="stretch"):
                                 delete_member(m["id"])
                                 st.rerun()

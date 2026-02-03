@@ -6,12 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from Backend.store import load_profiles, save_profiles
-from Backend.http_test import router as test_router
 from Backend.trello_router import router as trello_router
 from Backend.n8n_router import router as n8n_router
 
 app = FastAPI(title="ByteBrains Backend")
-app.include_router(test_router)
 app.include_router(trello_router)
 app.include_router(n8n_router)
 

@@ -6,7 +6,7 @@ from Backend.config import RUNS_DIR
 from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
 import requests
 
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv("API_BASE", "")
 TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "")
 
 def _read_json(path: Path) -> Any:
@@ -69,20 +69,3 @@ def vr_process(meeting_id: str) -> dict:
         "speaker_audio": speaker_audio,  # <— use this in Streamlit to play audio
         "status": meta_status,           # optional, can be None
     }
-
-def n8n_run(transcript: Any, speaker_mapping: Dict[str, Any], profiles: List[dict], meeting_id: str) -> Dict[str, Any]:
-    payload = {
-        "meeting_id": meeting_id,
-        "transcript": transcript,
-        "speaker_mapping": speaker_mapping,
-        "profiles": profiles,
-    }
-
-    r = requests.post(
-        f"{API_BASE}/n8n/start/{meeting_id}",
-        json=payload,
-        headers={"X-BB-SECRET": TEST_SHARED_SECRET},
-        timeout=60,
-    )
-    r.raise_for_status()
-    return r.json()

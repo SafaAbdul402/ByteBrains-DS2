@@ -21,7 +21,7 @@ from Backend.pipeline_stub import vr_process
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv("API_BASE", "")
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_profiles():
@@ -32,6 +32,7 @@ def api_get_profiles():
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
         return []
+    
     try:
         data = json.loads(PROFILES_COMPLETED_PATH.read_text(encoding="utf-8"))
         return data.get("team", []) if isinstance(data, dict) else []
@@ -102,26 +103,32 @@ STATUS_LABELS = {
     "done": "n8n: Finished.",
 }
 
-def apply_n8n_status(status: dict):
-    text = (status.get("text") or status.get("status") or "").strip()
-    low = text.lower()
+def apply_n8n_status(status: dict | None):
+    if not status:
+        st.session_state.status_text = "n8n: waiting for updates..."
+        return
 
-    matched_key = None
+    stage = (status.get("stage") or "").strip().lower()
+    text = (status.get("text") or status.get("status") or "").strip()
+
+    if stage in STATUS_PROGRESS:
+        st.session_state.status_text = STATUS_LABELS.get(stage, f"n8n: {text or stage}")
+        st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[stage])
+        return
+
+    # fallback keyword matching
+    low = re.sub(r"[^a-z0-9]", "", text.lower())
     for key in STATUS_PROGRESS.keys():
         if key in low:
-            matched_key = key
-            break
+            st.session_state.status_text = STATUS_LABELS.get(key, f"n8n: {text}")
+            st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[key])
+            return
 
-    if matched_key:
-        st.session_state.status_text = STATUS_LABELS.get(matched_key, f"n8n: {text}")
-        st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[matched_key])
-    else:
-        st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
+    st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
 
 def api_get_n8n_status(meeting_id: str) -> dict:
     r = requests.get(
         f"{API_BASE}/n8n/status/{meeting_id}",
-        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
         timeout=10,
     )
     r.raise_for_status()
@@ -130,7 +137,6 @@ def api_get_n8n_status(meeting_id: str) -> dict:
 def api_get_n8n_result(meeting_id: str) -> dict:
     r = requests.get(
         f"{API_BASE}/n8n/result/{meeting_id}",
-        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
         timeout=10,
     )
     r.raise_for_status()
@@ -175,11 +181,14 @@ if "n8n_started" not in st.session_state:
     st.session_state.n8n_started = False
 if "n8n_poll_count" not in st.session_state:
     st.session_state.n8n_poll_count = 0
-if st.session_state.workflow_step == "READY":
+
+if "team" not in st.session_state:
     try:
-        st.session_state.team = api_get_profiles().get("team", [])
-    except:
-        pass
+        data = api_get_profiles()
+        st.session_state.team = data.get("team", [])
+    except Exception as e:
+        st.session_state.team = []
+        st.session_state.logs.append(f"[ERROR] Failed to load team: {e}")
 
 # Block the site, if there are no team members
 #if len(st.session_state.team) == 0:
@@ -220,6 +229,23 @@ def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     audio_path.write_bytes(uploaded_file.getvalue())
     return str(audio_path)
 
+def build_speaker_mapping(raw_mapping: dict) -> dict:
+    final = {}
+
+    for speaker_id, value in raw_mapping.items():
+        if value == "Noise / Ignore":
+            final[speaker_id] = {
+                "assigned_to": None,
+                "ignored": True,
+            }
+        else:
+            final[speaker_id] = {
+                "assigned_to": value,
+                "ignored": False,
+            }
+
+    return final
+
 
 st.title("ByteBrains – AI Meeting Assistant")
 
@@ -255,7 +281,7 @@ with left:
         st.warning("No eligible profiles found for speaker mapping.")
         st.info("Please complete profiles in 'My Team' first.")
 
-        if st.button("Use completed profiles (demo)", use_container_width=True):
+        if st.button("Use completed profiles (demo)", width="stretch"):
             demo_profiles = load_completed_profiles()
             if not demo_profiles:
                 st.error("profiles_complete.json not found or empty.")
@@ -287,7 +313,7 @@ with left:
 
     start_disabled = (st.session_state.file_buffer is None) or (participants is None) or (participants < 1)
 
-    if st.button("Start processing", type="primary", disabled=start_disabled, use_container_width=True):
+    if st.button("Start processing", type="primary", disabled=start_disabled, width="stretch"):
         log("Start clicked → saving audio + meeting_meta.json")
 
         st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
@@ -312,7 +338,7 @@ with left:
         st.session_state.workflow_step = "VR_TRANSCRIPTION"
         st.rerun()
 
-    if st.button("Skip VR (demo)", use_container_width=True):
+    if st.button("Skip VR (demo)", width="stretch"):
         st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
         run_dir = RUNS_DIR / st.session_state.meeting_id
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -337,7 +363,7 @@ with left:
     with status_container:
         status_placeholder.status(
             st.session_state.status_text,
-            state="running" if st.session_state.workflow_step not in ["READY","DONE","NEXT"] else "complete",
+            state="complete" if st.session_state.workflow_step in ["DONE","NEXT"] else "running",
             expanded=True
         )
         st.progress(st.session_state.progress)
@@ -348,12 +374,12 @@ with left:
         c1, c2 = st.columns([1, 1])
         with c1:
             label = "Pause" if not st.session_state.paused else "Resume"
-            if st.button(label, use_container_width=True):
+            if st.button(label, width="stretch"):
                 toggle_pause()
                 st.rerun()
 
         with c2:
-            if st.button("Cancel", type="secondary", use_container_width=True):
+            if st.button("Cancel", type="secondary", width="stretch"):
                 request_cancel()
                 reset_session()
                 st.rerun()
@@ -366,7 +392,7 @@ with left:
                 st.rerun()
 
         with col_b:
-            if st.button("*View Results*", type="primary", use_container_width=True):
+            if st.button("*View Results*", type="primary", width="stretch"):
                 st.rerun()
 
     st.divider()
@@ -515,7 +541,7 @@ with right:
                     st.error("No transcript returned from Voice Recognition module.")
                     st.stop()
 
-                speaker_mapping = st.session_state.speaker_mapping
+                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
 
                 st.session_state.n8n_started = True
 
@@ -528,18 +554,20 @@ with right:
                     "profiles": profiles,
                 }
 
-                # call backend to start the workflow
                 r = requests.post(
                     f"{API_BASE}/n8n/start/{meeting_id}",
-                    json=payload,
-                    headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "")},
+                    json={
+                        "meeting_id": meeting_id,
+                        "transcript": transcript,
+                        "speaker_mapping": speaker_mapping,
+                        "profiles": profiles,
+                    },
                     timeout=20,
                 )
-                r.raise_for_status()
+                #r.raise_for_status()
 
                 st.session_state.workflow_step = "n8n_RUNNING"
                 st.session_state.progress = max(st.session_state.progress, 0.45)
-                st.session_state.status_text = "n8n: Workflow started..."
                 st.rerun()
 
         with c2:
@@ -553,27 +581,31 @@ with right:
                     st.rerun()
 
 if st.session_state.workflow_step == "n8n_RUNNING":
-    st.session_state.n8n_poll_count += 1
 
+    meeting_id = st.session_state.meeting_id
     status = api_get_n8n_status(st.session_state.meeting_id)
     apply_n8n_status(status)
+    result = api_get_n8n_result(st.session_state.meeting_id)
 
-    text = (status.get("text") or status.get("status") or "").lower()
-
-    if "error" in text:
-        st.error(f"n8n error: {status}")
-        st.stop()
-
-    if "done" in text:
-        result = api_get_n8n_result(st.session_state.meeting_id)
-        if result:
-            st.session_state.n8n_result = result
-        st.session_state.progress = 1.0
+    # Check if result has the required fields (notes, email_draft, tasks)
+    has_result = bool(result and any(key in result for key in ["notes", "email_draft", "tasks"]))
+    
+    if has_result:
+        st.session_state.n8n_result = result
         st.session_state.status_text = "n8n: Finished."
+        st.session_state.progress = 1.0
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    time.sleep(1.0)
+    # Optional safety timeout
+    st.session_state.n8n_poll_count += 1
+    if st.session_state.n8n_poll_count > 300:
+        st.error("n8n timeout (no result received after 300 polls)")
+        st.info("Make sure your n8n workflow sends a POST to `/n8n/update/{meeting_id}` with 'notes', 'email_draft', or 'tasks' fields at the end.")
+        st.stop()
+
+    poll_delay = min(1.0 + st.session_state.n8n_poll_count * 0.05, 3.0)
+    time.sleep(poll_delay)
     st.rerun()
         
 

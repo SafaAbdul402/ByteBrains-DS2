@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "meeting_id": "meeting-1769986291",
+  "latest": {
+    "type": "Error",
+    "text": "n8n call failed: 404 Client Error: Not Found for url: http://localhost:5678/webhook/bytebrains-test"
+  },
+  "timeline": [
+    {
+      "at": "2026-02-01 23:51:52",
+      "type": "Status",
+      "text": "n8n"
+    },
+    {
+      "at": "2026-02-01 23:51:53",
+      "type": "Error",
+      "text": "n8n call failed: 404 Client Error: Not Found for url: http://localhost:5678/webhook/bytebrains-test"
+    }
+  ],
+  "updated_at": "2026-02-01 23:51:53",
+  "result": null
+}

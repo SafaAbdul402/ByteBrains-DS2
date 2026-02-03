@@ -47,6 +47,7 @@ VoiceRecognitionModule/data/segments/
 .venv-vr/
 
 # run artifacts
+data/n8n_status/
 data/runs/
 VoiceRecognitionModule/data/runs/
 
