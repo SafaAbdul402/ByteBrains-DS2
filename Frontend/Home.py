@@ -678,7 +678,7 @@ if st.session_state.workflow_step == "DONE":
     st.session_state["selected_meeting_id"] = st.session_state.meeting_id
 
     # 4) Navigate
-    st.switch_page("Frontend/pages/2_Meetings.py")
+    st.switch_page("pages/2_Meetings.py")
     
 
     

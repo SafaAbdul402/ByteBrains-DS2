@@ -1,0 +1,42 @@
+[
+  {
+    "meeting_id": "meeting-1770122423",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-03 13:40",
+    "notes": "Meeting summary created by n8n (dummy).",
+    "email_draft": "Hi team,\n\nThanks for the meeting. Here are the next steps...\n\nBest",
+    "tasks": [
+      {
+        "task": "Prepare project plan",
+        "assigned_to": "Alice",
+        "deadline": "2026-02-10",
+        "reason": "Project coordination",
+        "status": "Open"
+      }
+    ],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770122115",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-03 13:36",
+    "notes": "Meeting summary created by n8n (dummy).",
+    "email_draft": "Hi team,\n\nThanks for the meeting. Here are the next steps...\n\nBest",
+    "tasks": [
+      {
+        "task": "Prepare project plan",
+        "assigned_to": "Alice",
+        "deadline": "2026-02-10",
+        "reason": "Project coordination",
+        "status": "Open"
+      }
+    ],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  }
+]

@@ -14,8 +14,8 @@ from Backend.config import DATA_DIR
 
 router = APIRouter(prefix="/n8n", tags=["n8n"])
 
-N8N_WEBHOOK = os.getenv("N8N_TEST", "")    
-#N8N_WEBHOOK = os.getenv("N8N_WEBHOOK", "")         
+#N8N_WEBHOOK = os.getenv("N8N_TEST", "")    
+N8N_WEBHOOK = os.getenv("N8N_WEBHOOK", "")         
 #TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "")
 API_BASE = os.getenv("API_BASE", "")
 
