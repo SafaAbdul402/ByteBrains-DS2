@@ -6,13 +6,19 @@ import json
 import os
 import sys
 import re
+import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
 from Frontend.auth import require_password
 
+# Suppress specific warnings
+warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")
+warnings.filterwarnings("ignore", message="Module 'speechbrain.pretrained'")
+
 require_password()
 
+# Path configuration
 REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -26,6 +32,11 @@ PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
+    r.raise_for_status()
+    return r.json()
+
+def api_get_n8n_status(meeting_id: str) -> dict:
+    r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
     r.raise_for_status()
     return r.json()
 
@@ -53,12 +64,6 @@ def profile_state(p: dict) -> str:
     return "incomplete"
 
 def pretty_speaker_label(raw: str, scheme: str = "letters") -> str:
-    """
-    raw: e.g. 'SPEAKER_0' or filename stem like 'SPEAKER_0'
-    scheme:
-      - "letters": Speaker A, Speaker B, ...
-      - "numbers": Speaker 1, Speaker 2, ...
-    """
     if not raw:
         return "Speaker"
 
@@ -104,42 +109,97 @@ STATUS_LABELS = {
 }
 
 def apply_n8n_status(status: dict | None):
+    """
+    Update session state with n8n status information
+    Logs detailed debugging information for n8n communication
+    """
+    timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+    
     if not status:
         st.session_state.status_text = "n8n: waiting for updates..."
+        log(f"[{timestamp}] [n8n] No status received - waiting for updates")
         return
 
     stage = (status.get("stage") or "").strip().lower()
     text = (status.get("text") or status.get("status") or "").strip()
+    
+    # Log the raw status received from n8n
+    log(f"[{timestamp}] [n8n→Streamlit] Received status: stage='{stage}', text='{text}'")
+    #log(f"[{timestamp}] [n8n→Streamlit] Full payload: {json.dumps(status, indent=2)}")
 
     if stage in STATUS_PROGRESS:
         st.session_state.status_text = STATUS_LABELS.get(stage, f"n8n: {text or stage}")
         st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[stage])
+        log(f"[{timestamp}] [n8n] Stage '{stage}' recognized - Progress: {STATUS_PROGRESS[stage]:.0%}")
         return
 
-    # fallback keyword matching
+    # Fallback: keyword matching
     low = re.sub(r"[^a-z0-9]", "", text.lower())
     for key in STATUS_PROGRESS.keys():
         if key in low:
             st.session_state.status_text = STATUS_LABELS.get(key, f"n8n: {text}")
             st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[key])
+            log(f"[{timestamp}] [n8n] Keyword '{key}' matched in text - Progress: {STATUS_PROGRESS[key]:.0%}")
             return
 
     st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
+    log(f"[{timestamp}] [n8n] No stage match - using text: '{text}'")
 
-def api_get_n8n_status(meeting_id: str) -> dict:
-    r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
-    r.raise_for_status()
-    return r.json()
+def log(msg):
+    """Add timestamped message to session logs"""
+    st.session_state.logs.append(msg)
 
-#def api_get_n8n_result(meeting_id: str) -> dict | None:
-#    r = requests.get(
-#        f"{API_BASE}/n8n/result/{meeting_id}",
-#        timeout=10,
-#    )
-#    if r.status_code == 404:
-#        return None   # result not ready yet
-#    r.raise_for_status()
-#    return r.json()
+def reset_session():
+    st.session_state.workflow_step = "READY"
+    st.session_state.status_text = "Ready"
+    st.session_state.progress = 0.0
+    st.session_state.speaker_mapping = {}
+    st.session_state.logs = []
+    st.session_state.cancel_requested = False
+    st.session_state.paused = False
+    st.session_state.last_uploaded_id = None
+    st.session_state.upload_key += 1
+    st.session_state.file_buffer = None
+    st.session_state.participants = None
+    st.session_state.team_demo_override = None
+    st.session_state.n8n_started = False
+    st.session_state.n8n_poll_count = 0
+    log("Session reset completed")
+
+def request_cancel():
+    st.session_state.cancel_requested = True
+    st.session_state.paused = False  # cancel overrides pause
+    log("Cancellation requested by user")
+
+def toggle_pause():
+    st.session_state.paused = not st.session_state.paused
+    state = "paused" if st.session_state.paused else "resumed"
+    log(f"Workflow {state}")
+
+def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    audio_path = run_dir / uploaded_file.name
+    audio_path.write_bytes(uploaded_file.getvalue())
+    log(f"File saved: {audio_path}")
+    return str(audio_path)
+
+def find_speaker_wavs(speaker_id: str) -> list[Path]:
+    if not speakers_audio_dir.exists():
+        return []
+    wavs = []
+    for p in speakers_audio_dir.glob("*.wav"):
+        if speaker_id in p.name:
+            wavs.append(p)
+    return sorted(wavs)
+
+def build_speaker_mapping(raw_mapping: dict) -> dict:
+    return {
+        speaker: (name if name != "Noise / Ignore" else None)
+        for speaker, name in raw_mapping.items()
+    }
 
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
@@ -185,68 +245,14 @@ if "team" not in st.session_state:
     try:
         data = api_get_profiles()
         st.session_state.team = data.get("team", [])
+        log(f"Loaded {len(st.session_state.team)} team profiles from API")
     except Exception as e:
         st.session_state.team = []
-        st.session_state.logs.append(f"[ERROR] Failed to load team: {e}")
-
-# Block the site, if there are no team members
-#if len(st.session_state.team) == 0:
- #   st.warning("No team profiles found. Please add/import profiles in 'My Team' first.")
-
-
-def log(msg):
-    st.session_state.logs.append(msg)
-
-def reset_session():
-    st.session_state.workflow_step = "READY"
-    st.session_state.status_text = "Ready"
-    st.session_state.progress = 0.0
-    st.session_state.speaker_mapping = {}
-    st.session_state.logs = []
-    st.session_state.cancel_requested = False
-    st.session_state.paused = False
-    st.session_state.last_uploaded_id = None
-    st.session_state.upload_key += 1
-    st.session_state.file_buffer = None
-    st.session_state.participants = None
-    st.session_state.team_demo_override = None
-    st.session_state.n8n_started = False
-
-def request_cancel():
-    st.session_state.cancel_requested = True
-    st.session_state.paused = False  # cancel overrides pause
-
-def toggle_pause():
-    st.session_state.paused = not st.session_state.paused
-
-def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
-    run_dir = RUNS_DIR / meeting_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    audio_path = run_dir / uploaded_file.name
-    audio_path.write_bytes(uploaded_file.getvalue())
-    return str(audio_path)
-
-def build_speaker_mapping(raw_mapping: dict) -> dict:
-    final = {}
-
-    for speaker_id, value in raw_mapping.items():
-        if value == "Noise / Ignore":
-            final[speaker_id] = {
-                "assigned_to": None,
-                "ignored": True,
-            }
-        else:
-            final[speaker_id] = {
-                "assigned_to": value,
-                "ignored": False,
-            }
-
-    return final
+        log(f"[ERROR] Failed to load team profiles: {e}")
 
 
 st.title("ByteBrains – AI Meeting Assistant")
+st.markdown("Upload your meeting recording and let AI handle the rest.")
 
 # If paused, don't advance the workflow
 if st.session_state.get("paused", False) and st.session_state.workflow_step not in ["READY", "NEXT"]:
@@ -464,18 +470,7 @@ with right:
         # --- Locate speaker audio folder (Option B)
         speakers_audio_dir = RUNS_DIR / meeting_id / "speaker_audio"
 
-        def find_speaker_wavs(speaker_id: str) -> list[Path]:
-            """
-            Return list of wav snippets for a speaker.
-            We match by filename containing the speaker id (robust to naming).
-            """
-            if not speakers_audio_dir.exists():
-                return []
-            wavs = []
-            for p in speakers_audio_dir.glob("*.wav"):
-                if speaker_id in p.name:
-                    wavs.append(p)
-            return sorted(wavs)
+        
 
         # --- Initialize mapping
         for speaker in speakers:
@@ -588,7 +583,12 @@ if st.session_state.workflow_step == "n8n_RUNNING":
 
     apply_n8n_status(latest)
 
-    if result:
+    if result and (result.get("notes") or result.get("Summary")):
+        # Normalize the result fields
+        result.setdefault("notes", result.get("Summary", "(summary missing)"))
+        result.setdefault("email_draft", "(placeholder email)")
+        result.setdefault("tasks", [])
+
         st.session_state.n8n_result = result
         st.session_state.status_text = "n8n: Finished."
         st.session_state.progress = 1.0

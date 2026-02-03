@@ -111,9 +111,10 @@ def normalize_skills(skills_text: str):
 # -----------------------
 with st.expander("Trello Board URL:", expanded=(not st.session_state.trello_board)):
     st.text_input(
-        "",
+        "Trello board URL",
         key="trello_board",
-        placeholder="https://trello.com/..."
+        placeholder="https://trello.com/...",
+        label_visibility="collapsed",
     )
 
 # -----------------------

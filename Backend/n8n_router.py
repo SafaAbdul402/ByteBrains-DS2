@@ -10,7 +10,8 @@ from typing import Any, Dict, Optional
 
 import requests
 from fastapi import APIRouter, Header, HTTPException
-from Backend.config import DATA_DIR
+from Backend.config import DATA_DIR, RUNS_DIR
+from datetime import datetime
 
 router = APIRouter(prefix="/n8n", tags=["n8n"])
 
@@ -98,6 +99,28 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
 
 @router.post("/update/{meeting_id}")
 def update_status(meeting_id: str, payload: Dict[str, Any]):
+    from Backend.store import read_current_meeting, save_meetings, load_meetings
+
+    # Normalize legacy/alternative field names
+    if "Summary" in payload and "notes" not in payload:
+        payload["notes"] = payload["Summary"]
+    # Save the summary to file
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    summary_path = run_dir / "summary.json"
+    summary_data = {
+        "meeting_id": meeting_id,
+        "received_at": datetime.now().isoformat(timespec="seconds"),
+        "notes": payload.get("notes"),
+        "raw": payload  # optional: store full raw payload
+    }
+
+    summary_path.write_text(json.dumps(summary_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    if "EmailDraft" in payload and "email_draft" not in payload:
+        payload["email_draft"] = payload["EmailDraft"]
+    if "Tasks" in payload and "tasks" not in payload:
+        payload["tasks"] = payload["Tasks"]
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Payload must be a JSON object.")
 
