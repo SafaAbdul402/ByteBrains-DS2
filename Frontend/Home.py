@@ -548,14 +548,19 @@ with right:
                     "profiles": profiles,
                 }
 
+                run_dir = RUNS_DIR / meeting_id
+                run_dir.mkdir(parents=True, exist_ok=True)
+
+                payload_path = run_dir / "n8n_payload.json"
+                with payload_path.open("w", encoding="utf-8") as f:
+                    json.dump(payload, f, ensure_ascii=False, indent=2)
+
+                log(f"Saved payload to {payload_path}")
+
+                # 3. Send to n8n
                 r = requests.post(
                     f"{API_BASE}/n8n/start/{meeting_id}",
-                    json={
-                        "meeting_id": meeting_id,
-                        "transcript": transcript,
-                        "speaker_mapping": speaker_mapping,
-                        "profiles": profiles,
-                    },
+                    json=payload,
                     timeout=20,
                 )
                 #r.raise_for_status()
@@ -606,47 +611,6 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     time.sleep(poll_delay)
     st.rerun()
         
-
-#if st.session_state.workflow_step == "n8n_SUMMARIZING":
-#    st.session_state.status_text = "Summarizing Meeting Transcript..."
-#    st.session_state.progress = 0.5
-#    log("Meeting Summary")
-#
-#    st.session_state.workflow_step = "n8n_NOTES"
-#    st.rerun()
-#
-#if st.session_state.workflow_step == "n8n_NOTES":
-#    st.session_state.status_text = "Creating Meeting Notes..."
-#    st.session_state.progress = 0.6
-#    log("Meeting Notes")
-#    time.sleep(1)
-#    st.session_state.workflow_step = "n8n_TASK_EXTR"
-#    st.rerun()
-#
-#if st.session_state.workflow_step == "n8n_TASK_EXTR":
-#    st.session_state.status_text = "Extracting Tasks..."
-#    st.session_state.progress = 0.7
-#    log("Task Extraction")
-#    time.sleep(1)
-#    st.session_state.workflow_step = "n8n_TASK_ASSI"
-#    st.rerun()
-#
-#if st.session_state.workflow_step == "n8n_TASK_ASSI":
-#    st.session_state.status_text = "Assigning Tasks..."
-#    st.session_state.progress = 0.8
-#   log("Task Assignment")
-#    time.sleep(1)
-#    st.session_state.workflow_step = "n8n_MAIL"
-#    st.rerun()
-#
-#if st.session_state.workflow_step == "n8n_MAIL":
-#    st.session_state.status_text = "Writing E-Mail Draft..."
-#   st.session_state.progress = 0.9
-#    log("Mail Draft")
-#    time.sleep(1)
-#    st.session_state.workflow_step = "DONE"
-#    st.rerun()
-
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"
     st.session_state.progress = 1.0
