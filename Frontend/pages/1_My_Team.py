@@ -15,6 +15,7 @@ API_BASE = os.getenv("API_BASE", "")
 PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+DEMO_TEAM = os.getenv("DEMO_TEAM", "1") == "1"
 # -----------------------
 # Local helpers
 # -----------------------
@@ -69,11 +70,6 @@ def normalize_skills(skills_text: str):
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
 
-if DEMO_MODE:
-    demo_profiles = load_completed_profiles()
-    st.session_state.team_demo_override = demo_profiles
-
-
 if "team" not in st.session_state:
     st.session_state.team = []
 if "trello_board" not in st.session_state:
@@ -81,60 +77,69 @@ if "trello_board" not in st.session_state:
 if "team_edit_id" not in st.session_state:
     st.session_state.team_edit_id = None
 
-data = api_get_json("/profiles", name="profiles", ttl_s=60)
+if DEMO_MODE:
+    st.session_state.team = load_completed_profiles()
+    st.session_state.trello_board = ""   # or keep a local value
+else:
+    data = api_get_json("/profiles", name="profiles", ttl_s=60)
 
-if data.get("_rate_limited"):
-    st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s and click Retry.")
-    if st.button("Retry"):
-        st.rerun()
-    st.stop()
+    if data.get("_rate_limited"):
+        st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s and click Retry.")
+        if st.button("Retry"):
+            invalidate("profiles")
+            st.rerun()
+        st.stop()
 
-if data.get("_error"):
-    st.error("Could not load profiles.")
-    st.code(f"HTTP {data.get('_status')}: {data.get('_text')[:400]}")
-    st.stop()
+    if data.get("_error"):
+        st.error("Could not load profiles.")
+        st.code(f"HTTP {data.get('_status')}: {data.get('_text')[:400]}")
+        st.stop()
 
-st.session_state.team = data.get("team", [])
-st.session_state.trello_board = data.get("trello_board", "") or ""
+    st.session_state.team = data.get("team", [])
+    st.session_state.trello_board = data.get("trello_board", "") or ""
 
 # -----------------------
 # Trello: Integration
 # -----------------------
-with st.expander("Trello Board URL:", expanded=(not st.session_state.trello_board)):
-    st.text_input(
-        "Trello board URL",
-        key="trello_board",
-        placeholder="https://trello.com/...",
-        label_visibility="collapsed",
-    )
 
-top_l, top_r, top_rr = st.columns([3, 1, 1])
-with top_l:
-    search = st.text_input("Search (name / role / skill)", placeholder="e.g., Whisper, Automation, Max…")
+if not DEMO_MODE: 
+    with st.expander("Trello Board URL:", expanded=(not st.session_state.trello_board)):
+        st.text_input(
+            "Trello board URL",
+            key="trello_board",
+            placeholder="https://trello.com/...",
+            label_visibility="collapsed",
+        )
 
-with top_r:
-    if st.button("Update/Import members", use_container_width=True):
-        res = api_post_json("/trello/sync-members", {...}, name="trello_sync", timeout=60)
+    top_l, top_r, top_rr = st.columns([3, 1, 1])
+    with top_l:
+        search = st.text_input("Search (name / role / skill)", placeholder="e.g., Whisper, Automation, Max…")
 
-        if res.get("_rate_limited"):
-            wait_s = res.get("_wait_s", 10)
-            st.warning(f"Rate limited (429). Wait {wait_s}s and click again.")
-            st.stop()
+    with top_r:
+        if st.button("Update/Import members", use_container_width=True):
+            res = api_post_json("/trello/sync-members", {...}, name="trello_sync", timeout=60)
 
-        if res.get("_error"):
-            st.error("Import failed")
-            st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
-            st.stop()
+            if res.get("_rate_limited"):
+                wait_s = res.get("_wait_s", 10)
+                st.warning(f"Rate limited (429). Wait {wait_s}s and click again.")
+                st.stop()
 
-        st.session_state.team = res.get("team", [])
-        st.session_state.trello_board = res.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
+            if res.get("_error"):
+                st.error("Import failed")
+                st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
+                st.stop()
 
-        invalidate("profiles")
-        st.success(f"Imported/updated {len(st.session_state.team)} members")
-        st.rerun()
+            st.session_state.team = res.get("team", [])
+            st.session_state.trello_board = res.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
 
-with top_rr:
-    st.metric("Members", len(st.session_state.team))
+            invalidate("profiles")
+            st.success(f"Imported/updated {len(st.session_state.team)} members")
+            st.rerun()
+
+    with top_rr:
+        st.metric("Members", len(st.session_state.team))
+else:
+    st.info("Demo mode: Trello import disabled. Using completed demo team.")
 
 # -----------------------
 # Use completed toggle

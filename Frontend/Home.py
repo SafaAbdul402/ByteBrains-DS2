@@ -279,25 +279,30 @@ if "team" not in st.session_state:
     st.session_state.team_loaded = False
 
 if not st.session_state.team_loaded:
-    data = api_get_json("/profiles", name="profiles", ttl_s=60)
+    if DEMO_MODE:
+        st.session_state.team = load_completed_profiles()
+        st.session_state.team_loaded = True
+        log(f"Loaded {len(st.session_state.team)} demo profiles (DEMO_MODE=1)")
+    else:
+        data = api_get_json("/profiles", name="profiles", ttl_s=60)
 
-    if data.get("_rate_limited"):
-        st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s then click Retry.")
-        st.write("Recent 429s:", st.session_state.get("_recent_429", []))
-        if st.button("Retry"):
-            invalidate("profiles")
-            st.rerun()
-        st.stop()
+        if data.get("_rate_limited"):
+            st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s then click Retry.")
+            st.write("Recent 429s:", st.session_state.get("_recent_429", []))
+            if st.button("Retry"):
+                invalidate("profiles")
+                st.rerun()
+            st.stop()
 
-    # IMPORTANT: safe_get_json uses r.raise_for_status(), so wrap it
-    if data.get("_error"):
-        st.error("Could not load profiles from backend.")
-        st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
-        st.stop()
+        # IMPORTANT: safe_get_json uses r.raise_for_status(), so wrap it
+        if data.get("_error"):
+            st.error("Could not load profiles from backend.")
+            st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
+            st.stop()
 
-    st.session_state.team = data.get("team", [])
-    st.session_state.team_loaded = True
-    log(f"Loaded {len(st.session_state.team)} team profiles from API")
+        st.session_state.team = data.get("team", [])
+        st.session_state.team_loaded = True
+        log(f"Loaded {len(st.session_state.team)} team profiles from API")
 
 
 st.title("ByteBrains – AI Meeting Assistant")
