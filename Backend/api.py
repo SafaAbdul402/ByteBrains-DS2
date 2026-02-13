@@ -8,14 +8,16 @@ from typing import List, Optional, Any, Dict
 from Backend.store import load_profiles, save_profiles
 from Backend.trello_router import router as trello_router
 from Backend.n8n_router import router as n8n_router
-from Backend.lease_router import router as lease_router
 import time as pytime
 import os
 
+DISABLE_TRELLO = os.getenv("DISABLE_TRELLO", "0") == "1"
+
 app = FastAPI(title="ByteBrains Backend")
-app.include_router(trello_router)
+if not DISABLE_TRELLO:
+    app.include_router(trello_router)
+
 app.include_router(n8n_router)
-app.include_router(lease_router)
 
 # allow Streamlit + n8n to call this easily
 app.add_middleware(
@@ -39,7 +41,7 @@ class Profile(BaseModel):
     status: Optional[str] = "imported"
 
 _profiles_cache = {"ts": 0.0, "data": None}
-PROFILES_CACHE_TTL = float(os.getenv("PROFILES_CACHE_TTL", "2.0"))
+PROFILES_CACHE_TTL = float(os.getenv("PROFILES_CACHE_TTL", "30.0"))
 
 def invalidate_profiles_cache():
     _profiles_cache["data"] = None

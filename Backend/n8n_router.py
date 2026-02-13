@@ -12,8 +12,13 @@ import requests
 from fastapi import APIRouter, Header, HTTPException
 from Backend.config import DATA_DIR, RUNS_DIR
 from datetime import datetime
+from threading import Lock
 
 router = APIRouter(prefix="/n8n", tags=["n8n"])
+
+_start_lock = Lock()
+_started: dict[str, float] = {}
+N8N_START_DEDUP_S = float(os.getenv("N8N_START_DEDUP_S", "60"))
 
 #N8N_WEBHOOK = os.getenv("N8N_TEST", "")    
 N8N_WEBHOOK = os.getenv("N8N_WEBHOOK", "")         
@@ -62,6 +67,16 @@ def _append_timeline(meeting_id: str, msg: Dict[str, Any]) -> None:
 
 @router.post("/start/{meeting_id}")
 def start_n8n(meeting_id: str, payload: Dict[str, Any]): 
+    now = time.time()
+    with _start_lock:
+        last = _started.get(meeting_id)
+        if last and (now - last) < N8N_START_DEDUP_S:
+            _append_timeline(meeting_id, {
+                "type": "Status",
+                "text": "n8n: start deduped (already triggered)"
+            })
+            return {"ok": True, "meeting_id": meeting_id, "deduped": True}
+        _started[meeting_id] = now
     if not N8N_WEBHOOK:
         raise HTTPException(status_code=500, detail="N8N_WEBHOOK is not set.")
     if not API_BASE:

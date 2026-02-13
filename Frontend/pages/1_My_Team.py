@@ -16,6 +16,7 @@ PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 DEMO_TEAM = os.getenv("DEMO_TEAM", "1") == "1"
+DISABLE_TRELLO = os.getenv("DISABLE_TRELLO", "0") == "1"
 # -----------------------
 # Local helpers
 # -----------------------
@@ -102,7 +103,7 @@ else:
 # Trello: Integration
 # -----------------------
 
-if not DEMO_MODE: 
+if not DEMO_MODE and (not DISABLE_TRELLO): 
     with st.expander("Trello Board URL:", expanded=(not st.session_state.trello_board)):
         st.text_input(
             "Trello board URL",

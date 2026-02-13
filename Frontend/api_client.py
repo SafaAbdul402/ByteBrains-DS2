@@ -9,6 +9,7 @@ DEFAULT_TTL = 60
 def _cd(name): return f"_cooldown_until__{name}"
 def _ck(name): return f"_cache__{name}"
 def _ct(name): return f"_cache_ts__{name}"
+def _cw(name): return f"_cooldown_warned__{name}"
 
 def api_get_json(path: str, *, name: str, ttl_s: int = DEFAULT_TTL, timeout: int = 10) -> dict:
     now = time.time()
@@ -30,15 +31,17 @@ def api_get_json(path: str, *, name: str, ttl_s: int = DEFAULT_TTL, timeout: int
         return {"_error": True, "_status": "network", "_text": str(e)}
 
     if r.status_code == 429:
-        st.warning(f"[api_get_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
-        ra = r.headers.get("Retry-After")
-        wait_s = int(ra) if (ra and ra.isdigit()) else 10
-        wait_s += random.randint(0, 3)
-        st.session_state[_cd(name)] = now + wait_s
-        st.session_state.setdefault("_recent_429", [])
-        st.session_state["_recent_429"].append({"path": path, "t": now})
-        st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
+        if not st.session_state.get(_cw(name), False):
+            st.session_state[_cw(name)] = True
+            st.warning(f"[api_get_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
+            ra = r.headers.get("Retry-After")
+            wait_s = int(ra) if (ra and ra.isdigit()) else 10
+            wait_s += random.randint(0, 3)
+            st.session_state[_cd(name)] = now + wait_s
+            st.session_state.setdefault("_recent_429", [])
+            st.session_state["_recent_429"].append({"path": path, "t": now})
+            st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
+            return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
     if not r.ok:
         return {"_error": True, "_status": r.status_code, "_text": r.text}
@@ -64,20 +67,23 @@ def api_post_json(path: str, payload: dict, *, name: str = "post", timeout: int 
         return {"_error": True, "_status": "network", "_text": str(e)}
 
     if r.status_code == 429:
-        st.warning(f"[api_post_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
-        ra = r.headers.get("Retry-After")
-        wait_s = int(ra) if (ra and ra.isdigit()) else 10
-        wait_s += random.randint(0, 3)
-        st.session_state[_cd(name)] = now + wait_s
-        st.session_state.setdefault("_recent_429", [])
-        st.session_state["_recent_429"].append({"path": path, "t": now})
-        st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
+        if not st.session_state.get(_cw(name), False):
+            st.session_state[_cw(name)] = True
+            st.warning(f"[api_post_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
+            ra = r.headers.get("Retry-After")
+            wait_s = int(ra) if (ra and ra.isdigit()) else 10
+            wait_s += random.randint(0, 3)
+            st.session_state[_cd(name)] = now + wait_s
+            st.session_state.setdefault("_recent_429", [])
+            st.session_state["_recent_429"].append({"path": path, "t": now})
+            st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
+            return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
     if not r.ok:
         return {"_error": True, "_status": r.status_code, "_text": r.text}
 
     st.session_state[_cd(name)] = 0.0
+    st.session_state[_cw(name)] = False
     return r.json()
 
 def invalidate(name: str) -> None:

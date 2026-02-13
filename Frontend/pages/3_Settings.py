@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+from Frontend.api_client import api_get_json, api_post_json, invalidate
 import os
 #from Frontend.auth import require_password
 #from Frontend.lease_client import acquire_or_block
@@ -8,34 +8,35 @@ import os
 #require_password()
 
 API_BASE = os.getenv("API_BASE", "")
+DISABLE_TRELLO = os.getenv("DISABLE_TRELLO", "0") == "1"
 
 def api_get_settings():
-    r = requests.get(f"{API_BASE}/settings", timeout=10)
-    r.raise_for_status()
-    return r.json()
+    return api_get_json("/settings", name="settings", ttl_s=60, timeout=10)
 
 def api_save_settings(trello_board: str):
-    r = requests.post(
-        f"{API_BASE}/settings",
-        json={"trello_board": trello_board},
-        timeout=10,
-    )
-    r.raise_for_status()
-    return r.json()
+    return api_post_json("/settings", {"trello_board": trello_board}, name="settings_save", timeout=10)
 
 st.set_page_config(page_title="ByteBrains – Settings", layout="centered")
 st.title("Settings")
 
 # Load settings once per session
 if "settings" not in st.session_state:
-    try:
-        st.session_state.settings = api_get_settings()
-    except Exception:
+    data = api_get_settings()
+    if data.get("_rate_limited"):
+        st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s and retry.")
+        st.stop()
+    if data.get("_error"):
         st.session_state.settings = {"trello_board": "", "trello_last_sync": None}
+    else:
+        st.session_state.settings = data
 
 s = st.session_state.settings
 
 st.subheader("Trello")
+
+if DISABLE_TRELLO:
+    st.info("Trello is disabled in this deployment.")
+    st.stop()
 
 with st.form("settings_form"):
     trello_board = st.text_input(

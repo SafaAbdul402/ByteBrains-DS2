@@ -12,8 +12,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # /src
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 from Frontend.api_client import api_get_json, api_post_json, invalidate
-#from Frontend.lease_client import acquire_or_block
-#acquire_or_block()
 
 #from auth import require_password
 
@@ -273,6 +271,8 @@ if "n8n_started_at" not in st.session_state:
     st.session_state.n8n_started_at = None
 if "vr_demo" not in st.session_state:
     st.session_state.vr_demo = False
+if "last_n8n_start_attempt_ts" not in st.session_state:
+    st.session_state.last_n8n_start_attempt_ts = 0.0
 
 if "team" not in st.session_state:
     st.session_state.team = []
@@ -652,6 +652,13 @@ with right:
                     "transcript": final_transcript,
                     "profiles": profiles,
                 }
+
+                COOLDOWN_S = 5.0
+                now_ts = pytime.time()
+                if (now_ts - st.session_state.last_n8n_start_attempt_ts) < COOLDOWN_S:
+                    st.warning("Please wait a few seconds before trying again.")
+                    st.stop()
+                st.session_state.last_n8n_start_attempt_ts = now_ts
 
                 res = api_post_json(
                     f"/n8n/start/{meeting_id}",
