@@ -11,7 +11,6 @@ SYNC_COOLDOWN_S = int(os.getenv("TRELLO_SYNC_COOLDOWN_S", "30"))
 
 from Backend.store import load_profiles, save_profiles
 from Backend.trello_api import fetch_board_members, members_to_profiles
-from Backend.api import invalidate_profiles_cache
 
 router = APIRouter(prefix="/trello", tags=["trello"])
 
@@ -99,5 +98,4 @@ def sync_members(req: ImportRequest):
         "trello_board": req.board,
         "trello_last_sync": now,
     })
-    invalidate_profiles_cache()
     return out
