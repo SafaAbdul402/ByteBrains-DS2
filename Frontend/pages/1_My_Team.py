@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-#from datetime import datetime
-from time import time
+from datetime import datetime
+import time as pytime
 import uuid
 import json
 import requests
@@ -52,7 +52,7 @@ def api_sync_trello(board_input):
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
         st.warning(f"Rate limited (429). Waiting {wait_s}s then retry…")
-        time.sleep(wait_s)
+        pytime.sleep(wait_s)
         st.rerun()
 
     if data.get("_error"):
@@ -113,12 +113,12 @@ if "_pending_trello_board" in st.session_state:
 
 if "team" not in st.session_state or "trello_board" not in st.session_state:
     data = api_get_profiles()
-    st.session_state["team_last_updated"] = time.time()
+    st.session_state["team_last_updated"] = pytime.time()
 
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
         st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
-        time.sleep(wait_s)
+        pytime.sleep(wait_s)
         st.rerun()
 
     if data.get("_error"):
@@ -213,12 +213,12 @@ if use_completed != st.session_state.use_completed_profiles_prev:
         st.success(f"Loaded {len(st.session_state.team)} completed profiles ✅")
     else:
         data = api_get_profiles()
-        st.session_state["team_last_updated"] = time.time()
+        st.session_state["team_last_updated"] = pytime.time()
 
         if data.get("_rate_limited"):
             wait_s = data.get("_wait_s", 3)
             st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
-            time.sleep(wait_s)
+            pytime.sleep(wait_s)
             st.rerun()
 
         if data.get("_error"):
@@ -301,11 +301,11 @@ if edit_mode: #st.session_state.show_add or
                         current["trello_id"] = current.get("trello_id", "")
                     st.success("Saved.")
                     res = api_save_profiles(st.session_state.team)
-                    st.session_state["team_last_updated"] = time.time()
+                    st.session_state["team_last_updated"] = pytime.time()
                     if res.get("_rate_limited"):
                         wait_s = res.get("_wait_s", 3)
                         st.warning(f"Rate limited (429) while saving. Waiting {wait_s}s then retry…")
-                        time.sleep(wait_s)
+                        pytime.sleep(wait_s)
                         st.rerun()
                     if res.get("_error"):
                         st.error("Saving failed")
