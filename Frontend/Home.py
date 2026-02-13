@@ -23,7 +23,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from Backend.pipeline_stub import vr_process
+try:
+    from Backend.pipeline_stub import vr_process
+except Exception:
+    def vr_process(meeting_id: str) -> dict:
+        raise RuntimeError("VR module not available in this deployment. Use 'Skip VR (demo)'.")
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
@@ -516,7 +520,7 @@ with right:
                     max_snippets = 5
                     for w in wavs[:max_snippets]:
                         #st.caption(w.name)
-                        st.audio(str(w), format="audio/wav")
+                        st.audio(f"{API_BASE}/runs/{meeting_id}/speaker_audio/{speaker}.wav")
                     if len(wavs) > max_snippets:
                         st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
                 else:

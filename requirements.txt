@@ -1,6 +1,9 @@
 fastapi
 uvicorn
+streamlit
 requests
+pandas
+numpy
 python-dotenv
 pydantic
-streamlit>=1.30
+Pillow
