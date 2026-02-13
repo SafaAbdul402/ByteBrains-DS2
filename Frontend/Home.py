@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import time
+import time as pytime
 import json
 import os
 import sys
@@ -10,6 +10,7 @@ import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
+
 #from auth import require_password
 
 # Suppress specific warnings
@@ -321,9 +322,10 @@ if not st.session_state.team_loaded:
 
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
-        st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
-        time.sleep(wait_s)
-        st.rerun()
+        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
+        if st.button("Retry"):
+            st.rerun()
+        st.stop()
 
     st.session_state.team = data.get("team", [])
     st.session_state.team_loaded = True
@@ -532,7 +534,7 @@ if st.session_state.workflow_step == "UI_ASSIGNMENT":
     st.session_state.status_text = "Waiting for Speaker Assignment..."
     st.session_state.progress = 0.4
     log("Waiting for Speaker Assignment by user")
-    time.sleep(1)
+    pytime.sleep(1)
     st.session_state.workflow_step = "UI_ASSIGNMENT_2"
     st.rerun()
 
@@ -717,7 +719,7 @@ with right:
                 #)
 
                 st.session_state.workflow_step = "n8n_RUNNING"
-                st.session_state.n8n_started_at = time.time()
+                st.session_state.n8n_started_at = pytime.time()
                 st.session_state.progress = max(st.session_state.progress, 0.45)
                 st.rerun()
 
@@ -737,15 +739,15 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
 
     # timeout by elapsed time (not poll count)
-    if st.session_state.n8n_started_at and (time.time() - st.session_state.n8n_started_at > 600):
+    if st.session_state.n8n_started_at and (pytime.time() - st.session_state.n8n_started_at > 600):
         st.error("n8n timeout (no result received after 10 minutes)")
         st.stop()
 
     # hard throttle polling
     min_interval = 3.0
-    now = time.time()
+    now = pytime.time()
     if now - st.session_state.last_n8n_poll_ts < min_interval:
-        time.sleep(0.3)
+        pytime.sleep(0.3)
         st.rerun()
 
     st.session_state.last_n8n_poll_ts = now
@@ -753,10 +755,11 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     data = api_get_n8n_status(meeting_id)
 
     if data.get("_rate_limited"):
-        wait_s = data.get("_wait_s", 5)
-        st.session_state.status_text = f"n8n: rate limited (429) — waiting {wait_s}s..."
-        time.sleep(wait_s)
-        st.rerun()
+        wait_s = data.get("_wait_s", 3)
+        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
+        if st.button("Retry"):
+            st.rerun()
+        st.stop()
 
     latest = data.get("latest")
     result = data.get("result")
@@ -773,7 +776,7 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    time.sleep(2.0)
+    pytime.sleep(2.0)
     st.rerun()
         
 if st.session_state.workflow_step == "DONE":
