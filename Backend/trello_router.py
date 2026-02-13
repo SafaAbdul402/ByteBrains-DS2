@@ -1,6 +1,7 @@
 # Backend/trello_router.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 import os
 from datetime import datetime
 import time
@@ -26,7 +27,11 @@ def sync_members(req: ImportRequest):
     with _sync_lock:
         if (now - _last_sync_ts) < SYNC_COOLDOWN_S:
             wait = int(SYNC_COOLDOWN_S - (now - _last_sync_ts))
-            raise HTTPException(status_code=429, detail=f"sync cooldown: wait {wait}s")
+            return JSONResponse(
+                status_code=429,
+                content={"detail": f"sync cooldown: wait {wait}s"},
+                headers={"Retry-After": str(wait)},
+            )
         _last_sync_ts = now
 
     api_key = os.getenv("TRELLO_API_KEY", "")

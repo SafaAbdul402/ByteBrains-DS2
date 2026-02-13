@@ -80,7 +80,6 @@ data = api_get_json("/profiles", name="profiles", ttl_s=60)
 if data.get("_rate_limited"):
     st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s and click Retry.")
     if st.button("Retry"):
-        invalidate("profiles")
         st.rerun()
     st.stop()
 

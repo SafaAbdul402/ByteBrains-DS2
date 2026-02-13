@@ -34,6 +34,9 @@ def api_get_json(path: str, *, name: str, ttl_s: int = DEFAULT_TTL, timeout: int
         wait_s = int(ra) if (ra and ra.isdigit()) else 10
         wait_s += random.randint(0, 3)
         st.session_state[_cd(name)] = now + wait_s
+        st.session_state.setdefault("_recent_429", [])
+        st.session_state["_recent_429"].append({"path": path, "t": now})
+        st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
         return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
     if not r.ok:
@@ -64,6 +67,9 @@ def api_post_json(path: str, payload: dict, *, name: str = "post", timeout: int 
         wait_s = int(ra) if (ra and ra.isdigit()) else 10
         wait_s += random.randint(0, 3)
         st.session_state[_cd(name)] = now + wait_s
+        st.session_state.setdefault("_recent_429", [])
+        st.session_state["_recent_429"].append({"path": path, "t": now})
+        st.session_state["_recent_429"] = st.session_state["_recent_429"][-20:]
         return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
     if not r.ok:

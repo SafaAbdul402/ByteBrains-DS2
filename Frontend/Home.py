@@ -11,9 +11,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]  # /src
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-from Frontend.api_client import api_get_json
+from Frontend.api_client import api_get_json, api_post_json, invalidate
 #from Frontend.lease_client import acquire_or_block
-from Frontend.api_client import invalidate
 #acquire_or_block()
 
 #from auth import require_password
@@ -37,20 +36,13 @@ IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_n8n_status(meeting_id: str) -> dict:
-    try:
-        r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
-    except Exception as e:
-        return {"_error": True, "_status": "network", "_text": str(e)}
-
-    if r.status_code == 429:
-        ra = r.headers.get("Retry-After")
-        wait_s = int(ra) if (ra and ra.isdigit()) else 10
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
-
-    if not r.ok:
-        return {"_error": True, "_status": r.status_code, "_text": r.text}
-
-    return r.json()
+    # ttl_s small prevents rerun spam, name includes meeting_id to avoid collisions
+    return api_get_json(
+        f"/n8n/status/{meeting_id}",
+        name=f"n8n_status__{meeting_id}",
+        ttl_s=3,
+        timeout=10,
+    )
 
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
@@ -286,6 +278,7 @@ if not st.session_state.team_loaded:
 
     if data.get("_rate_limited"):
         st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s then click Retry.")
+        st.write("Recent 429s:", st.session_state.get("_recent_429", []))
         if st.button("Retry"):
             invalidate("profiles")
             st.rerun()
@@ -673,20 +666,23 @@ with right:
 
                 #log(f"Saved payload to {payload_txt_path}")
 
-                # 3. Send to n8n
-                r = requests.post(
-                    f"{API_BASE}/n8n/start/{meeting_id}",
-                    json=payload,
-                    timeout=20,
+                res = api_post_json(
+                    f"/n8n/start/{meeting_id}",
+                    payload,
+                    name=f"n8n_start__{meeting_id}",
+                    timeout=30,
                 )
-                log(f"POST /n8n/start status={r.status_code}")
-                #r.raise_for_status()
-                #r = requests.post(
-                 #   f"{API_BASE}/n8n/start/{meeting_id}",
-                  #  data=payload_txt,  # <-- raw text body
-                   # headers={"Content-Type": "text/plain; charset=utf-8"},
-                    #timeout=20,
-                #)
+
+                if res.get("_rate_limited"):
+                    st.warning(f"Backend rate limited (429). Wait ~{res.get('_wait_s', 10)}s and try again.")
+                    st.stop()
+
+                if res.get("_error"):
+                    st.error("Failed to start n8n workflow.")
+                    st.code(f"HTTP {res.get('_status')}: {res.get('_text')[:400]}")
+                    st.stop()
+
+                log("POST /n8n/start accepted")
 
                 st.session_state.workflow_step = "n8n_RUNNING"
                 st.session_state.n8n_started_at = pytime.time()
