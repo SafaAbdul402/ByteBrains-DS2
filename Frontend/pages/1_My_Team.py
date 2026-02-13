@@ -223,7 +223,10 @@ if edit_mode:
                 current["photo"] = photo_bytes
 
             # save to backend
-            res = api_post_json("/profiles", {"team": team}, name="profiles_save", timeout=20)
+            if DEMO_MODE:
+                st.warning("Demo mode: changes are local only (not saved to backend).")
+            else:
+                res = api_post_json("/profiles", {"team": st.session_state.team}, name="profiles_save", timeout=20)
             
             st.session_state.team_last_updated = pytime.time()
             invalidate("profiles")

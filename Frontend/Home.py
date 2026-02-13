@@ -644,37 +644,14 @@ with right:
 
                 speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
 
-                st.session_state.n8n_started = True
                 final_transcript = apply_speaker_mapping(transcript, speaker_mapping)
 
-                # Pass-through to n8n (no final transcript building)
                 profiles = eligible_profiles
                 payload = {
                     "meeting_id": meeting_id,
                     "transcript": final_transcript,
                     "profiles": profiles,
                 }
-
-                #run_dir = RUNS_DIR / meeting_id
-                #run_dir.mkdir(parents=True, exist_ok=True)
-
-                #payload_path = run_dir / "n8n_payload.json"
-                #with payload_path.open("w", encoding="utf-8") as f:
-                 #   json.dump(payload, f, ensure_ascii=False, indent=2)
-                #meetingID_path = run_dir / "meeting_ID.json"
-                #with meetingID_path.open("w", encoding="utf-8") as f:
-                 #   json.dump(meeting_id, f, ensure_ascii=False, indent=2)
-                #transcript_path = run_dir / "transcript.json"
-                #with transcript_path.open("w", encoding="utf-8") as f:
-                 #   json.dump(final_transcript, f, ensure_ascii=False, indent=2)
-
-                #log(f"Saved payload to {payload_path}")
-
-                #payload_txt_path = run_dir / "n8n_payload.txt"
-                #payload_txt = json.dumps(payload, ensure_ascii=False, indent=2)
-                #payload_txt_path.write_text(payload_txt, encoding="utf-8")
-
-                #log(f"Saved payload to {payload_txt_path}")
 
                 res = api_post_json(
                     f"/n8n/start/{meeting_id}",
@@ -684,14 +661,22 @@ with right:
                 )
 
                 if res.get("_rate_limited"):
+                    # IMPORTANT: allow retry
+                    st.session_state.n8n_started = False
                     st.warning(f"Backend rate limited (429). Wait ~{res.get('_wait_s', 10)}s and try again.")
+                    if st.button("Retry start"):
+                        st.rerun()
                     st.stop()
 
                 if res.get("_error"):
+                    # IMPORTANT: allow retry
+                    st.session_state.n8n_started = False
                     st.error("Failed to start n8n workflow.")
                     st.code(f"HTTP {res.get('_status')}: {res.get('_text')[:400]}")
                     st.stop()
 
+                # ✅ only mark started after success
+                st.session_state.n8n_started = True
                 log("POST /n8n/start accepted")
 
                 st.session_state.workflow_step = "n8n_RUNNING"
