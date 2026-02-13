@@ -5,22 +5,22 @@ import streamlit as st
 
 API_BASE = os.getenv("API_BASE", "").rstrip("/")
 
-HEARTBEAT_EVERY_S = int(os.getenv("LEASE_HEARTBEAT_EVERY_S", "30"))
+LEASE_HB_EVERY_S = int(os.getenv("LEASE_HB_EVERY_S", "30"))  # client throttle
 
-def acquire_or_block() -> None:
-    # One id per browser session
+def acquire_or_block():
+    # one id per browser session
     if "session_id" not in st.session_state:
         st.session_state.session_id = str(uuid.uuid4())
 
     now = time.time()
     last_hb = st.session_state.get("_lease_last_hb", 0.0)
+    lease_acquired = st.session_state.get("_lease_acquired", False)
 
-    # Only heartbeat every HEARTBEAT_EVERY_S seconds to avoid hammering
-    do_heartbeat = (now - last_hb) >= HEARTBEAT_EVERY_S
+    # ✅ If we already have a lease and it's not time to heartbeat, DO NOTHING.
+    if lease_acquired and (now - last_hb) < LEASE_HB_EVERY_S:
+        return
 
-    # If we never acquired (or we lost the lease), try acquire.
-    has_lease = st.session_state.get("lease_acquired", False)
-    endpoint = "/lease/heartbeat" if (has_lease and do_heartbeat) else "/lease/acquire"
+    endpoint = "/lease/acquire" if not lease_acquired else "/lease/heartbeat"
 
     try:
         r = requests.post(
@@ -32,31 +32,36 @@ def acquire_or_block() -> None:
         st.error(f"Backend not reachable: {e}")
         st.stop()
 
+    # Capacity reached (your feature)
     if r.status_code == 503:
-        # IMPORTANT: don't mark as acquired
-        st.session_state["lease_acquired"] = False
         st.error("🚦 Too many people are using the app right now. Please try again in a minute.")
         st.stop()
 
+    # ✅ If rate limited, show friendly message and stop WITHOUT rerun loops
+    if r.status_code == 429:
+        ra = r.headers.get("Retry-After")
+        wait_s = int(ra) if (ra and ra.isdigit()) else 10
+        st.warning(f"Backend rate limited (429). Please wait {wait_s}s and refresh.")
+        st.stop()
+
     if not r.ok:
-        st.session_state["lease_acquired"] = False
         st.error(f"Backend error: HTTP {r.status_code}")
         st.code(r.text[:400])
         st.stop()
 
-    # Parse response (heartbeat can return missing=True)
+    # heartbeat response might say missing lease → reacquire next time
+    data = {}
     try:
         data = r.json()
     except Exception:
-        data = {}
+        pass
 
-    # If heartbeat says missing, immediately re-acquire next rerun.
-    if endpoint.endswith("/heartbeat") and data.get("missing"):
-        st.session_state["lease_acquired"] = False
-        # don't stop the app; next rerun will re-acquire
-        return
-
-    # Success
-    st.session_state["lease_acquired"] = True
-    if endpoint.endswith("/heartbeat"):
+    if endpoint == "/lease/acquire":
+        st.session_state["_lease_acquired"] = True
         st.session_state["_lease_last_hb"] = now
+    else:
+        # heartbeat
+        if data.get("missing"):
+            st.session_state["_lease_acquired"] = False
+        else:
+            st.session_state["_lease_last_hb"] = now
