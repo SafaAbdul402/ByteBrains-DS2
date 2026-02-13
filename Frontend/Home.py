@@ -12,9 +12,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # /src
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 from Frontend.api_client import api_get_json
-from Frontend.lease_client import acquire_or_block
+#from Frontend.lease_client import acquire_or_block
 from Frontend.api_client import invalidate
-acquire_or_block()
+#acquire_or_block()
 
 #from auth import require_password
 

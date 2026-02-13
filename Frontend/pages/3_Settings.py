@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 import os
 #from Frontend.auth import require_password
-from Frontend.lease_client import acquire_or_block
-acquire_or_block()
+#from Frontend.lease_client import acquire_or_block
+#acquire_or_block()
 
 #require_password()
 

@@ -8,8 +8,8 @@ import requests
 import os
 from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
 from Frontend.api_client import api_get_json, api_post_json, invalidate
-from Frontend.lease_client import acquire_or_block
-acquire_or_block()
+#from Frontend.lease_client import acquire_or_block
+#acquire_or_block()
 
 API_BASE = os.getenv("API_BASE", "")
 PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
