@@ -14,6 +14,7 @@ from Frontend.api_client import api_get_json, api_post_json, invalidate
 API_BASE = os.getenv("API_BASE", "")
 PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 # -----------------------
 # Local helpers
 # -----------------------
@@ -67,6 +68,11 @@ def normalize_skills(skills_text: str):
 # -----------------------
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
+
+if DEMO_MODE:
+    demo_profiles = load_completed_profiles()
+    st.session_state.team_demo_override = demo_profiles
+
 
 if "team" not in st.session_state:
     st.session_state.team = []

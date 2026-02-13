@@ -34,6 +34,7 @@ from Backend.config import RUNS_DIR
 API_BASE = os.getenv("API_BASE", "")
 IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 
 def api_get_n8n_status(meeting_id: str) -> dict:
     # ttl_s small prevents rerun spam, name includes meeting_id to avoid collisions
@@ -224,6 +225,10 @@ def status_state_for_step(step: str) -> str:
     return "running"
 
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
+
+if DEMO_MODE:
+    demo_profiles = load_completed_profiles()
+    st.session_state.team_demo_override = demo_profiles
 
 ### Session States, to avoid reloading and resetting of the page after each interaction
 if "paused" not in st.session_state:

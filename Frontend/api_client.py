@@ -30,6 +30,7 @@ def api_get_json(path: str, *, name: str, ttl_s: int = DEFAULT_TTL, timeout: int
         return {"_error": True, "_status": "network", "_text": str(e)}
 
     if r.status_code == 429:
+        st.warning(f"[api_get_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
         ra = r.headers.get("Retry-After")
         wait_s = int(ra) if (ra and ra.isdigit()) else 10
         wait_s += random.randint(0, 3)
@@ -63,6 +64,7 @@ def api_post_json(path: str, payload: dict, *, name: str = "post", timeout: int 
         return {"_error": True, "_status": "network", "_text": str(e)}
 
     if r.status_code == 429:
+        st.warning(f"[api_post_json] 429 on {url}  Retry-After={r.headers.get('Retry-After')}  body={r.text[:200]}")
         ra = r.headers.get("Retry-After")
         wait_s = int(ra) if (ra and ra.isdigit()) else 10
         wait_s += random.randint(0, 3)
