@@ -10,7 +10,7 @@ import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
-from Frontend.auth import require_password
+#from auth import require_password
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")

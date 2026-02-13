@@ -80,40 +80,40 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
         "result_callback_url": f"{API_BASE}/n8n/update/{meeting_id}",
     }
 
-    #try:
-        # 🔑 fire-and-forget
-     #   requests.post(
-      ##      N8N_WEBHOOK,
-        #    json=start_payload,
-         #   timeout=3,   # SHORT
-        #)#
-    #except Exception as e:
-        # DO NOT FAIL
-     #   _append_timeline(meeting_id, {
-      #      "type": "Warning",
-       #     "text": f"n8n not reachable: {str(e)}"
-        #})
-
-    #return {"ok": True, "meeting_id": meeting_id}
-
-    # Save txt in run dir (optional)
-    run_dir = RUNS_DIR / meeting_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-    payload_txt = json.dumps(start_payload, ensure_ascii=False, indent=2)
-    (run_dir / "n8n_payload.txt").write_text(payload_txt, encoding="utf-8")
-
     try:
-        # SEND TXT to n8n webhook
+        # 🔑 fire-and-forget
         requests.post(
             N8N_WEBHOOK,
-            data=payload_txt,
-            headers={"Content-Type": "text/plain; charset=utf-8"},
-            timeout=3,
+            json=start_payload,
+            timeout=3,   # SHORT
         )
     except Exception as e:
-        _append_timeline(meeting_id, {"type": "Warning", "text": f"n8n not reachable: {str(e)}"})
+        # DO NOT FAIL
+        _append_timeline(meeting_id, {
+            "type": "Warning",
+            "text": f"n8n not reachable: {str(e)}"
+        })
 
     return {"ok": True, "meeting_id": meeting_id}
+
+    # Save txt in run dir (optional)
+    #run_dir = RUNS_DIR / meeting_id
+    #run_dir.mkdir(parents=True, exist_ok=True)
+    #payload_txt = json.dumps(start_payload, ensure_ascii=False, indent=2)
+    #(run_dir / "n8n_payload.txt").write_text(payload_txt, encoding="utf-8")
+
+    #try:
+     #   # SEND TXT to n8n webhook
+      #  requests.post(
+       #     N8N_WEBHOOK,
+        #    data=payload_txt,
+         #   headers={"Content-Type": "text/plain; charset=utf-8"},
+          #  timeout=3,
+        #)
+    #except Exception as e:
+     #   _append_timeline(meeting_id, {"type": "Warning", "text": f"n8n not reachable: {str(e)}"})
+
+    #return {"ok": True, "meeting_id": meeting_id}
 
 
 @router.post("/update/{meeting_id}")
