@@ -8,6 +8,9 @@ import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
+REPO_ROOT = Path(__file__).resolve().parents[1]  # /src
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 from Frontend.api_client import api_get_json
 from Frontend.lease_client import acquire_or_block
 from Frontend.api_client import invalidate
@@ -20,11 +23,6 @@ warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")
 warnings.filterwarnings("ignore", message="Module 'speechbrain.pretrained'")
 
 #require_password()
-
-# Path configuration
-REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
 
 try:
     from Backend.pipeline_stub import vr_process
