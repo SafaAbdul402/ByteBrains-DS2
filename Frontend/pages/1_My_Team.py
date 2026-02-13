@@ -6,8 +6,9 @@ import json
 import requests
 import os
 from Frontend.auth import require_password
+from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
 
-require_password()
+#require_password()
 
 API_BASE = os.getenv("API_BASE", "")
 
@@ -55,6 +56,26 @@ def profile_state(p: dict) -> str:
     if role_ok and skills_ok:
         return "eligible"
     return "incomplete"
+
+def load_completed_profiles() -> list[dict]:
+    if not PROFILES_COMPLETED_PATH.exists():
+        return []
+    data = json.loads(PROFILES_COMPLETED_PATH.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        return data.get("team", [])
+    if isinstance(data, list):
+        return data
+    return []
+
+def load_profiles_team_from_file() -> list[dict]:
+    if not PROFILES_PATH.exists():
+        return []
+    data = json.loads(PROFILES_PATH.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        return data.get("team", [])
+    if isinstance(data, list):
+        return data
+    return []
 
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
@@ -145,6 +166,26 @@ with top_rr:
 # -----------------------
 edit_mode = st.session_state.team_edit_id is not None
 current = find_member(st.session_state.team_edit_id) if edit_mode else None
+
+use_completed = st.toggle("Use completed profiles", help="Show fully edited profiles", key="use_completed_profiles")
+if "use_completed_profiles_prev" not in st.session_state:
+    st.session_state.use_completed_profiles_prev = use_completed
+
+if use_completed != st.session_state.use_completed_profiles_prev:
+    st.session_state.use_completed_profiles_prev = use_completed
+
+    if use_completed:
+        st.session_state.team = load_completed_profiles()
+        st.success(f"Loaded {len(st.session_state.team)} completed profiles ✅")
+    else:
+        # choose ONE source: API or local file
+        try:
+            data = api_get_profiles()
+            st.session_state.team = data.get("team", [])
+        except Exception:
+            st.session_state.team = load_profiles_team_from_file()
+
+    st.rerun()
 
 if edit_mode: #st.session_state.show_add or 
     title = "Edit member" if edit_mode else "Add new member"

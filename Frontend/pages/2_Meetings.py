@@ -1,27 +1,23 @@
 import json
-import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import requests
 import streamlit as st
-from pathlib import Path
 
-from Backend.config import MEETINGS_PATH, RUNS_DIR
-from Frontend.auth import require_password
+from Backend.config import RUNS_DIR
+from Backend.store import load_meetings, save_meetings
+# from Frontend.auth import require_password
 
 # MUST be first Streamlit call
 st.set_page_config(page_title="Meetings / Results", layout="wide")
-
-require_password()
+# require_password()
 
 # ---------------------------
-# Config / paths
+# Config
 # ---------------------------
-MEETINGS_FILE = Path(MEETINGS_PATH)
-
-# Optional n8n webhook stored in secrets
 try:
     N8N_TRELLO_WEBHOOK = st.secrets["n8n"]["trello_webhook"]
 except Exception:
@@ -30,18 +26,6 @@ except Exception:
 # ---------------------------
 # Helpers
 # ---------------------------
-def load_meetings() -> List[Dict[str, Any]]:
-    if not MEETINGS_FILE.exists():
-        return []
-    try:
-        return json.loads(MEETINGS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-
-def save_meetings(meetings: List[Dict[str, Any]]) -> None:
-    MEETINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MEETINGS_FILE.write_text(json.dumps(meetings, indent=2, ensure_ascii=False), encoding="utf-8")
-
 def meeting_label(m: Dict[str, Any]) -> str:
     title = (m.get("title") or "Untitled meeting").strip()
     created_at = (m.get("created_at") or "").strip()
@@ -50,16 +34,9 @@ def meeting_label(m: Dict[str, Any]) -> str:
     return f"{title}{suffix} ({mid})"
 
 def find_meeting(meetings: List[Dict[str, Any]], meeting_id: str) -> Optional[Dict[str, Any]]:
-    for m in meetings:
-        if m.get("meeting_id") == meeting_id:
-            return m
-    return None
+    return next((m for m in meetings if m.get("meeting_id") == meeting_id), None)
 
 def transcript_candidates(run_dir: Path) -> List[Path]:
-    """
-    VR team file names have changed a few times.
-    We support multiple candidates without breaking.
-    """
     return [
         run_dir / "transcript_with_speakers.json",
         run_dir / "vr_transcript.json",
@@ -78,35 +55,23 @@ def load_transcript(run_dir: Path) -> Optional[Any]:
     return None
 
 def speaker_audio_labels(run_dir: Path) -> List[str]:
-    """
-    If VR doesn't produce speakers.json, we infer speakers from speaker_audio/*.wav
-    """
     speaker_dir = run_dir / "speaker_audio"
     if not speaker_dir.exists():
-        # also tolerate older/typo folder name if needed
-        speaker_dir = run_dir / "speakers_audio"
+        speaker_dir = run_dir / "speakers_audio"  # tolerate older typo
+
     if not speaker_dir.exists():
         return []
 
-    speakers = []
-    for wav in sorted(speaker_dir.glob("*.wav")):
-        speakers.append(wav.stem)  # e.g. "SPEAKER_0"
-    # de-dup while preserving order
-    seen = set()
-    out = []
-    for s in speakers:
+    stems = [wav.stem for wav in sorted(speaker_dir.glob("*.wav"))]
+    # de-dup preserving order
+    seen, out = set(), []
+    for s in stems:
         if s not in seen:
             out.append(s)
             seen.add(s)
     return out
 
 def format_speaker_for_ui(raw: str) -> str:
-    """
-    SPEAKER_0 -> Speaker A
-    SPEAKER_1 -> Speaker B
-    ...
-    If index is big, fallback to number.
-    """
     raw = (raw or "").strip()
     if raw.upper().startswith("SPEAKER_"):
         try:
@@ -115,35 +80,64 @@ def format_speaker_for_ui(raw: str) -> str:
             return f"Speaker {letter}"
         except Exception:
             pass
-    # fallback formatting
     return raw.replace("_", " ").title()
 
 def normalize_tasks(tasks: Any) -> List[Dict[str, Any]]:
-    if not tasks:
-        return []
     if isinstance(tasks, list):
         return [t for t in tasks if isinstance(t, dict)]
     return []
 
+def ensure_meeting_widgets_synced(meeting: Dict[str, Any]) -> None:
+    """
+    Keep per-meeting widget state separated.
+    When selection changes, we re-initialize the widgets for that meeting.
+    """
+    mid = meeting.get("meeting_id")
+    if not mid:
+        return
+
+    notes_key = f"notes_{mid}"
+    email_key = f"email_{mid}"
+
+    if notes_key not in st.session_state:
+        st.session_state[notes_key] = meeting.get("notes") or ""
+    if email_key not in st.session_state:
+        st.session_state[email_key] = meeting.get("email_draft") or ""
+
+def persist_meeting_edits(meeting: Dict[str, Any]) -> None:
+    """
+    Writes widget values back into the selected meeting and saves meetings.json.
+    """
+    mid = meeting.get("meeting_id")
+    if not mid:
+        return
+
+    notes_key = f"notes_{mid}"
+    email_key = f"email_{mid}"
+
+    meeting["notes"] = st.session_state.get(notes_key, "") or ""
+    meeting["email_draft"] = st.session_state.get(email_key, "") or ""
+
+    save_meetings(st.session_state.meetings)
+
 # ---------------------------
-# Session state
+# Session state init
 # ---------------------------
 if "meetings" not in st.session_state:
     st.session_state.meetings = load_meetings()
 
-# The selected meeting can come from:
-# - Meetings page selection
-# - Home.py setting st.session_state["selected_meeting_id"]
-# - fallback: st.session_state["meeting_id"]
-if "selected_meeting_id" not in st.session_state or not st.session_state.selected_meeting_id:
-    fallback = st.session_state.get("meeting_id")
-    st.session_state.selected_meeting_id = fallback
+if "selected_meeting_id" not in st.session_state:
+    # optionally accept selection from Home.py
+    st.session_state.selected_meeting_id = st.session_state.get("meeting_id")
+
+if "last_selected_meeting_id" not in st.session_state:
+    st.session_state.last_selected_meeting_id = None
 
 # ---------------------------
 # UI
 # ---------------------------
 st.title("My Meetings / Results")
-st.caption("Browse processed meetings and view transcript, notes, tasks, and email drafts.")
+st.caption("Browse processed meetings and view transcript, notes, tasks, and (optional) email drafts.")
 
 top_l, top_r = st.columns([3, 1])
 with top_r:
@@ -163,18 +157,18 @@ with col_list:
         st.info("No meetings found yet. Process a meeting first to see it here.")
     else:
         q = st.text_input("Search", placeholder="Search by title / date / id…")
+
         filtered = meetings
         if q.strip():
             ql = q.strip().lower()
             filtered = [
                 m for m in meetings
-                if ql in (f"{m.get('title','')} {m.get('created_at','')} {m.get('meeting_id','')}".lower())
+                if ql in f"{m.get('title','')} {m.get('created_at','')} {m.get('meeting_id','')}".lower()
             ]
 
         if not filtered:
             st.info("No meetings match your search.")
         else:
-            # choose by meeting_id to avoid index mismatch bugs
             options = {meeting_label(m): m.get("meeting_id") for m in filtered}
             labels = list(options.keys())
 
@@ -197,8 +191,13 @@ with col_list:
                 mid = st.session_state.selected_meeting_id
                 st.session_state.meetings = [m for m in meetings if m.get("meeting_id") != mid]
                 save_meetings(st.session_state.meetings)
+
+                # also clean widget state for that meeting
+                st.session_state.pop(f"notes_{mid}", None)
+                st.session_state.pop(f"email_{mid}", None)
+
                 st.session_state.selected_meeting_id = None
-                st.success("Deleted meeting.")
+                st.success("Deleted meeting from meetings.json ✅")
                 st.rerun()
 
 # ---- Right: meeting details
@@ -211,16 +210,24 @@ with col_details:
 
     meeting = find_meeting(st.session_state.meetings, mid)
     if not meeting:
-        st.warning("Meeting not found in the database. Try Refresh list.")
+        st.warning("Meeting not found in database. Try Refresh list.")
         st.stop()
+
+    # If selection changed, make sure widgets reflect THIS meeting
+    if st.session_state.last_selected_meeting_id != mid:
+        # reset existing widgets for the newly selected meeting
+        st.session_state.pop(f"notes_{mid}", None)
+        st.session_state.pop(f"email_{mid}", None)
+        st.session_state.last_selected_meeting_id = mid
+
+    ensure_meeting_widgets_synced(meeting)
 
     title = meeting.get("title") or "Meeting"
     created_at = meeting.get("created_at") or "—"
+    run_dir = RUNS_DIR / mid
 
     st.subheader(title)
     st.caption(f"Meeting ID: {mid} • Created: {created_at}")
-
-    run_dir = RUNS_DIR / mid
 
     # ---------- Transcript
     with st.expander("Transcript", expanded=False):
@@ -234,10 +241,9 @@ with col_details:
             elif isinstance(t, dict) and t.get("_error"):
                 st.error(t["_error"])
             else:
-                # Try multiple shapes:
-                # A) { "segments": [...] }
-                # B) [ {speaker, text, ...}, ... ]
-                segments = None
+                # accepted shapes:
+                # A) {"segments":[...]}
+                # B) [...]
                 if isinstance(t, dict) and isinstance(t.get("segments"), list):
                     segments = t["segments"]
                 elif isinstance(t, list):
@@ -248,7 +254,6 @@ with col_details:
                 if not segments:
                     st.info("Transcript loaded, but no segments were found.")
                 else:
-                    # Build mapping from raw speaker IDs to pretty names
                     raw_speakers = speaker_audio_labels(run_dir)
                     pretty_map = {s: format_speaker_for_ui(s) for s in raw_speakers}
 
@@ -261,22 +266,21 @@ with col_details:
                         if text:
                             st.markdown(f"**{ui_spk}**: {text}")
 
-                    st.download_button(
-                        "Download transcript JSON",
-                        data=json.dumps(t, indent=2, ensure_ascii=False),
-                        file_name=f"{mid}_transcript.json",
-                        mime="application/json",
-                        use_container_width=True,
-                    )
+                st.download_button(
+                    "Download transcript JSON",
+                    data=json.dumps(t, indent=2, ensure_ascii=False),
+                    file_name=f"{mid}_transcript.json",
+                    mime="application/json",
+                    use_container_width=True,
+                )
 
     # ---------- Notes
     st.markdown("### Meeting Notes / Minutes")
-    notes = meeting.get("notes") or ""
+    notes_key = f"notes_{mid}"
     st.text_area(
         "Notes",
-        value=notes,
-        height=170,
-        key="notes_view",
+        key=notes_key,
+        height=180,
         label_visibility="collapsed",
     )
 
@@ -286,7 +290,6 @@ with col_details:
     df = pd.DataFrame(tasks) if tasks else pd.DataFrame(
         columns=["task", "assigned_to", "deadline", "reason", "status"]
     )
-
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     b1, b2, b3 = st.columns([1, 1, 1])
@@ -301,20 +304,14 @@ with col_details:
             use_container_width=True,
         )
     with b3:
-        if st.button("Open run folder info", use_container_width=True):
-            st.info(f"Run dir: {run_dir}")
+        st.button("Save edits", use_container_width=True, on_click=persist_meeting_edits, args=(meeting,))
 
     # Trello via n8n webhook (optional)
     if assign_clicked:
         if not N8N_TRELLO_WEBHOOK:
             st.warning("n8n Trello webhook not set in secrets.toml.")
         else:
-            payload = {
-                "meeting_id": mid,
-                "title": title,
-                "created_at": created_at,
-                "tasks": tasks,
-            }
+            payload = {"meeting_id": mid, "title": title, "created_at": created_at, "tasks": tasks}
             try:
                 r = requests.post(N8N_TRELLO_WEBHOOK, json=payload, timeout=30)
                 ok = 200 <= r.status_code < 300
@@ -332,18 +329,15 @@ with col_details:
                 st.error(f"Failed to reach n8n webhook: {e}")
 
     trello_info = meeting.get("trello_sync", {}) or {}
-    st.caption(
-        f"Trello sync: {trello_info.get('last_status', '—')} • {trello_info.get('last_timestamp', '—')}"
-    )
+    st.caption(f"Trello sync: {trello_info.get('last_status', '—')} • {trello_info.get('last_timestamp', '—')}")
 
-    # ---------- Email
-    st.markdown("### Follow-up Email Draft")
-    email_text = meeting.get("email_draft") or ""
+    # ---------- Email (optional)
+    st.markdown("### Follow-up Email Draft (optional)")
+    email_key = f"email_{mid}"
     st.text_area(
         "Email",
-        value=email_text,
-        height=200,
-        key="email_view",
+        key=email_key,
+        height=220,
         label_visibility="collapsed",
     )
 
@@ -352,14 +346,15 @@ with col_details:
         if st.button("Copy to clipboard", use_container_width=True):
             try:
                 import pyperclip
-                pyperclip.copy(st.session_state.email_view)
+                pyperclip.copy(st.session_state.get(email_key, ""))
                 st.success("Copied ✅")
             except Exception:
-                st.info("Clipboard copy needs 'pyperclip'. Otherwise, copy manually from the text box.")
+                st.info("Clipboard copy needs 'pyperclip'. Otherwise copy manually.")
+
     with c2:
         st.download_button(
             "Download email.txt",
-            data=email_text,
+            data=st.session_state.get(email_key, ""),
             file_name=f"{mid}_email.txt",
             mime="text/plain",
             use_container_width=True,

@@ -16,7 +16,7 @@ from Frontend.auth import require_password
 warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")
 warnings.filterwarnings("ignore", message="Module 'speechbrain.pretrained'")
 
-require_password()
+#require_password()
 
 # Path configuration
 REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
@@ -201,6 +201,27 @@ def build_speaker_mapping(raw_mapping: dict) -> dict:
         for speaker, name in raw_mapping.items()
     }
 
+def apply_speaker_mapping(transcript: list[dict], mapping: dict) -> list[dict]:
+    return [
+        {**line, "speaker": mapping.get(line["speaker"], line["speaker"])}
+        for line in transcript
+    ]
+
+def status_state_for_step(step: str) -> str:
+    step = (step or "").upper()
+
+    if step in ["READY", "UI_ASSIGNMENT", "UI_ASSIGNMENT_2", "NEXT"]:
+        return "complete"   # no spinner
+
+    if step in ["DONE"]:
+        return "complete"
+
+    if step in ["ERROR", "FAILED"]:
+        return "error"
+
+    # VR_TRANSCRIPTION, VR_RECOGNITION, n8n_RUNNING, etc.
+    return "running"
+
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
 ### Session States, to avoid reloading and resetting of the page after each interaction
@@ -368,7 +389,7 @@ with left:
     with status_container:
         status_placeholder.status(
             st.session_state.status_text,
-            state="complete" if st.session_state.workflow_step in ["DONE","NEXT"] else "running",
+            state=status_state_for_step(st.session_state.workflow_step),
             expanded=True
         )
         st.progress(st.session_state.progress)
@@ -527,6 +548,34 @@ with right:
         with c1:
             confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
 
+            skip_n8n = st.button("Skip n8n (demo)", type="secondary", use_container_width=True)
+
+            if skip_n8n:
+                log("Skip n8n clicked → using dummy result")
+
+                # make sure meeting_id exists
+                if not st.session_state.meeting_id:
+                    st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
+
+                # ensure run dir exists
+                run_dir = RUNS_DIR / st.session_state.meeting_id
+                run_dir.mkdir(parents=True, exist_ok=True)
+
+                # create dummy result
+                dummy = {
+                    "Summary": "✅ Demo summary: We discussed project status, next steps, and ownership.",
+                    "notes": "✅ Demo summary: We discussed project status, next steps, and ownership.",
+                    "tasks": [],
+                    "email_draft": "(no email draft in this project)",
+                }
+                st.session_state.n8n_result = dummy
+                st.session_state.status_text = "n8n: (skipped) Finished."
+                st.session_state.progress = 1.0
+
+                # jump to DONE
+                st.session_state.workflow_step = "DONE"
+                st.rerun()
+
             if confirm and all_assigned and not st.session_state.n8n_started:
                 log("Speaker assignment confirmed")
 
@@ -538,13 +587,13 @@ with right:
                 speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
 
                 st.session_state.n8n_started = True
+                final_transcript = apply_speaker_mapping(transcript, speaker_mapping)
 
                 # Pass-through to n8n (no final transcript building)
                 profiles = eligible_profiles
                 payload = {
                     "meeting_id": meeting_id,
-                    "transcript": transcript,
-                    "speaker_mapping": speaker_mapping,
+                    "transcript": final_transcript,
                     "profiles": profiles,
                 }
 
@@ -554,8 +603,20 @@ with right:
                 payload_path = run_dir / "n8n_payload.json"
                 with payload_path.open("w", encoding="utf-8") as f:
                     json.dump(payload, f, ensure_ascii=False, indent=2)
+                meetingID_path = run_dir / "meeting_ID.json"
+                with meetingID_path.open("w", encoding="utf-8") as f:
+                    json.dump(meeting_id, f, ensure_ascii=False, indent=2)
+                transcript_path = run_dir / "transcript.json"
+                with transcript_path.open("w", encoding="utf-8") as f:
+                    json.dump(final_transcript, f, ensure_ascii=False, indent=2)
 
                 log(f"Saved payload to {payload_path}")
+
+                payload_txt_path = run_dir / "n8n_payload.txt"
+                payload_txt = json.dumps(payload, ensure_ascii=False, indent=2)
+                payload_txt_path.write_text(payload_txt, encoding="utf-8")
+
+                log(f"Saved payload to {payload_txt_path}")
 
                 # 3. Send to n8n
                 r = requests.post(
@@ -564,10 +625,18 @@ with right:
                     timeout=20,
                 )
                 #r.raise_for_status()
+                #r = requests.post(
+                 #   f"{API_BASE}/n8n/start/{meeting_id}",
+                  #  data=payload_txt,  # <-- raw text body
+                   # headers={"Content-Type": "text/plain; charset=utf-8"},
+                    #timeout=20,
+                #)
 
                 st.session_state.workflow_step = "n8n_RUNNING"
                 st.session_state.progress = max(st.session_state.progress, 0.45)
                 st.rerun()
+
+                
 
         with c2:
             if st.button("Use completed profiles"):
@@ -643,9 +712,3 @@ if st.session_state.workflow_step == "DONE":
 
     # 4) Navigate
     st.switch_page("pages/2_Meetings.py")
-    
-
-    
-    
-
-

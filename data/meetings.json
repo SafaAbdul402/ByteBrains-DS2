@@ -1,5 +1,137 @@
 [
   {
+    "meeting_id": "meeting-1770844146",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-11 22:09",
+    "notes": "- Introduction to project: Creation of a new smart wearable device, adapting to user habits.\n- Challenges identified: Hardware complexity, comfort, innovation balance with practicality, battery life, and privacy.\n- Core pillars of the device: Intelligence, privacy, comfort, and durability.\n- Main function: Monitors stress and fatigue with feedback help (e.g., vibrations, breathing guidance, temperature changes).\n- Emphasis on careful feature management to avoid overpromising.\n- Importance of clear documentation and user safety testing.\n- Consideration of regulatory requirements for device classification (wellness vs. medical).\n- Proposed key sensors: Heart rate, skin temperature, motion sensors.\n- Discussion on adaptive sensors as a unique selling point, but with testing challenges.\n- Manufacturing scalability concerns; early consultation with partners advised.\n- Long-term vision preferred over quick release to uphold quality and reputation.\n- Team roles outlined for next steps, focusing on technical roadmap, user testing plan, documentation structure, and market analysis.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770234929",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:56",
+    "notes": "- The project involves creating a new smart wearable device that adapts to user habits, going beyond simple software updates.\n- Key pillars emphasized: intelligence, privacy, comfort, and durability.\n- Unique selling points include monitoring stress and fatigue with features like vibrations, breathing guidance, and temperature adjustments.\n- Emphasis on on-device processing to ensure privacy without over-reliance on cloud computing.\n- Challenges include managing cost, battery life, user comfort, and maintaining a balance between innovation and practicality.\n- Importance of explaining features clearly and ensuring they are safe through rigorous testing phases.\n- Discussion on regulatory classification to simplify requirements if classified as a wellness, not medical device.\n- Sensor integration focuses on heart rate, skin temperature, and motion, considering battery usage and adaptive functionality.\n- Non-adversarial approach to manufacturing and consultation with partners to ensure scalability.\n- Long-term project focus with an emphasis on quality over speed for a strong market position.\n- Next steps include drafting a technical roadmap, user testing plan, documentation structure, and market analysis, with each team member taking specific responsibilities. \n- Commitment to verifying concepts for feasibility and safety throughout the development process.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770234873",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:55",
+    "notes": "- The team is embarking on a project to create a new type of smart wearable device.\n- The primary goal is to design a wearable that adapts to the user’s daily habits while ensuring privacy and comfort.\n- Core pillars identified for the project are intelligence, privacy, comfort, and durability.\n- The device aims to monitor stress and fatigue and provide active recovery assistance through various feedback mechanisms.\n- On-device processing is preferred to protect user privacy, impacting cost, battery life, and design.\n- The product must balance innovation with practicality, emphasizing features like safety and durability.\n- Adaptive sensors and unique feedback methods like temperature changes were discussed as differentiators.\n- Multiple testing phases, including lab simulations and real-world testing, are planned to ensure safety and effectiveness.\n- Regulatory considerations were highlighted, potentially simplifying the process if classified as a wellness device.\n- Manufacturing constraints and long-term project outlook were acknowledged, focusing on quality over speed.\n- Coordination of user testing, technical roadmap development, and documentation to align the team.\n- Market positioning and competitor analysis are essential components of the project planning. \n- The overall project goal is a wearable that aids in stress recovery, balancing feasibility and innovation.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770234559",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:49",
+    "notes": "• Introduction to a new project involving the creation of a smart wearable device.\n• Focus on designing a device that adapts to user habits with emphasis on privacy and innovation without intrusiveness.\n• Key challenges identified: on-device processing, cost, battery life, comfort, durability, and safety.\n• Discussion of the device's unique features: monitoring stress and fatigue, actively assisting user recovery through notifications and physical feedback.\n• Considerations for regulatory requirements and classification as a wellness device to simplify development.\n• Sensor choices include heart rate, skin temperature, and motion, with potential for adaptive sensors to conserve battery.\n• Manufacturing and scalability issues highlighted; emphasis on consulting partners early in the design process.\n• Emphasis on quality over speed for first-generation product release.\n• Team roles assigned: drafting technical roadmap, outlining user testing, structuring documentation, challenging assumptions, and market analysis.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770234459",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:48",
+    "notes": "- The project involves creating a new smart wearable device rather than updating existing software.\n- The device is intended to adapt to the user's daily habits, with a focus on the three pillars: intelligence, privacy, and comfort.\n- Key features include monitoring stress and fatigue and providing feedback through vibrations, breathing guidance, and temperature changes.\n- Emphasis on the device's ability to learn from users without invading privacy, necessitating on-device processing.\n- Considerations discussed include cost, battery life, comfort, and durability.\n- The unique selling point is the device's proactive recovery assistance.\n- Thorough testing for safety and efficacy is planned, including lab simulations and real-world trials.\n- Regulatory classification as a wellness device might ease development.\n- Sensor choices (heart rate, skin temperature, motion) need careful consideration to prevent battery drain.\n- Adaptive and optional sensors could enhance user experience and device intelligence.\n- Manufacturing considerations stress the need for early collaboration with partners to ensure scalable production.\n- The project is viewed as a long-term initiative prioritizing quality over speed.\n- Team members committed to drafting a technical roadmap, testing plan, documentation, and market positioning analysis.\n- Overall, it's a pioneering effort focusing on recovery support keeping privacy, user comfort, and intelligence at its core.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770234182",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:43",
+    "notes": "- Team discusses the creation of a new smart wearable device that adapts to user habits, emphasizing its distinctive nature compared to their usual projects.\n- Key focus areas include intelligence, privacy, comfort, and durability, with a goal for the device to stand out in the market.\n- The device intends to monitor stress and fatigue, offering recovery assistance through features like vibrations, breathing guidance, and temperature changes.\n- Addressing challenges such as battery life, hardware complexity, and user comfort is critical.\n- Importance of on-device processing to protect user privacy and the need to balance cost and practicality.\n- Emphasis on rigorous testing phases, from lab simulations to real-world testing, to ensure safety.\n- Discussion about regulatory classification affecting sensor choices and manufacturing implications.\n- Considering the adaptability of sensors to enhance the user experience without compromising battery life.\n- The project is seen as a long-term endeavor, prioritizing quality over speed to build a product that upholds the company’s reputation.\n- Team assigns roles for the next steps: technical roadmap, user testing plans, documentation structuring, risk assessment, and market positioning.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770233856",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:38",
+    "notes": "- Tabia noted that the current project is different as it involves creating a new device rather than just updating software.\n- Mobin emphasized the device will be a smart wearable adapting to the user's daily habits.\n- Discussion highlighted the complexity of hardware and comfort in designing wearables.\n- Key elements identified for the project are intelligence, privacy, comfort, and durability.\n- Mobin proposed the device should monitor stress and fatigue, aiding the user in recovering through features like vibrations, breathing guidance, or temperature changes.\n- Ensuring user privacy and safety through on-device processing was stressed.\n- The group recognized the challenges in balancing cost, battery life, and the uniqueness of features.\n- User testing and regulatory requirements were identified as crucial steps in the development process.\n- The importance of carefully managing testing phases and documentation was discussed.\n- Ideas like optional or adaptive sensors were proposed to address battery concerns.\n- Manufacturing feasibility and the long-term vision for the device were highlighted as critical factors.\n- Team members were assigned tasks related to technical roadmaps, user testing plans, documentation, risk assessment, and market analysis.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770233686",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:35",
+    "notes": "- The team discusses a unique project: designing a smart wearable device.\n- The goal is to create a device that adapts to user habits while ensuring privacy and comfort.\n- Key features include on-device processing for privacy, cost, and battery considerations.\n- Intelligence, privacy, comfort, and durability are identified as core pillars.\n- The device aims to monitor stress and fatigue, offering recovery through notifications and physical feedback.\n- Uniqueness and safety are prioritized, with a focus on careful testing and regulatory compliance.\n- Sensor choices influence device classification; heart rate, skin temperature, and motion sensors are discussed.\n- Manufacturing feasibility and quality versus speed are considered, highlighting the project’s long-term nature.\n- Team members outline specific roles and next steps: drafting a technical roadmap, user testing plans, structuring documentation, market analysis, etc.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770233242",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:27",
+    "notes": "- The team is embarking on a new project to design a smart wearable device that adapts to user habits, marking a departure from their usual projects centered around software updates. \n- Core principles identified for the wearable include intelligence, privacy, and comfort, with an emphasis on non-invasive learning from the user. \n- The device is intended to monitor stress and fatigue and provide recovery aid through vibrations, breathing guidance, and temperature changes, requiring careful balance between innovation and practicality due to potential hardware challenges.\n- Battery life, comfort, durability, and clarity in communicating the device's unique features and safety are highlighted as critical factors.\n- Multiple testing phases are planned, starting with lab simulations and progressing to real-world testing, coordinated by S7, with a focus on early feedback to refine the product.\n- Discussions on sensor inclusivity focus on heart rate, skin temperature, and motion sensors, with an interest in adaptive sensors to conserve battery and enhance narrative.\n- Manufacturing considerations are to be addressed early, acknowledging that the project is a long-term commitment rather than a quick solution, with quality prioritized over speed.\n- Key action items include drafting a technical roadmap, outlining a user testing plan, structuring documentation, challenging assumptions to mitigate risks, and researching market positioning and competitor analysis. \n- Overall, the project aims to deliver a private, comfortable, and intelligent wearable that aids in stress recovery, while maintaining feasibility and safety.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770233051",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 20:24",
+    "notes": "- The project aims to create a smart wearable device that adapts to users' daily habits, focusing on intelligence, privacy, comfort, and durability.\n- Key challenges include balancing innovation with practicality, addressing battery life, and ensuring user comfort.\n- The device will monitor stress and fatigue, offering recovery assistance through notifications and physical feedback, like vibrations and temperature changes.\n- Emphasis on privacy will lead to on-device processing rather than cloud reliance, affecting cost and battery life.\n- Unique features like adaptive sensors and temperature changes make the device stand out but add complexity.\n- Thorough testing, including lab simulations and real-world trials, is planned to ensure safety and effectiveness.\n- Regulatory classification and sensor choices are critical to design and commercialization strategies.\n- Manufacturing feasibility and design considerations are recognized as pivotal for scaling production.\n- The project has a long-term vision to prioritize quality over speed, enhancing brand reputation.\n- Team members have assigned tasks, including drafting technical roadmaps, user testing plans, documentation, and market analysis.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770231434",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 19:57",
+    "notes": "- Tabia highlights the uniqueness of the project, geared towards creating a new device rather than just updating software.\n- The team plans to design a smart wearable device adapting to user habits and focusing on non-invasiveness, privacy, and comfort.\n- Key challenges identified include balancing cost, privacy, battery life, comfort, and durability.\n- Core pillars for the device are intelligence, privacy, comfort, and durability.\n- The device aims to monitor stress and fatigue, providing active recovery through notifications or physical feedback, such as gentle vibrations, breathing guidance, or temperature changes.\n- Ensuring user safety and carrying out multiple testing phases, including lab simulations and real-world trials, are emphasized.\n- Classification of the device as a wellness tool could affect regulatory requirements and sensor choices.\n- Considerations around sensor use, with emphasis on adaptability to preserve battery life and enhance smart functionality.\n- Manufacturing scalability and quality control are important, with early consultation with partners advised.\n- Long-term project perspective accepted over a rushed release for quality assurance.\n- Tasks assigned include drafting a technical roadmap, outlining a user testing plan, structuring documentation, challenging assumptions, and conducting market analysis.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
     "meeting_id": "meeting-1770230517",
     "title": "Processed Meeting",
     "created_at": "2026-02-04 19:42",

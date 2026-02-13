@@ -3,7 +3,7 @@ import requests
 import os
 from Frontend.auth import require_password
 
-require_password()
+#require_password()
 
 API_BASE = os.getenv("API_BASE", "")
 
