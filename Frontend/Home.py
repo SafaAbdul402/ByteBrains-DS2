@@ -73,6 +73,10 @@ def safe_post_json(url: str, payload: dict, timeout: int = 20) -> dict:
 def api_get_profiles_cached(api_base: str) -> dict:
     return safe_get_json(f"{api_base}/profiles", timeout=10)
 
+@st.cache_data(ttl=60, show_spinner=False)
+def api_get_profile_summary(api_base: str) -> dict:
+    return safe_get_json(f"{api_base}/profiles/summary", timeout=10)
+
 def compute_profile_summary(team: list[dict]) -> dict:
     def is_eligible(p):
         if p.get("status") == "deleted":
@@ -318,8 +322,7 @@ if "team" not in st.session_state:
     st.session_state.team_loaded = False
 
 if not st.session_state.team_loaded:
-    data = api_get_profiles_cached(API_BASE)
-
+    data = api_get_profile_summary(API_BASE)
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
         st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
@@ -738,32 +741,41 @@ with right:
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
 
-    # timeout by elapsed time (not poll count)
+    # timeout
     if st.session_state.n8n_started_at and (pytime.time() - st.session_state.n8n_started_at > 600):
-        st.error("n8n timeout (no result received after 10 minutes)")
+        st.error("n8n timeout (no result after 10 minutes)")
         st.stop()
 
-    # hard throttle polling
-    min_interval = 3.0
+    # poll gating: only allow a poll every 8 seconds
+    POLL_EVERY = 8.0
     now = pytime.time()
-    if now - st.session_state.last_n8n_poll_ts < min_interval:
-        pytime.sleep(0.3)
-        st.rerun()
+    last = st.session_state.get("last_n8n_poll_ts", 0.0)
 
+    can_poll = (now - last) >= POLL_EVERY
+
+    # UI controls
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        refresh = st.button("↻ Refresh status", use_container_width=True, disabled=not can_poll)
+    with c2:
+        st.caption(f"Polling every {int(POLL_EVERY)}s (manual refresh button).")
+
+    # If we can't poll yet, do NOT rerun-spam
+    if not can_poll and not refresh:
+        st.info("Waiting…")
+        st.stop()
+
+    # Perform exactly one poll
     st.session_state.last_n8n_poll_ts = now
-
     data = api_get_n8n_status(meeting_id)
 
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
-        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
-        if st.button("Retry"):
-            st.rerun()
+        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Refresh status.")
         st.stop()
 
     latest = data.get("latest")
     result = data.get("result")
-
     apply_n8n_status(latest)
 
     if result and (result.get("notes") or result.get("Summary")):
@@ -776,8 +788,9 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    pytime.sleep(2.0)
-    st.rerun()
+    # Not done: show status and stop. No auto loop.
+    st.info("Not finished yet. Click Refresh status again in a few seconds.")
+    st.stop()
         
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"

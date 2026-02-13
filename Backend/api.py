@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from Backend.store import load_profiles, save_profiles
 from Backend.trello_router import router as trello_router
 from Backend.n8n_router import router as n8n_router
@@ -40,6 +40,21 @@ class ProfilesPayload(BaseModel):
 @app.get("/profiles")
 def get_profiles():
     return load_profiles()
+
+@app.get("/profiles/summary")
+def profiles_summary():
+    data = load_profiles()
+    team = data.get("team", []) or []
+
+    def eligible(p: dict) -> bool:
+        if p.get("status") == "deleted":
+            return False
+        role_ok = bool((p.get("role") or "").strip())
+        skills = p.get("skills") or []
+        skills_ok = isinstance(skills, list) and any(str(s).strip() for s in skills)
+        return role_ok and skills_ok
+
+    return {"total": len(team), "eligible": sum(1 for p in team if eligible(p))}
 
 # Backend/api.py
 @app.post("/profiles")

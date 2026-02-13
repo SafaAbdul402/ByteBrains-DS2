@@ -10,11 +10,40 @@ import os
 from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
 
 API_BASE = os.getenv("API_BASE", "")
-PROFILES_TTL_S = 30  # cache /profiles for 30s in this Streamlit session
+PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 
 # -----------------------
 # HTTP helpers
 # -----------------------
+def fetch_profiles_cached() -> dict:
+    now = pytime.time()
+
+    # 1) if in cooldown, don't call backend
+    retry_at = st.session_state.get("_profiles_retry_at", 0.0)
+    if now < retry_at:
+        return {"_rate_limited": True, "_wait_s": int(retry_at - now)}
+
+    # 2) use session cache
+    cached = st.session_state.get("_profiles_cache")
+    ts = st.session_state.get("_profiles_cache_ts", 0.0)
+    if cached and (now - ts) < PROFILES_TTL_S:
+        return cached
+
+    # 3) call backend once
+    data = api_get_profiles()
+
+    if data.get("_rate_limited"):
+        wait_s = int(data.get("_wait_s", 3))
+        st.session_state["_profiles_retry_at"] = now + wait_s
+        return data
+
+    # success: update cache
+    st.session_state["_profiles_cache"] = data
+    st.session_state["_profiles_cache_ts"] = now
+    st.session_state["_profiles_retry_at"] = 0.0
+    return data
+
+
 def safe_get_json(url: str, timeout: int = 10) -> dict:
     r = requests.get(url, timeout=timeout)
 
@@ -152,37 +181,35 @@ if "team" not in st.session_state:
     st.session_state.team = []
 if "trello_board" not in st.session_state:
     st.session_state.trello_board = ""
-if "team_edit_id" not in st.session_state:
-    st.session_state.team_edit_id = None
-if "team_last_updated" not in st.session_state:
-    st.session_state.team_last_updated = 0.0
 
-# handle pending trello board write (avoids widget key write conflict)
-if "_pending_trello_board" in st.session_state:
-    st.session_state["trello_board"] = st.session_state.pop("_pending_trello_board")
-
-# ---- Initial load (only if team empty / never loaded)
-if not st.session_state.team and st.session_state.team_last_updated == 0.0:
-    data = get_profiles_throttled()
-    st.session_state.team_last_updated = pytime.time()
+# Only fetch once per page load (or when user forces refresh)
+if "_profiles_loaded_once" not in st.session_state:
+    st.session_state["_profiles_loaded_once"] = True
+    data = fetch_profiles_cached()
 
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
         st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
         if st.button("Retry"):
+            st.session_state["_profiles_loaded_once"] = False
             st.session_state["_profiles_retry_at"] = 0.0
-            invalidate_profiles_cache()
             st.rerun()
         st.stop()
 
     if data.get("_error"):
-        st.error("Could not load profiles from backend.")
-        st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
-        st.info("You can still use local fallback profiles.json if present.")
-        st.session_state.team = load_profiles_team_from_file()
-    else:
-        st.session_state.team = data.get("team", [])
-        st.session_state.trello_board = data.get("trello_board", "") or ""
+        st.error("Could not load profiles.")
+        st.code(f"HTTP {data.get('_status')}: {data.get('_text')[:300]}")
+        st.stop()
+
+    st.session_state.team = data.get("team", [])
+    st.session_state.trello_board = data.get("trello_board", "") or ""
+
+if st.button("↻ Refresh profiles"):
+    st.session_state["_profiles_loaded_once"] = False
+    st.session_state["_profiles_cache"] = None
+    st.session_state["_profiles_cache_ts"] = 0.0
+    st.session_state["_profiles_retry_at"] = 0.0
+    st.rerun()
 
 # -----------------------
 # Trello: Integration
@@ -205,7 +232,7 @@ with top_r:
 
         if data.get("_rate_limited"):
             wait_s = data.get("_wait_s", 3)
-            st.warning(f"Rate limited (429). Wait {wait_s}s and click the button again.")
+            st.warning(f"Rate limited (429). Wait {wait_s}s and click again.")
             st.stop()
 
         if data.get("_error"):
@@ -213,10 +240,19 @@ with top_r:
             st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
             st.stop()
 
+        # ✅ set state first
         st.session_state.team = data.get("team", [])
-        st.session_state["_pending_trello_board"] = data.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
-        st.session_state.team_last_updated = pytime.time()
-        invalidate_profiles_cache()
+        st.session_state.trello_board = data.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
+
+        # ✅ then cache
+        st.session_state["_profiles_cache"] = {
+            "team": st.session_state.team,
+            "trello_board": st.session_state.trello_board,
+            "trello_last_sync": data.get("trello_last_sync"),
+        }
+        st.session_state["_profiles_cache_ts"] = pytime.time()
+        st.session_state["_profiles_retry_at"] = 0.0
+
         st.success(f"Imported/updated {len(st.session_state.team)} members ✅")
         st.rerun()
 
@@ -322,6 +358,8 @@ if edit_mode:
 
             # save to backend
             res = api_save_profiles(st.session_state.team)
+            st.session_state["_profiles_cache"] = {"team": st.session_state.team, "trello_board": st.session_state.trello_board}
+            st.session_state["_profiles_cache_ts"] = pytime.time()
             st.session_state.team_last_updated = pytime.time()
             invalidate_profiles_cache()
 
