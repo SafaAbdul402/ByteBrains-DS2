@@ -1,10 +1,8 @@
 from pathlib import Path
 import json
 import os
-from typing import Dict, List, Any
+from typing import Dict, Any
 from Backend.config import RUNS_DIR
-from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
-import requests
 
 API_BASE = os.getenv("API_BASE", "")
 TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "")
@@ -39,6 +37,13 @@ def _list_speaker_audio(run_dir: Path) -> Dict[str, str]:
 def vr_process(meeting_id: str) -> dict:
     run_dir = RUNS_DIR / meeting_id
 
+    try:
+        from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
+    except Exception as e:
+        raise RuntimeError(
+            "Voice Recognition dependencies are not available in this environment. "
+            "Use 'Skip VR (demo)' or run locally with full requirements installed."
+        ) from e
     # Run VR pipeline
     process_meeting(run_dir)
 

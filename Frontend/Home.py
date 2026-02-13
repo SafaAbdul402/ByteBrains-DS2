@@ -32,17 +32,60 @@ from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
 API_BASE = os.getenv("API_BASE", "")
+IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
-def api_get_profiles():
-    r = requests.get(f"{API_BASE}/profiles", timeout=10)
+def safe_get_json(url: str, timeout: int = 10) -> dict:
+    r = requests.get(url, timeout=timeout)
+
+    # Rate limit handling
+    if r.status_code == 429:
+        retry_after = r.headers.get("Retry-After")
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
+        return {
+            "_rate_limited": True,
+            "_wait_s": wait_s,
+            "_status": 429,
+            "_text": "Rate limited (429)"
+        }
+
     r.raise_for_status()
     return r.json()
 
-def api_get_n8n_status(meeting_id: str) -> dict:
-    r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
+def safe_post_json(url: str, payload: dict, timeout: int = 20) -> dict:
+    r = requests.post(url, json=payload, timeout=timeout)
+
+    if r.status_code == 429:
+        retry_after = r.headers.get("Retry-After")
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
+        return {
+            "_rate_limited": True,
+            "_wait_s": wait_s,
+            "_status": 429,
+            "_text": "Rate limited (429)"
+        }
+
     r.raise_for_status()
     return r.json()
+
+@st.cache_data(ttl=30, show_spinner=False)
+def api_get_profiles_cached(api_base: str) -> dict:
+    return safe_get_json(f"{api_base}/profiles", timeout=10)
+
+def compute_profile_summary(team: list[dict]) -> dict:
+    def is_eligible(p):
+        if p.get("status") == "deleted":
+            return False
+        role_ok = bool((p.get("role") or "").strip())
+        skills = p.get("skills") or []
+        skills_ok = isinstance(skills, list) and any(str(s).strip() for s in skills)
+        return role_ok and skills_ok
+
+    eligible = sum(1 for p in team if is_eligible(p))
+    return {"total": len(team), "eligible": eligible}
+
+def api_get_n8n_status(meeting_id: str) -> dict:
+    return safe_get_json(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
 
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
@@ -92,6 +135,11 @@ def pretty_speaker_label(raw: str, scheme: str = "letters") -> str:
         return letters
 
     return f"Speaker {idx_to_letters(idx)}"
+
+def find_speaker_wavs(speakers_audio_dir: Path, speaker_id: str) -> list[Path]:
+    if not speakers_audio_dir.exists():
+        return []
+    return sorted([p for p in speakers_audio_dir.glob("*.wav") if speaker_id in p.name])
 
 #n8n status updates:
 STATUS_PROGRESS = {
@@ -168,6 +216,7 @@ def reset_session():
     st.session_state.team_demo_override = None
     st.session_state.n8n_started = False
     st.session_state.n8n_poll_count = 0
+    st.session_state.vr_demo = False
     log("Session reset completed")
 
 def request_cancel():
@@ -189,15 +238,6 @@ def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     audio_path.write_bytes(uploaded_file.getvalue())
     log(f"File saved: {audio_path}")
     return str(audio_path)
-
-def find_speaker_wavs(speaker_id: str) -> list[Path]:
-    if not speakers_audio_dir.exists():
-        return []
-    wavs = []
-    for p in speakers_audio_dir.glob("*.wav"):
-        if speaker_id in p.name:
-            wavs.append(p)
-    return sorted(wavs)
 
 def build_speaker_mapping(raw_mapping: dict) -> dict:
     return {
@@ -265,15 +305,29 @@ if "n8n_started" not in st.session_state:
     st.session_state.n8n_started = False
 if "n8n_poll_count" not in st.session_state:
     st.session_state.n8n_poll_count = 0
+if "last_n8n_poll_ts" not in st.session_state:
+    st.session_state.last_n8n_poll_ts = 0.0
+if "n8n_started_at" not in st.session_state:
+    st.session_state.n8n_started_at = None
+if "vr_demo" not in st.session_state:
+    st.session_state.vr_demo = False
 
 if "team" not in st.session_state:
-    try:
-        data = api_get_profiles()
-        st.session_state.team = data.get("team", [])
-        log(f"Loaded {len(st.session_state.team)} team profiles from API")
-    except Exception as e:
-        st.session_state.team = []
-        log(f"[ERROR] Failed to load team profiles: {e}")
+    st.session_state.team = []
+    st.session_state.team_loaded = False
+
+if not st.session_state.team_loaded:
+    data = api_get_profiles_cached(API_BASE)
+
+    if data.get("_rate_limited"):
+        wait_s = data.get("_wait_s", 3)
+        st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
+        time.sleep(wait_s)
+        st.rerun()
+
+    st.session_state.team = data.get("team", [])
+    st.session_state.team_loaded = True
+    log(f"Loaded {len(st.session_state.team)} team profiles from API")
 
 
 st.title("ByteBrains – AI Meeting Assistant")
@@ -341,7 +395,10 @@ with left:
     )
     st.session_state.participants = participants
 
-    start_disabled = (st.session_state.file_buffer is None) or (participants is None) or (participants < 1)
+    start_disabled = IS_RENDER or (st.session_state.file_buffer is None) or (participants is None) or (participants < 1)
+
+    if IS_RENDER:
+        st.info("Demo deployment: Voice Recognition is disabled. Use **Skip VR (demo)** to test n8n integration.")
 
     if st.button("Start processing", type="primary", disabled=start_disabled, width="stretch"):
         log("Start clicked → saving audio + meeting_meta.json")
@@ -369,16 +426,15 @@ with left:
         st.rerun()
 
     if st.button("Skip VR (demo)", width="stretch"):
+        st.session_state.vr_demo = True
         st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
-        run_dir = RUNS_DIR / st.session_state.meeting_id
-        run_dir.mkdir(parents=True, exist_ok=True)
 
         # fake vr_result so UI can continue
         st.session_state.vr_result = {
-            "speakers": ["Speaker 0", "Speaker 1"],
+            "speakers": ["SPEAKER_0", "SPEAKER_1"],
             "transcript": [
-                {"speaker": "Speaker 0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
-                {"speaker": "Speaker 1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
+                {"speaker": "SPEAKER_0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
+                {"speaker": "SPEAKER_1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
             ],
         }
 
@@ -415,15 +471,33 @@ with left:
                 st.rerun()
 
     if st.session_state.workflow_step == "NEXT":
-        col_a, col_b = st.columns([3, 1])
-        with col_a:
-            if st.button("New Meeting"):
+        if IS_RENDER:
+            st.success("Done (demo). Here are the results from n8n:")
+
+            res = st.session_state.get("n8n_result", {}) or {}
+            st.subheader("Summary / Notes")
+            st.write(res.get("notes") or res.get("Summary") or "(empty)")
+
+            st.subheader("Tasks")
+            st.json(res.get("tasks", []))
+
+            st.subheader("Email Draft")
+            st.write(res.get("email_draft", "(none)"))
+
+            if st.button("New Meeting", use_container_width=True):
                 reset_session()
                 st.rerun()
 
-        with col_b:
-            if st.button("*View Results*", type="primary", width="stretch"):
-                st.rerun()
+        else:
+            col_a, col_b = st.columns([3, 1])
+            with col_a:
+                if st.button("New Meeting"):
+                    reset_session()
+                    st.rerun()
+
+            with col_b:
+                if st.button("*View Results*", type="primary", width="stretch"):
+                    st.rerun()
 
     st.divider()
 
@@ -493,7 +567,8 @@ with right:
         options = ["— Select person —", "Noise / Ignore"] + team_members
 
         # --- Locate speaker audio folder (Option B)
-        speakers_audio_dir = RUNS_DIR / meeting_id / "speaker_audio"
+        is_demo = st.session_state.get("vr_demo", False) or IS_RENDER
+        speakers_audio_dir = None if is_demo else (RUNS_DIR / meeting_id / "speaker_audio")
 
         
 
@@ -503,7 +578,7 @@ with right:
                 st.session_state.speaker_mapping[speaker] = None
 
         # --- UI
-        if not speakers_audio_dir.exists():
+        if (not is_demo) and speakers_audio_dir and (not speakers_audio_dir.exists()):
             st.warning(f"Speaker audio folder not found: {speakers_audio_dir}")
             st.info("UI will still work, but no speaker audio snippets can be played.")
 
@@ -514,17 +589,21 @@ with right:
                 st.markdown(f"**{pretty_speaker_label(speaker, scheme='letters')}**")
                 #st.caption(f"Internal ID: {speaker}")  # optional, remove if you don’t want it shown            
 
-                wavs = find_speaker_wavs(speaker)
-                if wavs:
-                    # Show a few snippets (avoid flooding UI)
-                    max_snippets = 5
-                    for w in wavs[:max_snippets]:
-                        #st.caption(w.name)
-                        st.audio(f"{API_BASE}/runs/{meeting_id}/speaker_audio/{speaker}.wav")
-                    if len(wavs) > max_snippets:
-                        st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
+                if is_demo:
+                    st.caption("Demo mode: no audio snippets available.")
                 else:
-                    st.caption("No .wav snippets found for this speaker.")
+                    if speakers_audio_dir is None:
+                        st.caption("No speaker audio directory.")
+                    else:
+                        wavs = find_speaker_wavs(speakers_audio_dir, speaker)
+                        if wavs:
+                            max_snippets = 5
+                            for w in wavs[:max_snippets]:
+                                st.audio(str(w), format="audio/wav")
+                            if len(wavs) > max_snippets:
+                                st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
+                        else:
+                            st.caption("No .wav snippets found for this speaker.")
 
             with col_profile:
                 selection = st.selectbox(
@@ -562,8 +641,8 @@ with right:
                     st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
 
                 # ensure run dir exists
-                run_dir = RUNS_DIR / st.session_state.meeting_id
-                run_dir.mkdir(parents=True, exist_ok=True)
+                #run_dir = RUNS_DIR / st.session_state.meeting_id
+                #run_dir.mkdir(parents=True, exist_ok=True)
 
                 # create dummy result
                 dummy = {
@@ -601,26 +680,26 @@ with right:
                     "profiles": profiles,
                 }
 
-                run_dir = RUNS_DIR / meeting_id
-                run_dir.mkdir(parents=True, exist_ok=True)
+                #run_dir = RUNS_DIR / meeting_id
+                #run_dir.mkdir(parents=True, exist_ok=True)
 
-                payload_path = run_dir / "n8n_payload.json"
-                with payload_path.open("w", encoding="utf-8") as f:
-                    json.dump(payload, f, ensure_ascii=False, indent=2)
-                meetingID_path = run_dir / "meeting_ID.json"
-                with meetingID_path.open("w", encoding="utf-8") as f:
-                    json.dump(meeting_id, f, ensure_ascii=False, indent=2)
-                transcript_path = run_dir / "transcript.json"
-                with transcript_path.open("w", encoding="utf-8") as f:
-                    json.dump(final_transcript, f, ensure_ascii=False, indent=2)
+                #payload_path = run_dir / "n8n_payload.json"
+                #with payload_path.open("w", encoding="utf-8") as f:
+                 #   json.dump(payload, f, ensure_ascii=False, indent=2)
+                #meetingID_path = run_dir / "meeting_ID.json"
+                #with meetingID_path.open("w", encoding="utf-8") as f:
+                 #   json.dump(meeting_id, f, ensure_ascii=False, indent=2)
+                #transcript_path = run_dir / "transcript.json"
+                #with transcript_path.open("w", encoding="utf-8") as f:
+                 #   json.dump(final_transcript, f, ensure_ascii=False, indent=2)
 
-                log(f"Saved payload to {payload_path}")
+                #log(f"Saved payload to {payload_path}")
 
-                payload_txt_path = run_dir / "n8n_payload.txt"
-                payload_txt = json.dumps(payload, ensure_ascii=False, indent=2)
-                payload_txt_path.write_text(payload_txt, encoding="utf-8")
+                #payload_txt_path = run_dir / "n8n_payload.txt"
+                #payload_txt = json.dumps(payload, ensure_ascii=False, indent=2)
+                #payload_txt_path.write_text(payload_txt, encoding="utf-8")
 
-                log(f"Saved payload to {payload_txt_path}")
+                #log(f"Saved payload to {payload_txt_path}")
 
                 # 3. Send to n8n
                 r = requests.post(
@@ -628,6 +707,7 @@ with right:
                     json=payload,
                     timeout=20,
                 )
+                log(f"POST /n8n/start status={r.status_code}")
                 #r.raise_for_status()
                 #r = requests.post(
                  #   f"{API_BASE}/n8n/start/{meeting_id}",
@@ -637,6 +717,7 @@ with right:
                 #)
 
                 st.session_state.workflow_step = "n8n_RUNNING"
+                st.session_state.n8n_started_at = time.time()
                 st.session_state.progress = max(st.session_state.progress, 0.45)
                 st.rerun()
 
@@ -654,7 +735,28 @@ with right:
 
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
+
+    # timeout by elapsed time (not poll count)
+    if st.session_state.n8n_started_at and (time.time() - st.session_state.n8n_started_at > 600):
+        st.error("n8n timeout (no result received after 10 minutes)")
+        st.stop()
+
+    # hard throttle polling
+    min_interval = 3.0
+    now = time.time()
+    if now - st.session_state.last_n8n_poll_ts < min_interval:
+        time.sleep(0.3)
+        st.rerun()
+
+    st.session_state.last_n8n_poll_ts = now
+
     data = api_get_n8n_status(meeting_id)
+
+    if data.get("_rate_limited"):
+        wait_s = data.get("_wait_s", 5)
+        st.session_state.status_text = f"n8n: rate limited (429) — waiting {wait_s}s..."
+        time.sleep(wait_s)
+        st.rerun()
 
     latest = data.get("latest")
     result = data.get("result")
@@ -662,26 +764,16 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     apply_n8n_status(latest)
 
     if result and (result.get("notes") or result.get("Summary")):
-        # Normalize the result fields
         result.setdefault("notes", result.get("Summary", "(summary missing)"))
         result.setdefault("email_draft", "(placeholder email)")
         result.setdefault("tasks", [])
-
         st.session_state.n8n_result = result
         st.session_state.status_text = "n8n: Finished."
         st.session_state.progress = 1.0
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    # Optional safety timeout
-    st.session_state.n8n_poll_count += 1
-    if st.session_state.n8n_poll_count > 300:
-        st.error("n8n timeout (no result received after 300 polls)")
-        st.info("Make sure your n8n workflow sends a POST to `/n8n/update/{meeting_id}` with 'notes', 'email_draft', or 'tasks' fields at the end.")
-        st.stop()
-
-    poll_delay = min(1.0 + st.session_state.n8n_poll_count * 0.05, 3.0)
-    time.sleep(poll_delay)
+    time.sleep(2.0)
     st.rerun()
         
 if st.session_state.workflow_step == "DONE":
@@ -689,30 +781,31 @@ if st.session_state.workflow_step == "DONE":
     st.session_state.progress = 1.0
     log("Done")
 
-    # 1) Persist meeting results FIRST
-    result = st.session_state.get("n8n_result", None)
-    if result:
-        insert_meeting(
-            title="Processed Meeting",
-            notes=result["notes"],
-            email_draft=result["email_draft"],
-            tasks=result["tasks"],
-            meeting_id=st.session_state.meeting_id,   # << MUST
-        )
+    result = st.session_state.get("n8n_result")
+
+    if not IS_RENDER:
+        # keep your existing persistence
+        if result:
+            insert_meeting(
+                title="Processed Meeting",
+                notes=result.get("notes", ""),
+                email_draft=result.get("email_draft", ""),
+                tasks=result.get("tasks", []),
+                meeting_id=st.session_state.meeting_id,
+            )
+        else:
+            insert_meeting(
+                title="Processed Meeting",
+                notes="(placeholder notes)",
+                email_draft="(placeholder email)",
+                tasks=[],
+                meeting_id=st.session_state.meeting_id,
+            )
+
+        st.session_state.workflow_step = "NEXT"
+        st.session_state["selected_meeting_id"] = st.session_state.meeting_id
+        st.switch_page("pages/2_Meetings.py")
+
     else:
-        insert_meeting(
-            title="Processed Meeting",
-            notes="(placeholder notes)",
-            email_draft="(placeholder email)",
-            tasks=[],
-            meeting_id=st.session_state.meeting_id,
-        )
-
-    # 2) Update workflow
-    st.session_state.workflow_step = "NEXT"
-
-    # 3) Tell Meetings page which meeting to open
-    st.session_state["selected_meeting_id"] = st.session_state.meeting_id
-
-    # 4) Navigate
-    st.switch_page("pages/2_Meetings.py")
+        # DEMO: show results inline and stop navigation
+        st.session_state.workflow_step = "NEXT"

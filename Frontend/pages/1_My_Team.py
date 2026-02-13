@@ -12,37 +12,60 @@ from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
 
 API_BASE = os.getenv("API_BASE", "")
 
-def api_get_profiles():
-    r = requests.get(f"{API_BASE}/profiles", timeout=10)
-    r.raise_for_status()
+def safe_get_json(url: str, timeout: int = 10) -> dict:
+    r = requests.get(url, timeout=timeout)
+
+    if r.status_code == 429:
+        retry_after = r.headers.get("Retry-After")
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
+        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
+
+    if not r.ok:
+        return {"_error": True, "_status": r.status_code, "_text": r.text}
+
     return r.json()
+
+def safe_post_json(url: str, payload: dict, timeout: int = 30) -> dict:
+    r = requests.post(url, json=payload, timeout=timeout)
+
+    if r.status_code == 429:
+        retry_after = r.headers.get("Retry-After")
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
+        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
+
+    if not r.ok:
+        return {"_error": True, "_status": r.status_code, "_text": r.text}
+
+    return r.json()
+
+def api_get_profiles():
+    return safe_get_json(f"{API_BASE}/profiles", timeout=10)
 
 def api_sync_trello(board_input):
-    try:
-        r = requests.post(
-            f"{API_BASE}/trello/sync-members",
-            json={"board": board_input},
-            timeout=30,
-        )
-        r.raise_for_status()
-        data = r.json()
+    data = safe_post_json(
+        f"{API_BASE}/trello/sync-members",
+        {"board": board_input},
+        timeout=30,
+    )
 
-        st.session_state.team = data.get("team", [])
-
-        # IMPORTANT: don't write to trello_board directly (widget key)
-        st.session_state["_pending_trello_board"] = data.get("trello_board", board_input) or board_input
-
-        st.success(f"Imported/updated {len(st.session_state.team)} members ✅")
+    if data.get("_rate_limited"):
+        wait_s = data.get("_wait_s", 3)
+        st.warning(f"Rate limited (429). Waiting {wait_s}s then retry…")
+        time.sleep(wait_s)
         st.rerun()
 
-    except Exception as e:
+    if data.get("_error"):
         st.error("Import failed")
-        st.code(str(e))
+        st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
+        return
+
+    st.session_state.team = data.get("team", [])
+    st.session_state["_pending_trello_board"] = data.get("trello_board", board_input) or board_input
+    st.success(f"Imported/updated {len(st.session_state.team)} members ✅")
+    st.rerun()
 
 def api_save_profiles(team):
-    r = requests.post(f"{API_BASE}/profiles", json={"team": team}, timeout=10)
-    r.raise_for_status()
-    return r.json()
+    return safe_post_json(f"{API_BASE}/profiles", {"team": team}, timeout=10)
 
 def profile_state(p: dict) -> str:
     # returns: "deleted" | "incomplete" | "eligible"
@@ -88,13 +111,23 @@ if "_pending_trello_board" in st.session_state:
     st.session_state["trello_board"] = st.session_state.pop("_pending_trello_board")
 
 if "team" not in st.session_state or "trello_board" not in st.session_state:
-    try:
-        data = api_get_profiles()
-        st.session_state.team = data.get("team", [])
-        st.session_state.trello_board = data.get("trello_board", "") or ""
-    except Exception:
+    data = api_get_profiles()
+    st.session_state["team_last_updated"] = time.time()
+
+    if data.get("_rate_limited"):
+        wait_s = data.get("_wait_s", 3)
+        st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
+        time.sleep(wait_s)
+        st.rerun()
+
+    if data.get("_error"):
         st.session_state.team = []
         st.session_state.trello_board = ""
+        st.error("Could not load profiles from backend.")
+        st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
+    else:
+        st.session_state.team = data.get("team", [])
+        st.session_state.trello_board = data.get("trello_board", "") or ""
 
 if "team_edit_id" not in st.session_state:
     st.session_state.team_edit_id = None
@@ -181,6 +214,7 @@ if use_completed != st.session_state.use_completed_profiles_prev:
         # choose ONE source: API or local file
         try:
             data = api_get_profiles()
+            st.session_state["team_last_updated"] = time.time()
             st.session_state.team = data.get("team", [])
         except Exception:
             st.session_state.team = load_profiles_team_from_file()
@@ -259,7 +293,18 @@ if edit_mode: #st.session_state.show_add or
                         current["trello_username"] = current.get("trello_username", "")
                         current["trello_id"] = current.get("trello_id", "")
                     st.success("Saved.")
-                    api_save_profiles(st.session_state.team)
+                    res = api_save_profiles(st.session_state.team)
+                    st.session_state["team_last_updated"] = time.time()
+                    if res.get("_rate_limited"):
+                        wait_s = res.get("_wait_s", 3)
+                        st.warning(f"Rate limited (429) while saving. Waiting {wait_s}s then retry…")
+                        time.sleep(wait_s)
+                        st.rerun()
+                    if res.get("_error"):
+                        st.error("Saving failed")
+                        st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
+                    else:
+                        st.success("Saved ✅")
                     #st.session_state.show_add = False
                     reset_edit()
                     st.rerun()
