@@ -37,36 +37,36 @@ IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def safe_get_json(url: str, timeout: int = 10) -> dict:
-    r = requests.get(url, timeout=timeout)
+    try:
+        r = requests.get(url, timeout=timeout)
+    except Exception as e:
+        return {"_error": True, "_status": "network", "_text": str(e)}
 
-    # Rate limit handling
     if r.status_code == 429:
         retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
-        return {
-            "_rate_limited": True,
-            "_wait_s": wait_s,
-            "_status": 429,
-            "_text": "Rate limited (429)"
-        }
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 10
+        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
-    r.raise_for_status()
+    if not r.ok:
+        return {"_error": True, "_status": r.status_code, "_text": r.text}
+
     return r.json()
 
+
 def safe_post_json(url: str, payload: dict, timeout: int = 20) -> dict:
-    r = requests.post(url, json=payload, timeout=timeout)
+    try:
+        r = requests.post(url, json=payload, timeout=timeout)
+    except Exception as e:
+        return {"_error": True, "_status": "network", "_text": str(e)}
 
     if r.status_code == 429:
         retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
-        return {
-            "_rate_limited": True,
-            "_wait_s": wait_s,
-            "_status": 429,
-            "_text": "Rate limited (429)"
-        }
+        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 10
+        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
 
-    r.raise_for_status()
+    if not r.ok:
+        return {"_error": True, "_status": r.status_code, "_text": r.text}
+
     return r.json()
 
 @st.cache_data(ttl=30, show_spinner=False)
@@ -322,12 +322,21 @@ if "team" not in st.session_state:
     st.session_state.team_loaded = False
 
 if not st.session_state.team_loaded:
-    data = api_get_profile_summary(API_BASE)
+    data = api_get_profiles_cached(API_BASE)
+
     if data.get("_rate_limited"):
         wait_s = data.get("_wait_s", 3)
         st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
         if st.button("Retry"):
+            st.session_state.team_loaded = False
+            st.cache_data.clear()
             st.rerun()
+        st.stop()
+
+    # IMPORTANT: safe_get_json uses r.raise_for_status(), so wrap it
+    if data.get("_error"):
+        st.error("Could not load profiles from backend.")
+        st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
         st.stop()
 
     st.session_state.team = data.get("team", [])
@@ -747,7 +756,7 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         st.stop()
 
     # poll gating: only allow a poll every 8 seconds
-    POLL_EVERY = 8.0
+    POLL_EVERY = 10.0
     now = pytime.time()
     last = st.session_state.get("last_n8n_poll_ts", 0.0)
 
@@ -757,6 +766,8 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     c1, c2 = st.columns([1, 2])
     with c1:
         refresh = st.button("↻ Refresh status", use_container_width=True, disabled=not can_poll)
+        remaining = max(0, int(POLL_EVERY - (now - last)))
+        st.caption(f"Next allowed refresh in {remaining}s")
     with c2:
         st.caption(f"Polling every {int(POLL_EVERY)}s (manual refresh button).")
 

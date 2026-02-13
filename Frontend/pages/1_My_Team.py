@@ -6,121 +6,28 @@ import uuid
 import json
 import requests
 import os
-
 from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
+from Frontend.api_client import api_get_json, invalidate
 
 API_BASE = os.getenv("API_BASE", "")
 PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 
 # -----------------------
-# HTTP helpers
-# -----------------------
-def fetch_profiles_cached() -> dict:
-    now = pytime.time()
-
-    # 1) if in cooldown, don't call backend
-    retry_at = st.session_state.get("_profiles_retry_at", 0.0)
-    if now < retry_at:
-        return {"_rate_limited": True, "_wait_s": int(retry_at - now)}
-
-    # 2) use session cache
-    cached = st.session_state.get("_profiles_cache")
-    ts = st.session_state.get("_profiles_cache_ts", 0.0)
-    if cached and (now - ts) < PROFILES_TTL_S:
-        return cached
-
-    # 3) call backend once
-    data = api_get_profiles()
-
-    if data.get("_rate_limited"):
-        wait_s = int(data.get("_wait_s", 3))
-        st.session_state["_profiles_retry_at"] = now + wait_s
-        return data
-
-    # success: update cache
-    st.session_state["_profiles_cache"] = data
-    st.session_state["_profiles_cache_ts"] = now
-    st.session_state["_profiles_retry_at"] = 0.0
-    return data
-
-
-def safe_get_json(url: str, timeout: int = 10) -> dict:
-    r = requests.get(url, timeout=timeout)
-
-    if r.status_code == 429:
-        retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
-
-    if not r.ok:
-        return {"_error": True, "_status": r.status_code, "_text": r.text}
-
-    return r.json()
-
-def safe_post_json(url: str, payload: dict, timeout: int = 30) -> dict:
-    r = requests.post(url, json=payload, timeout=timeout)
-
-    if r.status_code == 429:
-        retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 3
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
-
-    if not r.ok:
-        return {"_error": True, "_status": r.status_code, "_text": r.text}
-
-    return r.json()
-
-# -----------------------
 # API calls
 # -----------------------
-def api_get_profiles():
-    return safe_get_json(f"{API_BASE}/profiles", timeout=10)
+#def api_get_profiles():
+ #   return safe_get_json(f"{API_BASE}/profiles", timeout=10)
 
-def api_save_profiles(team):
-    return safe_post_json(f"{API_BASE}/profiles", {"team": team}, timeout=10)
+#def api_save_profiles(team):
+ #   return safe_post_json(f"{API_BASE}/profiles", {"team": team}, timeout=10)
 
-def api_sync_trello(board_input):
-    return safe_post_json(
-        f"{API_BASE}/trello/sync-members",
-        {"board": board_input},
-        timeout=30,
-    )
+#def api_sync_trello(board_input):
+ #   return safe_post_json(
+  #      f"{API_BASE}/trello/sync-members",
+   #     {"board": board_input},
+    #    timeout=30,
+    #)
 
-# -----------------------
-# Throttled profiles fetch (prevents rerun hammering)
-# -----------------------
-def get_profiles_throttled() -> dict:
-    now = pytime.time()
-
-    # if we have fresh cached data, use it
-    cached = st.session_state.get("_profiles_cache")
-    ts = st.session_state.get("_profiles_cache_ts", 0.0)
-    if cached and (now - ts) < PROFILES_TTL_S:
-        return cached
-
-    # cooldown after a 429
-    retry_at = st.session_state.get("_profiles_retry_at", 0.0)
-    if now < retry_at:
-        wait_s = int(retry_at - now)
-        return {"_rate_limited": True, "_wait_s": max(wait_s, 1)}
-
-    data = api_get_profiles()
-
-    if data.get("_rate_limited"):
-        wait_s = int(data.get("_wait_s", 3))
-        st.session_state["_profiles_retry_at"] = now + wait_s
-        return data
-
-    # success: cache it
-    st.session_state["_profiles_cache"] = data
-    st.session_state["_profiles_cache_ts"] = now
-    st.session_state["_profiles_retry_at"] = 0.0
-    return data
-
-def invalidate_profiles_cache():
-    st.session_state.pop("_profiles_cache", None)
-    st.session_state.pop("_profiles_cache_ts", None)
-    st.session_state["_profiles_retry_at"] = 0.0
 
 # -----------------------
 # Local helpers
@@ -176,40 +83,27 @@ def normalize_skills(skills_text: str):
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
 
-# ---- init session state keys
 if "team" not in st.session_state:
     st.session_state.team = []
 if "trello_board" not in st.session_state:
     st.session_state.trello_board = ""
 
-# Only fetch once per page load (or when user forces refresh)
-if "_profiles_loaded_once" not in st.session_state:
-    st.session_state["_profiles_loaded_once"] = True
-    data = fetch_profiles_cached()
+data = api_get_json("/profiles", name="profiles", ttl_s=60)
 
-    if data.get("_rate_limited"):
-        wait_s = data.get("_wait_s", 3)
-        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
-        if st.button("Retry"):
-            st.session_state["_profiles_loaded_once"] = False
-            st.session_state["_profiles_retry_at"] = 0.0
-            st.rerun()
-        st.stop()
+if data.get("_rate_limited"):
+    st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s and click Retry.")
+    if st.button("Retry"):
+        invalidate("profiles")
+        st.rerun()
+    st.stop()
 
-    if data.get("_error"):
-        st.error("Could not load profiles.")
-        st.code(f"HTTP {data.get('_status')}: {data.get('_text')[:300]}")
-        st.stop()
+if data.get("_error"):
+    st.error("Could not load profiles.")
+    st.code(f"HTTP {data.get('_status')}: {data.get('_text')[:400]}")
+    st.stop()
 
-    st.session_state.team = data.get("team", [])
-    st.session_state.trello_board = data.get("trello_board", "") or ""
-
-if st.button("↻ Refresh profiles"):
-    st.session_state["_profiles_loaded_once"] = False
-    st.session_state["_profiles_cache"] = None
-    st.session_state["_profiles_cache_ts"] = 0.0
-    st.session_state["_profiles_retry_at"] = 0.0
-    st.rerun()
+st.session_state.team = data.get("team", [])
+st.session_state.trello_board = data.get("trello_board", "") or ""
 
 # -----------------------
 # Trello: Integration
@@ -244,16 +138,8 @@ with top_r:
         st.session_state.team = data.get("team", [])
         st.session_state.trello_board = data.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
 
-        # ✅ then cache
-        st.session_state["_profiles_cache"] = {
-            "team": st.session_state.team,
-            "trello_board": st.session_state.trello_board,
-            "trello_last_sync": data.get("trello_last_sync"),
-        }
-        st.session_state["_profiles_cache_ts"] = pytime.time()
-        st.session_state["_profiles_retry_at"] = 0.0
-
-        st.success(f"Imported/updated {len(st.session_state.team)} members ✅")
+        invalidate("profiles")
+        st.success(f"Imported/updated {len(st.session_state.team)} members")
         st.rerun()
 
 with top_rr:
@@ -275,23 +161,7 @@ if use_completed != st.session_state.use_completed_profiles_prev:
         st.success(f"Loaded {len(st.session_state.team)} completed profiles ✅")
         st.rerun()
     else:
-        data = get_profiles_throttled()
-        st.session_state.team_last_updated = pytime.time()
-
-        if data.get("_rate_limited"):
-            wait_s = data.get("_wait_s", 3)
-            st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
-            if st.button("Retry"):
-                st.session_state["_profiles_retry_at"] = 0.0
-                invalidate_profiles_cache()
-                st.rerun()
-            st.stop()
-
-        if data.get("_error"):
-            st.warning("Could not load profiles from backend, using local fallback.")
-            st.session_state.team = load_profiles_team_from_file()
-        else:
-            st.session_state.team = data.get("team", [])
+        invalidate("profiles")
         st.rerun()
 
 # -----------------------
@@ -358,8 +228,7 @@ if edit_mode:
 
             # save to backend
             res = api_save_profiles(st.session_state.team)
-            st.session_state["_profiles_cache"] = {"team": st.session_state.team, "trello_board": st.session_state.trello_board}
-            st.session_state["_profiles_cache_ts"] = pytime.time()
+            
             st.session_state.team_last_updated = pytime.time()
             invalidate_profiles_cache()
 
@@ -373,6 +242,7 @@ if edit_mode:
                 st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
                 st.stop()
 
+            invalidate("profiles")
             st.success("Saved ✅")
             st.session_state.team_edit_id = None
             st.rerun()
