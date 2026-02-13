@@ -212,14 +212,20 @@ if use_completed != st.session_state.use_completed_profiles_prev:
         st.session_state.team = load_completed_profiles()
         st.success(f"Loaded {len(st.session_state.team)} completed profiles ✅")
     else:
-        # choose ONE source: API or local file
-        try:
-            data = api_get_profiles()
-            st.session_state["team_last_updated"] = time.time()
-            st.session_state.team = data.get("team", [])
-        except Exception:
-            st.session_state.team = load_profiles_team_from_file()
+        data = api_get_profiles()
+        st.session_state["team_last_updated"] = time.time()
 
+        if data.get("_rate_limited"):
+            wait_s = data.get("_wait_s", 3)
+            st.warning(f"Backend rate limited (429). Waiting {wait_s}s then retry…")
+            time.sleep(wait_s)
+            st.rerun()
+
+        if data.get("_error"):
+            st.warning("Could not load profiles from backend, using local fallback.")
+            st.session_state.team = load_profiles_team_from_file()
+        else:
+            st.session_state.team = data.get("team", [])
     st.rerun()
 
 if edit_mode: #st.session_state.show_add or 
