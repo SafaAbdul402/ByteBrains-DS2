@@ -3,9 +3,15 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import os
 from datetime import datetime
+import time
+from threading import Lock
+_sync_lock = Lock()
+_last_sync_ts = 0.0
+SYNC_COOLDOWN_S = int(os.getenv("TRELLO_SYNC_COOLDOWN_S", "30"))
 
 from Backend.store import load_profiles, save_profiles
 from Backend.trello_api import fetch_board_members, members_to_profiles
+from Backend.api import invalidate_profiles_cache
 
 router = APIRouter(prefix="/trello", tags=["trello"])
 
@@ -14,6 +20,16 @@ class ImportRequest(BaseModel):
 
 @router.post("/sync-members")   # rename endpoint (recommended)
 def sync_members(req: ImportRequest):
+
+    global _last_sync_ts
+    now = time.time()
+
+    with _sync_lock:
+        if (now - _last_sync_ts) < SYNC_COOLDOWN_S:
+            wait = int(SYNC_COOLDOWN_S - (now - _last_sync_ts))
+            raise HTTPException(status_code=429, detail=f"sync cooldown: wait {wait}s")
+        _last_sync_ts = now
+
     api_key = os.getenv("TRELLO_API_KEY", "")
     token = os.getenv("TRELLO_TOKEN", "")
 
@@ -83,4 +99,5 @@ def sync_members(req: ImportRequest):
         "trello_board": req.board,
         "trello_last_sync": now,
     })
+    invalidate_profiles_cache()
     return out

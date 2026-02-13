@@ -8,10 +8,14 @@ from typing import List, Optional, Any, Dict
 from Backend.store import load_profiles, save_profiles
 from Backend.trello_router import router as trello_router
 from Backend.n8n_router import router as n8n_router
+from Backend.lease_router import router as lease_router
+import time as pytime
+import os
 
 app = FastAPI(title="ByteBrains Backend")
 app.include_router(trello_router)
 app.include_router(n8n_router)
+app.include_router(lease_router)
 
 # allow Streamlit + n8n to call this easily
 app.add_middleware(
@@ -34,12 +38,26 @@ class Profile(BaseModel):
     photo: Optional[str] = None  # store base64 string later if you want
     status: Optional[str] = "imported"
 
+_profiles_cache = {"ts": 0.0, "data": None}
+PROFILES_CACHE_TTL = float(os.getenv("PROFILES_CACHE_TTL", "2.0"))
+
+def invalidate_profiles_cache():
+    _profiles_cache["data"] = None
+    _profiles_cache["ts"] = 0.0
+
 class ProfilesPayload(BaseModel):
     team: List[Profile]
 
 @app.get("/profiles")
 def get_profiles():
-    return load_profiles()
+    now = pytime.time()
+    if _profiles_cache["data"] is not None and (now - _profiles_cache["ts"]) < PROFILES_CACHE_TTL:
+        return _profiles_cache["data"]
+
+    data = load_profiles()
+    _profiles_cache["data"] = data
+    _profiles_cache["ts"] = now
+    return data
 
 @app.get("/profiles/summary")
 def profiles_summary():
@@ -64,6 +82,7 @@ def post_profiles(payload: ProfilesPayload):
 
     # preserve trello metadata
     existing["team"] = team_dicts
+    invalidate_profiles_cache()
     return save_profiles(existing)
 
 class SettingsPayload(BaseModel):
@@ -82,4 +101,5 @@ def save_settings_endpoint(payload: SettingsPayload):
     data = load_profiles()
     data["trello_board"] = (payload.trello_board or "").strip()
     # keep team + last sync as-is
+    
     return save_profiles(data)

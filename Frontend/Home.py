@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import time as pytime
 import json
 import os
@@ -10,6 +8,10 @@ import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
+from Frontend.api_client import api_get_json
+from Frontend.lease_client import acquire_or_block
+from Frontend.api_client import invalidate
+acquire_or_block()
 
 #from auth import require_password
 
@@ -30,67 +32,27 @@ except Exception:
     def vr_process(meeting_id: str) -> dict:
         raise RuntimeError("VR module not available in this deployment. Use 'Skip VR (demo)'.")
 from Backend.store import insert_meeting, write_meeting_meta
-from Backend.config import RUNS_DIR, DATA_DIR
+from Backend.config import RUNS_DIR
 
 API_BASE = os.getenv("API_BASE", "")
 IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
-def safe_get_json(url: str, timeout: int = 10) -> dict:
-    try:
-        r = requests.get(url, timeout=timeout)
-    except Exception as e:
-        return {"_error": True, "_status": "network", "_text": str(e)}
-
-    if r.status_code == 429:
-        retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 10
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
-
-    if not r.ok:
-        return {"_error": True, "_status": r.status_code, "_text": r.text}
-
-    return r.json()
-
-
-def safe_post_json(url: str, payload: dict, timeout: int = 20) -> dict:
-    try:
-        r = requests.post(url, json=payload, timeout=timeout)
-    except Exception as e:
-        return {"_error": True, "_status": "network", "_text": str(e)}
-
-    if r.status_code == 429:
-        retry_after = r.headers.get("Retry-After")
-        wait_s = int(retry_after) if (retry_after and retry_after.isdigit()) else 10
-        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
-
-    if not r.ok:
-        return {"_error": True, "_status": r.status_code, "_text": r.text}
-
-    return r.json()
-
-@st.cache_data(ttl=30, show_spinner=False)
-def api_get_profiles_cached(api_base: str) -> dict:
-    return safe_get_json(f"{api_base}/profiles", timeout=10)
-
-@st.cache_data(ttl=60, show_spinner=False)
-def api_get_profile_summary(api_base: str) -> dict:
-    return safe_get_json(f"{api_base}/profiles/summary", timeout=10)
-
-def compute_profile_summary(team: list[dict]) -> dict:
-    def is_eligible(p):
-        if p.get("status") == "deleted":
-            return False
-        role_ok = bool((p.get("role") or "").strip())
-        skills = p.get("skills") or []
-        skills_ok = isinstance(skills, list) and any(str(s).strip() for s in skills)
-        return role_ok and skills_ok
-
-    eligible = sum(1 for p in team if is_eligible(p))
-    return {"total": len(team), "eligible": eligible}
-
 def api_get_n8n_status(meeting_id: str) -> dict:
-    return safe_get_json(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
+    try:
+        r = requests.get(f"{API_BASE}/n8n/status/{meeting_id}", timeout=10)
+    except Exception as e:
+        return {"_error": True, "_status": "network", "_text": str(e)}
+
+    if r.status_code == 429:
+        ra = r.headers.get("Retry-After")
+        wait_s = int(ra) if (ra and ra.isdigit()) else 10
+        return {"_rate_limited": True, "_wait_s": wait_s, "_status": 429, "_text": r.text}
+
+    if not r.ok:
+        return {"_error": True, "_status": r.status_code, "_text": r.text}
+
+    return r.json()
 
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
@@ -322,14 +284,12 @@ if "team" not in st.session_state:
     st.session_state.team_loaded = False
 
 if not st.session_state.team_loaded:
-    data = api_get_profiles_cached(API_BASE)
+    data = api_get_json("/profiles", name="profiles", ttl_s=60)
 
     if data.get("_rate_limited"):
-        wait_s = data.get("_wait_s", 3)
-        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Retry.")
+        st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s then click Retry.")
         if st.button("Retry"):
-            st.session_state.team_loaded = False
-            st.cache_data.clear()
+            invalidate("profiles")
             st.rerun()
         st.stop()
 
@@ -781,8 +741,9 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     data = api_get_n8n_status(meeting_id)
 
     if data.get("_rate_limited"):
-        wait_s = data.get("_wait_s", 3)
-        st.warning(f"Backend rate limited (429). Wait {wait_s}s then click Refresh status.")
+        st.warning(f"Backend rate limited (429). Wait ~{data.get('_wait_s', 10)}s then click Retry.")
+        if st.button("Retry"):
+            st.rerun()
         st.stop()
 
     latest = data.get("latest")

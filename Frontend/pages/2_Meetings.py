@@ -9,6 +9,8 @@ import streamlit as st
 
 from Backend.config import RUNS_DIR
 from Backend.store import load_meetings, save_meetings
+from Frontend.lease_client import acquire_or_block
+acquire_or_block()
 # from Frontend.auth import require_password
 
 # MUST be first Streamlit call

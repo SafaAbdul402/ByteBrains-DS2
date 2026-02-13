@@ -7,27 +7,12 @@ import json
 import requests
 import os
 from Backend.config import PROFILES_COMPLETED_PATH, PROFILES_PATH
-from Frontend.api_client import api_get_json, invalidate
+from Frontend.api_client import api_get_json, api_post_json, invalidate
+from Frontend.lease_client import acquire_or_block
+acquire_or_block()
 
 API_BASE = os.getenv("API_BASE", "")
 PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
-
-# -----------------------
-# API calls
-# -----------------------
-#def api_get_profiles():
- #   return safe_get_json(f"{API_BASE}/profiles", timeout=10)
-
-#def api_save_profiles(team):
- #   return safe_post_json(f"{API_BASE}/profiles", {"team": team}, timeout=10)
-
-#def api_sync_trello(board_input):
- #   return safe_post_json(
-  #      f"{API_BASE}/trello/sync-members",
-   #     {"board": board_input},
-    #    timeout=30,
-    #)
-
 
 # -----------------------
 # Local helpers
@@ -87,6 +72,8 @@ if "team" not in st.session_state:
     st.session_state.team = []
 if "trello_board" not in st.session_state:
     st.session_state.trello_board = ""
+if "team_edit_id" not in st.session_state:
+    st.session_state.team_edit_id = None
 
 data = api_get_json("/profiles", name="profiles", ttl_s=60)
 
@@ -122,21 +109,20 @@ with top_l:
 
 with top_r:
     if st.button("Update/Import members", use_container_width=True):
-        data = api_sync_trello(st.session_state.trello_board)
+        res = api_post_json("/trello/sync-members", {...}, name="trello_sync", timeout=60)
 
-        if data.get("_rate_limited"):
-            wait_s = data.get("_wait_s", 3)
+        if res.get("_rate_limited"):
+            wait_s = res.get("_wait_s", 10)
             st.warning(f"Rate limited (429). Wait {wait_s}s and click again.")
             st.stop()
 
-        if data.get("_error"):
+        if res.get("_error"):
             st.error("Import failed")
-            st.code(f"HTTP {data.get('_status')}: {data.get('_text')}")
+            st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
             st.stop()
 
-        # ✅ set state first
-        st.session_state.team = data.get("team", [])
-        st.session_state.trello_board = data.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
+        st.session_state.team = res.get("team", [])
+        st.session_state.trello_board = res.get("trello_board", st.session_state.trello_board) or st.session_state.trello_board
 
         invalidate("profiles")
         st.success(f"Imported/updated {len(st.session_state.team)} members")
@@ -227,10 +213,10 @@ if edit_mode:
                 current["photo"] = photo_bytes
 
             # save to backend
-            res = api_save_profiles(st.session_state.team)
+            res = api_post_json("/profiles", {"team": team}, name="profiles_save", timeout=20)
             
             st.session_state.team_last_updated = pytime.time()
-            invalidate_profiles_cache()
+            invalidate("profiles")
 
             if res.get("_rate_limited"):
                 wait_s = res.get("_wait_s", 3)
@@ -331,4 +317,8 @@ else:
                     with b2:
                         if st.button("Delete", key=f"del_{m.get('id')}", type="secondary", use_container_width=True):
                             delete_member(m.get("id"))
+                            res = api_post_json("/profiles", {"team": team}, name="profiles_save", timeout=20)
+                            if res.get("_error") or res.get("_rate_limited"):
+                                st.warning("Could not persist deletion to backend. Please try again.")
+                            invalidate("profiles")
                             st.rerun()
