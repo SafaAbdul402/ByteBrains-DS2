@@ -94,7 +94,6 @@ def save_meetings(meetings):
 def insert_meeting(title, notes, email_draft, tasks, meeting_id: str | None = None):
     meetings = load_meetings()
 
-    # IMPORTANT: use provided meeting_id so it matches data/runs/<meeting_id>/
     if meeting_id is None:
         meeting_id = f"meeting-{int(datetime.now().timestamp())}"
 
@@ -103,9 +102,8 @@ def insert_meeting(title, notes, email_draft, tasks, meeting_id: str | None = No
         "title": title,
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "notes": notes,
-        "email_draft": email_draft,
+        "email_draft": email_draft,  # keep for now if you don't want migrations
         "tasks": tasks,
-        "trello_sync": {"last_status": "Not sent", "last_timestamp": None},
     }
 
     meetings.insert(0, meeting)

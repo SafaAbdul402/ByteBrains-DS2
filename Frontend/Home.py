@@ -10,13 +10,13 @@ import warnings
 from datetime import datetime
 import requests
 from pathlib import Path
-from Frontend.auth import require_password
+#from Frontend.auth import require_password
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")
 warnings.filterwarnings("ignore", message="Module 'speechbrain.pretrained'")
 
-require_password()
+#require_password()
 
 # Path configuration
 REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
@@ -120,7 +120,7 @@ def apply_n8n_status(status: dict | None):
         log(f"[{timestamp}] [n8n] No status received - waiting for updates")
         return
 
-    stage = (status.get("stage") or "").strip().lower()
+    stage = (status.get("stage") or status.get("type") or "").strip().lower()
     text = (status.get("text") or status.get("status") or "").strip()
     
     # Log the raw status received from n8n
@@ -184,15 +184,6 @@ def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     audio_path.write_bytes(uploaded_file.getvalue())
     log(f"File saved: {audio_path}")
     return str(audio_path)
-
-def find_speaker_wavs(speaker_id: str) -> list[Path]:
-    if not speakers_audio_dir.exists():
-        return []
-    wavs = []
-    for p in speakers_audio_dir.glob("*.wav"):
-        if speaker_id in p.name:
-            wavs.append(p)
-    return sorted(wavs)
 
 def build_speaker_mapping(raw_mapping: dict) -> dict:
     return {
@@ -372,7 +363,7 @@ with left:
     with status_container:
         status_placeholder.status(
             st.session_state.status_text,
-            state="complete" if st.session_state.workflow_step in ["DONE","NEXT"] else "running",
+            state="complete" if st.session_state.workflow_step in ["DONE","NEXT", "READY", "UI_ASSIGNMENT", "UI_ASSIGNMENT_2"] else "running",
             expanded=True
         )
         st.progress(st.session_state.progress)
@@ -493,17 +484,13 @@ with right:
                 st.markdown(f"**{pretty_speaker_label(speaker, scheme='letters')}**")
                 #st.caption(f"Internal ID: {speaker}")  # optional, remove if you don’t want it shown            
 
-                wavs = find_speaker_wavs(speaker)
-                if wavs:
-                    # Show a few snippets (avoid flooding UI)
-                    max_snippets = 5
-                    for w in wavs[:max_snippets]:
-                        #st.caption(w.name)
-                        st.audio(str(w), format="audio/wav")
-                    if len(wavs) > max_snippets:
-                        st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
+                speaker_audio_map = st.session_state.vr_result.get("speaker_audio", {})
+
+                audio_path = speaker_audio_map.get(speaker)
+                if audio_path:
+                    st.audio(audio_path, format="audio/wav")
                 else:
-                    st.caption("No .wav snippets found for this speaker.")
+                    st.caption("No speaker audio found.")
 
             with col_profile:
                 selection = st.selectbox(
@@ -610,10 +597,11 @@ if st.session_state.workflow_step == "n8n_RUNNING":
 
     apply_n8n_status(latest)
 
-    if result and (result.get("notes") or result.get("Summary")):
-        result.setdefault("notes", result.get("Summary", "(summary missing)"))
-        result.setdefault("email_draft", "(placeholder email)")
+    if result and (result.get("summary") or result.get("tasks") or result.get("transcript")):
+        # normalize fields we care about
+        result.setdefault("summary", "")
         result.setdefault("tasks", [])
+        result.setdefault("transcript", [])
 
         st.session_state.n8n_result = result
         st.session_state.status_text = "n8n: Finished."
@@ -632,12 +620,23 @@ if st.session_state.workflow_step == "DONE":
     # 1) Persist meeting results FIRST
     result = st.session_state.get("n8n_result", None)
     if result:
+        summary = (result or {}).get("summary") or ""
+        tasks = (result or {}).get("tasks") or []
+        transcript = (result or {}).get("transcript") or []
+
+        run_dir = RUNS_DIR / st.session_state.meeting_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        (run_dir / "n8n_transcript.json").write_text(
+            json.dumps(transcript, indent=2, ensure_ascii=False),
+            encoding="utf-8"
+        )
+
         insert_meeting(
             title="Processed Meeting",
-            notes=result["notes"],
-            email_draft=result["email_draft"],
-            tasks=result["tasks"],
-            meeting_id=st.session_state.meeting_id,   # << MUST
+            notes=summary,
+            email_draft="",
+            tasks=tasks,
+            meeting_id=st.session_state.meeting_id,
         )
     else:
         insert_meeting(

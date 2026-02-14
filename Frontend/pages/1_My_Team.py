@@ -162,11 +162,6 @@ with top_r:
             st.warning("Completed profiles mode is ON. Turn it off to import from Trello.")
         else:
             api_sync_trello(st.session_state.trello_board)
-
-with top_rr:
-    # Optional: show/hide table view later; for now just a quick count
-    st.metric("Members", len(st.session_state.team))
-    st.divider()
     use_completed = st.toggle(
         "Use completed profiles",
         help="Loads profiles from data/profiles_complete.json (for demo/testing).",
@@ -185,6 +180,11 @@ with top_rr:
             st.session_state.trello_board = data.get("trello_board", "") or ""
         except Exception:
             pass
+
+with top_rr:
+    # Optional: show/hide table view later; for now just a quick count
+    st.metric("Members", len(st.session_state.team))
+    
 
 
 # -----------------------
