@@ -5,6 +5,7 @@ import json
 import os
 import time
 import uuid
+import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -51,12 +52,6 @@ def _append_timeline(meeting_id: str, msg: Dict[str, Any]) -> None:
     tl.append({"at": state["updated_at"], **msg})
     state["timeline"] = tl
 
-    # If this looks like a final result, store it
-    if isinstance(msg, dict) and (
-        "notes" in msg or "email_draft" in msg or "tasks" in msg
-    ):
-        state["result"] = msg
-
     _save_state(meeting_id, state)
     
 
@@ -99,39 +94,79 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
 
 @router.post("/update/{meeting_id}")
 def update_status(meeting_id: str, payload: Dict[str, Any]):
-    from Backend.store import read_current_meeting, save_meetings, load_meetings
-
-    # Normalize legacy/alternative field names
-    if "Summary" in payload and "notes" not in payload:
-        payload["notes"] = payload["Summary"]
-    # Save the summary to file
-    run_dir = RUNS_DIR / meeting_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    summary_path = run_dir / "summary.json"
-    summary_data = {
-        "meeting_id": meeting_id,
-        "received_at": datetime.now().isoformat(timespec="seconds"),
-        "notes": payload.get("notes"),
-        "raw": payload  # optional: store full raw payload
-    }
-
-    summary_path.write_text(json.dumps(summary_data, indent=2, ensure_ascii=False), encoding="utf-8")
-    if "EmailDraft" in payload and "email_draft" not in payload:
-        payload["email_draft"] = payload["EmailDraft"]
-    if "Tasks" in payload and "tasks" not in payload:
-        payload["tasks"] = payload["Tasks"]
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Payload must be a JSON object.")
 
+    # ---- Normalize type
+    ptype = (payload.get("type") or "").strip().lower()
+    text = payload.get("text")
+
+    # tolerate common typos
+    if ptype in ("transcipt", "transcript"):
+        ptype = "transcript"
+
+    # ---- Load state so we can accumulate result
+    state = _load_state(meeting_id)
+    result = state.get("result") or {}   # this will become the merged final object
+
+    # ---- Extract + normalize per message type
+    if ptype == "summary":
+        # they send: {"type":"Summary","text":"..."}
+        summary_text = text if isinstance(text, str) else json.dumps(text, ensure_ascii=False)
+        result["summary"] = summary_text
+
+    elif ptype == "tasks":
+        # they send: {"type":"Tasks","text": {"0": {"json": {...}}, ...}}
+        tasks_list = []
+        if isinstance(text, dict):
+            # keys "0","1",... each has {"json": {...}}
+            for _, item in sorted(text.items(), key=lambda kv: str(kv[0])):
+                if isinstance(item, dict):
+                    j = item.get("json") if isinstance(item.get("json"), dict) else None
+                    if j:
+                        tasks_list.append(j)
+        elif isinstance(text, list):
+            # tolerate list already
+            tasks_list = [t for t in text if isinstance(t, dict)]
+        result["tasks"] = tasks_list
+
+    elif ptype == "transcript":
+        # they send: {"type":"Transcript","text":{"transcript[0]":{...}, ...}}
+        transcript_list = []
+        if isinstance(text, dict):
+            # sort by the index inside "transcript[3]"
+            def idx(k: str) -> int:
+                m = re.search(r"\[(\d+)\]", str(k))
+                return int(m.group(1)) if m else 10**9
+
+            for k, v in sorted(text.items(), key=lambda kv: idx(kv[0])):
+                if isinstance(v, dict):
+                    transcript_list.append(v)
+        elif isinstance(text, list):
+            transcript_list = [t for t in text if isinstance(t, dict)]
+        result["transcript"] = transcript_list
+
+    # ---- Store merged result back
+    state["result"] = result
+    _save_state(meeting_id, state)
+
+    # ---- Also keep timeline/latest for debugging
     msg = {
         "type": payload.get("type", "Status"),
-        "text": payload.get("text") or payload.get("status") or "",
+        "text": payload.get("text") if isinstance(payload.get("text"), str) else "",
         **payload,
     }
     _append_timeline(meeting_id, msg)
-    return {"ok": True}
 
+    # Optional: write a single merged file
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "n8n_result_merged.json").write_text(
+        json.dumps(result, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
+
+    return {"ok": True}
 
 @router.get("/status/{meeting_id}")
 def get_status(meeting_id: str):

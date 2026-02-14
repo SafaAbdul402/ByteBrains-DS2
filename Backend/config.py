@@ -25,5 +25,5 @@ RUNS_DIR.mkdir(exist_ok=True)
 >>>>>>> origin/final_app
 CURRENT_MEETING_PATH = DATA_DIR / "current_meeting.json"
 PROFILES_PATH = DATA_DIR / "profiles.json"
-PROFILES_COMPLETED_PATH = DATA_DIR / "profiles_completed.json"
+PROFILES_COMPLETED_PATH = DATA_DIR / "profiles_complete.json"
 MEETINGS_PATH = DATA_DIR / "meetings.json"

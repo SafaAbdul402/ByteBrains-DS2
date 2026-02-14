@@ -5,9 +5,9 @@ import requests
 API_BASE = "http://localhost:8000"
 =======
 import os
-from Frontend.auth import require_password
+#from Frontend.auth import require_password
 
-require_password()
+#require_password()
 
 API_BASE = os.getenv("API_BASE", "")
 >>>>>>> origin/final_app
@@ -72,12 +72,12 @@ if clear:
         st.error("Failed to clear")
         st.code(str(e))
 
-st.divider()
-with st.expander("Diagnostics", expanded=False):
-    if st.button("Ping backend", use_container_width=True):
-        try:
-            _ = api_get_settings()
-            st.success("Backend reachable ✅")
-        except Exception as e:
-            st.error("Backend not reachable")
-            st.code(str(e))
+#st.divider()
+#with st.expander("Diagnostics", expanded=False):
+ #   if st.button("Ping backend", use_container_width=True):
+  #      try:
+   #         _ = api_get_settings()
+    #        st.success("Backend reachable ✅")
+     #   except Exception as e:
+      #      st.error("Backend not reachable")
+       #     st.code(str(e))
