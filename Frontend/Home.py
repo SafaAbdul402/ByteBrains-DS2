@@ -160,7 +160,6 @@ def reset_session():
     st.session_state.last_uploaded_id = None
     st.session_state.upload_key += 1
     st.session_state.file_buffer = None
-    st.session_state.participants = None
     st.session_state.team_demo_override = None
     st.session_state.n8n_started = False
     st.session_state.n8n_poll_count = 0
@@ -201,6 +200,23 @@ def build_speaker_mapping(raw_mapping: dict) -> dict:
         for speaker, name in raw_mapping.items()
     }
 
+def apply_speaker_mapping_to_transcript(transcript: list[dict], mapping: dict) -> list[dict]:
+    """
+    Replace the 'speaker' field in each transcript line with the assigned person name.
+    Drop lines mapped to Noise/Ignore (mapping value None).
+    """
+    out = []
+    for line in transcript:
+        raw = line.get("speaker")
+        mapped = mapping.get(raw, raw)
+
+        # Noise/Ignore -> drop line
+        if mapped is None:
+            continue
+
+        out.append({**line, "speaker": mapped})
+    return out
+
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
 ### Session States, to avoid reloading and resetting of the page after each interaction
@@ -230,8 +246,6 @@ if "vr_result" not in st.session_state:
     st.session_state.vr_result = None
 if "last_uploaded_id" not in st.session_state:
     st.session_state.last_uploaded_id = None
-if "participants" not in st.session_state:
-    st.session_state.participants = None
 if "file_buffer" not in st.session_state:
     st.session_state.file_buffer = None
 if "team_demo_override" not in st.session_state:
@@ -307,16 +321,8 @@ with left:
     if file is not None:
         st.session_state.file_buffer = file  # store it across reruns
 
-    participants = st.number_input(
-        "# Meeting participants",
-        min_value=1,
-        max_value=50,
-        step=1,
-        value=st.session_state.participants or 1
-    )
-    st.session_state.participants = participants
 
-    start_disabled = (st.session_state.file_buffer is None) or (participants is None) or (participants < 1)
+    start_disabled = (st.session_state.file_buffer is None)
 
     if st.button("Start processing", type="primary", disabled=start_disabled, width="stretch"):
         log("Start clicked → saving audio + meeting_meta.json")
@@ -330,12 +336,10 @@ with left:
         # write meta + current pointer
         write_meeting_meta(
             meeting_id=st.session_state.meeting_id,
-            participants=st.session_state.participants,
             recording_path=st.session_state.audio_path
         )
 
         log(f"Meeting ID: {st.session_state.meeting_id}")
-        log(f"Participants: {participants}")
         log(f"Saved audio: {st.session_state.audio_path}")
 
         st.session_state.status_text = "Processing meeting..."
@@ -535,16 +539,15 @@ with right:
                     st.error("No transcript returned from Voice Recognition module.")
                     st.stop()
 
-                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
-
-                st.session_state.n8n_started = True
-
                 # Pass-through to n8n (no final transcript building)
                 profiles = eligible_profiles
+                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
+                final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
+                st.session_state.n8n_started = True
+
                 payload = {
                     "meeting_id": meeting_id,
-                    "transcript": transcript,
-                    "speaker_mapping": speaker_mapping,
+                    "transcript": final_transcript,     # ✅ names are here now
                     "profiles": profiles,
                 }
 
@@ -581,6 +584,25 @@ with right:
 
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
+
+    POLL_EVERY = 8.0
+    now = time.time()
+    last = st.session_state.get("last_n8n_poll_ts", 0.0)
+    can_poll = (now - last) >= POLL_EVERY
+
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        refresh = st.button("↻ Refresh status", width="stretch", disabled=not can_poll)
+        remaining = max(0, int(POLL_EVERY - (now - last)))
+        st.caption(f"Next refresh in {remaining}s")
+    with c2:
+        st.caption("Manual refresh prevents rate limits and Render restarts.")
+
+    if not refresh:
+        st.info("Click refresh to check n8n status.")
+        st.stop()
+
+    st.session_state.last_n8n_poll_ts = now
     data = api_get_n8n_status(meeting_id)
 
     latest = data.get("latest")
@@ -589,7 +611,6 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     apply_n8n_status(latest)
 
     if result and (result.get("notes") or result.get("Summary")):
-        # Normalize the result fields
         result.setdefault("notes", result.get("Summary", "(summary missing)"))
         result.setdefault("email_draft", "(placeholder email)")
         result.setdefault("tasks", [])
@@ -600,16 +621,8 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    # Optional safety timeout
-    st.session_state.n8n_poll_count += 1
-    if st.session_state.n8n_poll_count > 300:
-        st.error("n8n timeout (no result received after 300 polls)")
-        st.info("Make sure your n8n workflow sends a POST to `/n8n/update/{meeting_id}` with 'notes', 'email_draft', or 'tasks' fields at the end.")
-        st.stop()
-
-    poll_delay = min(1.0 + st.session_state.n8n_poll_count * 0.05, 3.0)
-    time.sleep(poll_delay)
-    st.rerun()
+    st.info("Not finished yet. Refresh again in a few seconds.")
+    st.stop()
         
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"

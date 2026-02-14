@@ -10,9 +10,11 @@
       "role": "AI Engineer",
       "skills": [
         "Python",
-        "Voice Recognition"
+        "Voice Recognition", 
+        "Data Analysis",
+        "Machine Learning"
       ],
-      "notes": "",
+      "notes": "I am experienced in AI engineering and have a strong background in Python, voice recognition, data analysis, and machine learning.",
       "photo": null,
       "status": "imported"
     },
@@ -22,9 +24,9 @@
       "trello_id": "691cfe3cd850a0c7e050fb0c",
       "trello_username": "ananthuvijayan2",
       "email": "ananthu.vijayan@stud.tu-darmstadt.de",
-      "role": "",
-      "skills": [],
-      "notes": "",
+      "role": "Voice Recognition Specialist",
+      "skills": ["Python", "Voice Recognition", "Data Analysis"],
+      "notes": "I am experienced in voice recognition and data analysis. I enjoy working with audio data and extracting meaningful insights.",
       "photo": null,
       "status": "imported"
     },
@@ -34,9 +36,9 @@
       "trello_id": "691d6957f31278bc04161b86",
       "trello_username": "christinemathewvathiyathmathai",
       "email": "christinemathewvm@gmail.com",
-      "role": "",
-      "skills": [],
-      "notes": "",
+      "role": "Audio Transcription Specialist",
+      "skills": ["Python", "Data Science", "Microsoft PowerPoint"],
+      "notes": "I like to learn new skills and interested in exploring advancements in technology.",
       "photo": null,
       "status": "imported"
     },
@@ -46,9 +48,9 @@
       "trello_id": "691dc049bee1daebfa96ccdb",
       "trello_username": "farshadsoleimani3",
       "email": "",
-      "role": "n8n Workflow Engineer",
-      "skills": ["n8n", "Python"],
-      "notes": "",
+      "role": "Project Coordinator, n8n Automation Engineer",
+      "skills": ["n8n", "Python", "Mcrosoft Project", "Trello"],
+      "notes": "I am good at time managememt, and I am sociable and eager to learn new things. I like the roles related to applicable softwares which have broad usages.",
       "photo": null,
       "status": "imported"
     },
@@ -58,9 +60,9 @@
       "trello_id": "6926238add3cf015343d72ad",
       "trello_username": "johanneswowra2",
       "email": "",
-      "role": "",
-      "skills": [],
-      "notes": "",
+      "role": "Project Supervisor",
+      "skills": ["Management", "Leadership", "Communication"],
+      "notes": "I have experience in project management and team leadership. I am passionate about guiding teams to success and ensuring effective communication among members.",
       "photo": null,
       "status": "imported"
     },
@@ -70,9 +72,9 @@
       "trello_id": "691cde56cb97a82831ddf2df",
       "trello_username": "mobin148",
       "email": "mobin.liaghi@gmail.com",
-      "role": "AI Automation Engineer",
-      "skills": [],
-      "notes": "",
+      "role": "n8n Automation Engineer",
+      "skills": ["Python", "n8n", "API", "Microsoft PowerPoint"],
+      "notes": "I love being in order, learn new things specifically the things related to computer technologies.",
       "photo": null,
       "status": "imported"
     },
@@ -82,9 +84,9 @@
       "trello_id": "691cfa215ae73978990743f6",
       "trello_username": "safavabdulravuf",
       "email": "safaravuf98@gmail.com",
-      "role": "",
-      "skills": [],
-      "notes": "",
+      "role": "Information and Engineering Student",
+      "skills": ["Python", "Data Science", "Machine Learning", "Speaker Diarization"],
+      "notes": "Organised, enthusisatic about learning new skills, expereince with software development",
       "photo": null,
       "status": "imported"
     },
@@ -95,8 +97,8 @@
       "trello_username": "tabiakarim",
       "email": "tabia.karim@stud.tu-darmstadt.de",
       "role": "Frontend Developer",
-      "skills": ["Python", "Streamlit", "C++", "ROS2"],
-      "notes": "",
+      "skills": ["Python", "Streamlit", "C++", "ROS2", "Java"],
+      "notes": "A robotics student with an interest in Data Science and AI. I am eager to learn new skills and contribute to the team. My focus is on frontend development, but I am also interested in exploring other areas.",
       "photo": null,
       "status": "imported"
     }

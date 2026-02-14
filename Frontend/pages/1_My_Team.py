@@ -5,11 +5,13 @@ import uuid
 import json
 import requests
 import os
-from Frontend.auth import require_password
+#from Frontend.auth import require_password
+from pathlib import Path
 
-require_password()
+#require_password()
 
 API_BASE = os.getenv("API_BASE", "")
+PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
@@ -56,6 +58,30 @@ def profile_state(p: dict) -> str:
         return "eligible"
     return "incomplete"
 
+def load_completed_profiles() -> list[dict]:
+    if not PROFILES_COMPLETED_PATH.exists():
+        return []
+    try:
+        data = json.loads(PROFILES_COMPLETED_PATH.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data.get("team", []) or []
+        if isinstance(data, list):
+            return data
+    except Exception:
+        pass
+    return []
+
+def save_completed_profiles(team: list[dict]) -> None:
+    """
+    Optional: if you want edits to persist to the completed file (local dev only).
+    On Render this will NOT persist reliably.
+    """
+    PROFILES_COMPLETED_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PROFILES_COMPLETED_PATH.write_text(
+        json.dumps({"team": team}, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
+
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
 
@@ -83,6 +109,8 @@ if "integrations" not in st.session_state:
         "trello_webhook_url": "",
         "n8n_base_url": "",
     }
+if "use_completed_profiles" not in st.session_state:
+    st.session_state.use_completed_profiles = False
 
 # -----------------------
 # Helpers
@@ -130,14 +158,33 @@ with top_l:
 
 with top_r:
     if st.button("Update/Import members", width="stretch"):
-        api_sync_trello(st.session_state.trello_board)
-        #st.session_state.show_add = True
-        #reset_edit()
-        #st.rerun()
+        if st.session_state.use_completed_profiles:
+            st.warning("Completed profiles mode is ON. Turn it off to import from Trello.")
+        else:
+            api_sync_trello(st.session_state.trello_board)
 
 with top_rr:
     # Optional: show/hide table view later; for now just a quick count
     st.metric("Members", len(st.session_state.team))
+    st.divider()
+    use_completed = st.toggle(
+        "Use completed profiles",
+        help="Loads profiles from data/profiles_complete.json (for demo/testing).",
+        key="use_completed_profiles",
+    )
+
+    if use_completed:
+        st.session_state.team = load_completed_profiles()
+        st.info("Using completed profiles (file-based). Trello import + backend save are disabled.")
+    else:
+        # If we just toggled back, reload from backend once
+        # (so you don't stay on file data)
+        try:
+            data = api_get_profiles()
+            st.session_state.team = data.get("team", [])
+            st.session_state.trello_board = data.get("trello_board", "") or ""
+        except Exception:
+            pass
 
 
 # -----------------------
@@ -218,7 +265,12 @@ if edit_mode: #st.session_state.show_add or
                         current["trello_username"] = current.get("trello_username", "")
                         current["trello_id"] = current.get("trello_id", "")
                     st.success("Saved.")
-                    api_save_profiles(st.session_state.team)
+                    if st.session_state.use_completed_profiles:
+                        # Optional: persist locally (works only locally)
+                        # save_completed_profiles(st.session_state.team)
+                        st.info("Completed profiles mode: not saving to backend.")
+                    else:
+                        api_save_profiles(st.session_state.team)
                     #st.session_state.show_add = False
                     reset_edit()
                     st.rerun()
