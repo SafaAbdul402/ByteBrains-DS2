@@ -14,19 +14,26 @@ from Backend.config import DATA_DIR, RUNS_DIR
 from datetime import datetime
 from threading import Lock
 
-router = APIRouter(prefix="/n8n", tags=["n8n"])
-
 _start_lock = Lock()
 _started: dict[str, float] = {}
 _update_lock = Lock()
 _last_update_ts: dict[str, float] = {}   # meeting_id -> last accepted update timestamp
+_start_global_lock = Lock()
+_last_start_global_ts = 0.0
+GLOBAL_START_COOLDOWN_S = float(os.getenv("GLOBAL_START_COOLDOWN_S", "2.0"))
 N8N_UPDATE_DEBOUNCE_S = float(os.getenv("N8N_UPDATE_DEBOUNCE_S", "1.0"))  # 1 update / sec per meeting
 N8N_START_DEDUP_S = float(os.getenv("N8N_START_DEDUP_S", "60"))
+N8N_ROUTE_SECRET = os.getenv("N8N_ROUTE_SECRET", "")
+if not N8N_ROUTE_SECRET:
+    # optional: allow local dev without it
+    N8N_ROUTE_SECRET = "devsecret"
 
 #N8N_WEBHOOK = os.getenv("N8N_TEST", "")    
 N8N_WEBHOOK = os.getenv("N8N_WEBHOOK", "")         
 #TEST_SHARED_SECRET = os.getenv("TEST_SHARED_SECRET", "")
 API_BASE = os.getenv("API_BASE", "")
+
+router = APIRouter(prefix=f"/n8n/{N8N_ROUTE_SECRET}", tags=["n8n"])
 
 def _state_path(meeting_id: str) -> Path:
     return Path(DATA_DIR) / "n8n_status" / f"{meeting_id}.json"
@@ -77,6 +84,12 @@ def _cleanup_updates(now: float, ttl: float = 3600.0):
 @router.post("/start/{meeting_id}")
 def start_n8n(meeting_id: str, payload: Dict[str, Any]): 
     now = time.time()
+    global _last_start_global_ts
+    now = time.time()
+    with _start_global_lock:
+        if (now - _last_start_global_ts) < GLOBAL_START_COOLDOWN_S:
+            raise HTTPException(status_code=429, detail="start cooldown")
+        _last_start_global_ts = now
     with _start_lock:
         last = _started.get(meeting_id)
         if last and (now - last) < N8N_START_DEDUP_S:
@@ -100,8 +113,8 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
     start_payload = {
         **payload,
         "meeting_id": meeting_id,
-        "status_callback_url": f"{API_BASE}/n8n/update/{meeting_id}",
-        "result_callback_url": f"{API_BASE}/n8n/update/{meeting_id}",
+        "status_callback_url": f"{API_BASE}/n8n/{N8N_ROUTE_SECRET}/update/{meeting_id}",
+        "result_callback_url": f"{API_BASE}/n8n/{N8N_ROUTE_SECRET}/update/{meeting_id}",
     }
 
     try:

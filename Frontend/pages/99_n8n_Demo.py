@@ -6,6 +6,7 @@ import streamlit as st
 
 API_BASE = os.getenv("API_BASE", "").rstrip("/")
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+N8N_ROUTE_SECRET = os.getenv("N8N_ROUTE_SECRET", "devsecret")
 
 st.set_page_config(page_title="ByteBrains – n8n Demo", layout="wide")
 st.title("n8n Demo Sender")
@@ -62,7 +63,7 @@ def build_demo_payload(meeting_id: str) -> dict:
 # Very small helpers
 # -----------------------
 def post_start(meeting_id: str, payload: dict) -> tuple[bool, str]:
-    url = f"{API_BASE}/n8n/start/{meeting_id}"
+    url = f"{API_BASE}/n8n/{N8N_ROUTE_SECRET}/start/{meeting_id}"
     try:
         r = requests.post(url, json=payload, timeout=15)
     except Exception as e:
@@ -78,7 +79,7 @@ def post_start(meeting_id: str, payload: dict) -> tuple[bool, str]:
     return True, r.text[:400] or "ok"
 
 def get_status(meeting_id: str) -> tuple[bool, dict | str]:
-    url = f"{API_BASE}/n8n/status/{meeting_id}"
+    url = f"{API_BASE}/n8n/{N8N_ROUTE_SECRET}/status/{meeting_id}"
     try:
         r = requests.get(url, timeout=15)
     except Exception as e:
