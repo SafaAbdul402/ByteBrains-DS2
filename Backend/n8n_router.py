@@ -158,17 +158,21 @@ def update_status(meeting_id: str, payload: Dict[str, Any]):
         payload.get("notes") or payload.get("email_draft") or payload.get("tasks")
     )
 
+    if is_final:
+        existing = _load_state(meeting_id)
+        if existing.get("result") is not None:
+            return {"ok": True, "deduped_final": True}
     # ✅ Debounce only non-final status updates
     now = time.time()
     if not is_final:
         with _update_lock:
             # optional cleanup
-            # _cleanup_updates(now)
+            _cleanup_updates(now)
 
             last = _last_update_ts.get(meeting_id, 0.0)
             if (now - last) < N8N_UPDATE_DEBOUNCE_S:
                 # Drop this update quietly (prevents spam & IO)
-                return {"ok": True, "debounced": True}
+                return {"ok": True, "debounced": True, "debounce_s": N8N_UPDATE_DEBOUNCE_S}
 
             _last_update_ts[meeting_id] = now
     else:

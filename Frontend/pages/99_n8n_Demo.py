@@ -109,6 +109,10 @@ if "last_start_ts" not in st.session_state:
     st.session_state.last_start_ts = 0.0
 if "start_cooldown_s" not in st.session_state:
     st.session_state.start_cooldown_s = 5.0
+if "last_status_ts" not in st.session_state:
+    st.session_state.last_status_ts = 0.0
+if "status_cooldown_s" not in st.session_state:
+    st.session_state.status_cooldown_s = 5.0
 
 # -----------------------
 # UI
@@ -121,7 +125,10 @@ with c2:
         st.session_state.meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
         st.session_state.sent = False
         st.session_state.result = None
+        st.session_state.last_start_ts = 0.0  
+        st.session_state.last_status_ts = 0.0
         st.rerun()
+    
 with c3:
     st.caption(f"Backend: {API_BASE}")
 
@@ -145,13 +152,14 @@ if not can_start:
         st.caption(f"Start cooldown: try again in {start_remaining}s")
 
 if send:
-    st.session_state.last_start_ts = time.time()
     ok, msg = post_start(st.session_state.meeting_id, payload)
     if not ok:
-        # allow retry if it failed
         st.session_state.sent = False
         st.error(msg)
         st.stop()
+
+    # ✅ only set cooldown timestamp after success
+    st.session_state.last_start_ts = time.time()
     st.session_state.sent = True
     st.success("Sent ✅")
 
@@ -167,11 +175,12 @@ if st.session_state.sent and not can_poll:
     st.caption(f"Next status refresh in {status_remaining}s")
 
 if refresh:
-    st.session_state.last_status_ts = time.time()
     ok, data = get_status(st.session_state.meeting_id)
     if not ok:
         st.error(data)
         st.stop()
+
+    st.session_state.last_status_ts = time.time()  # ✅ after success
 
     latest = (data or {}).get("latest")
     result = (data or {}).get("result")
