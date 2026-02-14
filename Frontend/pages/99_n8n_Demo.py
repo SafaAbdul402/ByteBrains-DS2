@@ -1,215 +1,189 @@
 import os
-import time as pytime
+import time
 import uuid
+import requests
 import streamlit as st
-
-from Frontend.api_client import api_get_json, api_post_json, invalidate
 
 API_BASE = os.getenv("API_BASE", "").rstrip("/")
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 
 st.set_page_config(page_title="ByteBrains – n8n Demo", layout="wide")
 st.title("n8n Demo Sender")
-st.sidebar.success("Use this page only.\nOther pages are disabled in DEMO_MODE.")
-st.caption("This page sends a demo payload through the SAME backend endpoint as production: "
-           "POST /n8n/start/{meeting_id} with {meeting_id, transcript, profiles}.")
 
-# --- optional: enforce that this page is only used in demo mode
+if not API_BASE:
+    st.error("API_BASE is not set. Add it to your environment variables.")
+    st.stop()
+
+# --- Demo-only hint (optional)
 if not DEMO_MODE:
-    st.warning("DEMO_MODE is not enabled. This page is intended for demo deployments only.")
+    st.warning("DEMO_MODE is off. This page is intended for demo deployments.")
 
 # -----------------------
-# Helpers
+# Payload (exact same shape)
 # -----------------------
-def demo_payload(meeting_id: str) -> dict:
-    # ✅ Matches the production shape:
-    # payload = { "meeting_id": str, "transcript": list[dict], "profiles": list[dict] }
+def build_demo_payload(meeting_id: str) -> dict:
+    # ✅ EXACT shape used by production:
+    # {"meeting_id": str, "transcript": [..], "profiles": [..]}
     return {
         "meeting_id": meeting_id,
         "transcript": [
-                {
-                "speaker": "Adarsh Haridas",
-                "start": 0.0,
-                "end": 2.0,
-                "text": "Hello, this is a demo."
-                },
-                {
-                "speaker": "Farshad Soleimani",
-                "start": 2.0,
-                "end": 4.0,
-                "text": "Great, testing n8n integration."
-                }
-            ],
+            {"speaker": "Adarsh Haridas", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
+            {"speaker": "Farshad Soleimani", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
+        ],
         "profiles": [
             {
-            "id": "trello-691cfb6877a5455b0f060b6b",
-            "name": "Adarsh Haridas",
-            "trello_id": "691cfb6877a5455b0f060b6b",
-            "trello_username": "adarshharidas2",
-            "email": "adarsh.haridas@stud.tu-darmstadt.de",
-            "role": "AI Engineer",
-            "skills": [
-                "Python",
-                "Voice Recognition"
-            ],
-            "notes": "",
-            "photo": None,
-            "status": "imported"
+                "id": "trello-691cfb6877a5455b0f060b6b",
+                "name": "Adarsh Haridas",
+                "trello_id": "691cfb6877a5455b0f060b6b",
+                "trello_username": "adarshharidas2",
+                "email": "adarsh.haridas@stud.tu-darmstadt.de",
+                "role": "AI Engineer",
+                "skills": ["Python", "Voice Recognition"],
+                "notes": "",
+                "photo": None,
+                "status": "imported",
             },
             {
-            "id": "trello-691dc049bee1daebfa96ccdb",
-            "name": "Farshad Soleimani",
-            "trello_id": "691dc049bee1daebfa96ccdb",
-            "trello_username": "farshadsoleimani3",
-            "email": "",
-            "role": "n8n Workflow Engineer",
-            "skills": [
-                "n8n",
-                "Python"
-            ],
-            "notes": "",
-            "photo": None,
-            "status": "imported"
+                "id": "trello-691dc049bee1daebfa96ccdb",
+                "name": "Farshad Soleimani",
+                "trello_id": "691dc049bee1daebfa96ccdb",
+                "trello_username": "farshadsoleimani3",
+                "email": "",
+                "role": "n8n Workflow Engineer",
+                "skills": ["n8n", "Python"],
+                "notes": "",
+                "photo": None,
+                "status": "imported",
             },
-            {
-            "id": "trello-691cc9c0b8b51e2811fe2bf4",
-            "name": "Tabia Karim",
-            "trello_id": "691cc9c0b8b51e2811fe2bf4",
-            "trello_username": "tabiakarim",
-            "email": "tabia.karim@stud.tu-darmstadt.de",
-            "role": "Frontend Developer",
-            "skills": [
-                "Python",
-                "Streamlit",
-                "C++",
-                "ROS2"
-            ],
-            "notes": "",
-            "photo": None,
-            "status": "imported"
-            }
-        ]
+        ],
     }
 
-def api_get_n8n_status(meeting_id: str) -> dict:
-    return api_get_json(
-        f"/n8n/status/{meeting_id}",
-        name=f"n8n_status__{meeting_id}",
-        ttl_s=0,       # don’t cache status
-        timeout=10,
-    )
+# -----------------------
+# Very small helpers
+# -----------------------
+def post_start(meeting_id: str, payload: dict) -> tuple[bool, str]:
+    url = f"{API_BASE}/n8n/start/{meeting_id}"
+    try:
+        r = requests.post(url, json=payload, timeout=15)
+    except Exception as e:
+        return False, f"Network error: {e}"
 
-def apply_status(latest: dict | None):
-    if not latest:
-        st.info("No status yet.")
-        return
-    # show whatever n8n sends back
-    st.write("**Latest status**")
-    st.json(latest)
+    if r.status_code == 429:
+        ra = r.headers.get("Retry-After")
+        return False, f"429 rate-limited. Retry-After={ra or 'n/a'} Body={r.text[:200]}"
+
+    if not r.ok:
+        return False, f"HTTP {r.status_code}: {r.text[:400]}"
+
+    return True, r.text[:400] or "ok"
+
+def get_status(meeting_id: str) -> tuple[bool, dict | str]:
+    url = f"{API_BASE}/n8n/status/{meeting_id}"
+    try:
+        r = requests.get(url, timeout=15)
+    except Exception as e:
+        return False, f"Network error: {e}"
+
+    if r.status_code == 429:
+        ra = r.headers.get("Retry-After")
+        return False, f"429 rate-limited. Retry-After={ra or 'n/a'} Body={r.text[:200]}"
+
+    if not r.ok:
+        return False, f"HTTP {r.status_code}: {r.text[:400]}"
+
+    try:
+        return True, r.json()
+    except Exception:
+        return False, f"Bad JSON response: {r.text[:400]}"
 
 # -----------------------
-# Session State
+# Session state
 # -----------------------
-if "demo_meeting_id" not in st.session_state:
-    st.session_state.demo_meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
-if "n8n_started" not in st.session_state:
-    st.session_state.n8n_started = False
-if "last_poll_ts" not in st.session_state:
-    st.session_state.last_poll_ts = 0.0
-if "n8n_result" not in st.session_state:
-    st.session_state.n8n_result = None
+if "meeting_id" not in st.session_state:
+    st.session_state.meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
+if "sent" not in st.session_state:
+    st.session_state.sent = False
+if "result" not in st.session_state:
+    st.session_state.result = None
+if "last_start_ts" not in st.session_state:
+    st.session_state.last_start_ts = 0.0
+if "start_cooldown_s" not in st.session_state:
+    st.session_state.start_cooldown_s = 5.0
 
 # -----------------------
 # UI
 # -----------------------
-col1, col2, col3 = st.columns([2, 2, 2])
-
-with col1:
-    meeting_id = st.text_input("Meeting ID", value=st.session_state.demo_meeting_id)
-    st.session_state.demo_meeting_id = meeting_id.strip() or st.session_state.demo_meeting_id
-
-with col2:
-    if st.button("New Meeting ID", use_container_width=True):
-        st.session_state.demo_meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
-        st.session_state.n8n_started = False
-        st.session_state.n8n_result = None
-        st.session_state.last_poll_ts = 0.0
+c1, c2, c3 = st.columns([2, 1, 2])
+with c1:
+    st.session_state.meeting_id = st.text_input("Meeting ID", st.session_state.meeting_id).strip() or st.session_state.meeting_id
+with c2:
+    if st.button("New ID", use_container_width=True):
+        st.session_state.meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
+        st.session_state.sent = False
+        st.session_state.result = None
         st.rerun()
+with c3:
+    st.caption(f"Backend: {API_BASE}")
 
-with col3:
-    st.write("")
-    st.write("")
-    st.write(f"Backend: `{API_BASE}`")
+payload = build_demo_payload(st.session_state.meeting_id)
 
-st.divider()
-
-# --- Send button
-payload = demo_payload(meeting_id)
-
-with st.expander("Payload preview (exact shape)", expanded=False):
+with st.expander("Payload preview", expanded=False):
     st.json(payload)
 
-send = st.button("Send demo payload to n8n", type="primary", use_container_width=True)
+st.divider()
+
+now = time.time()
+start_remaining = max(0, int(st.session_state.start_cooldown_s - (now - st.session_state.last_start_ts)))
+can_start = (start_remaining == 0) and (not st.session_state.sent)
+
+send = st.button("Send to n8n", type="primary", use_container_width=True, disabled=not can_start)
+
+if not can_start:
+    if st.session_state.sent:
+        st.info("Already sent for this Meeting ID. Click **New ID** to send again.")
+    else:
+        st.caption(f"Start cooldown: try again in {start_remaining}s")
 
 if send:
-    invalidate(f"n8n_status__{meeting_id}")
-    st.session_state.n8n_result = None
-
-    res = api_post_json(
-        f"/n8n/start/{meeting_id}",
-        payload,
-        name=f"n8n_start__{meeting_id}",
-        timeout=30,
-    )
-
-    if res.get("_rate_limited"):
-        st.session_state.n8n_started = False  # allow retry
-        st.warning(f"429 rate limited. Wait ~{res.get('_wait_s', 10)}s and click again.")
+    st.session_state.last_start_ts = time.time()
+    ok, msg = post_start(st.session_state.meeting_id, payload)
+    if not ok:
+        # allow retry if it failed
+        st.session_state.sent = False
+        st.error(msg)
         st.stop()
-
-    if res.get("_error"):
-        st.session_state.n8n_started = False  # allow retry
-        st.error("Failed to start n8n workflow.")
-        st.code(f"HTTP {res.get('_status')}: {res.get('_text')}")
-        st.stop()
-
-    st.session_state.n8n_started = True
-    st.success("Sent ✅ Now poll status below.")
+    st.session_state.sent = True
+    st.success("Sent ✅")
 
 st.divider()
 
-# --- Poll status (manual + cooldown)
-POLL_EVERY = 10.0
-now = pytime.time()
-remaining = max(0, int(POLL_EVERY - (now - st.session_state.last_poll_ts)))
-can_poll = (now - st.session_state.last_poll_ts) >= POLL_EVERY
+now = time.time()
+status_remaining = max(0, int(st.session_state.status_cooldown_s - (now - st.session_state.last_status_ts)))
+can_poll = st.session_state.sent and (status_remaining == 0)
 
-cA, cB = st.columns([1, 3])
-with cA:
-    refresh = st.button("↻ Refresh status", use_container_width=True, disabled=not can_poll)
-    st.caption(f"Next allowed refresh in {remaining}s")
-with cB:
-    st.caption("Manual refresh avoids Streamlit rerun-spam. n8n updates are pulled when you refresh.")
+refresh = st.button("Refresh status", use_container_width=True, disabled=not can_poll)
+
+if st.session_state.sent and not can_poll:
+    st.caption(f"Next status refresh in {status_remaining}s")
 
 if refresh:
-    st.session_state.last_poll_ts = pytime.time()
-    status_data = api_get_n8n_status(meeting_id)
-
-    if status_data.get("_rate_limited"):
-        st.warning(f"429 rate limited. Wait ~{status_data.get('_wait_s', 10)}s and refresh again.")
+    st.session_state.last_status_ts = time.time()
+    ok, data = get_status(st.session_state.meeting_id)
+    if not ok:
+        st.error(data)
         st.stop()
 
-    latest = status_data.get("latest")
-    result = status_data.get("result")
+    latest = (data or {}).get("latest")
+    result = (data or {}).get("result")
 
-    apply_status(latest)
+    st.subheader("Latest")
+    st.json(latest or {})
 
     if result:
-        st.session_state.n8n_result = result
+        st.subheader("Final result")
+        st.session_state.result = result
+        st.json(result)
 
-# --- Show final result if present
-if st.session_state.n8n_result:
-    st.subheader("Final Result (from /n8n/status)")
-    st.json(st.session_state.n8n_result)
-else:
-    st.info("No final result yet. Click Refresh status after n8n finishes.")
+if st.session_state.result and not refresh:
+    st.subheader("Final result")
+    st.json(st.session_state.result)

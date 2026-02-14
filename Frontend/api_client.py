@@ -5,6 +5,15 @@ import streamlit as st
 API_BASE = os.getenv("API_BASE", "").rstrip("/")
 SESSION = requests.Session()
 DEFAULT_TTL = 60
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+
+if DEMO_MODE:
+    st.set_page_config(page_title="ByteBrains – Demo", layout="centered")
+    st.title("Demo deployment")
+    st.info("This deployment is for n8n testing only. Please use the **n8n Demo** page.")
+    if st.button("Go to n8n Demo", type="primary", use_container_width=True):
+        st.switch_page("pages/99_n8n_Demo.py")
+    st.stop()
 
 def _cd(name): return f"_cooldown_until__{name}"
 def _ck(name): return f"_cache__{name}"

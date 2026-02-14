@@ -15,12 +15,18 @@ from Backend.trello_api import fetch_board_members, members_to_profiles
 
 router = APIRouter(prefix="/trello", tags=["trello"])
 
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+
+def _block_trello_in_demo():
+    if DEMO_MODE:
+        raise HTTPException(status_code=403, detail="Trello is disabled in DEMO_MODE.")
+
 class ImportRequest(BaseModel):
     board: str  # URL OR shortlink OR id
 
 @router.post("/sync-members")   # rename endpoint (recommended)
 def sync_members(req: ImportRequest):
-
+    _block_trello_in_demo()
     global _last_sync_ts
     now = time.time()
 

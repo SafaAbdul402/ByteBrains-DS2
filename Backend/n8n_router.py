@@ -18,6 +18,9 @@ router = APIRouter(prefix="/n8n", tags=["n8n"])
 
 _start_lock = Lock()
 _started: dict[str, float] = {}
+_update_lock = Lock()
+_last_update_ts: dict[str, float] = {}   # meeting_id -> last accepted update timestamp
+N8N_UPDATE_DEBOUNCE_S = float(os.getenv("N8N_UPDATE_DEBOUNCE_S", "1.0"))  # 1 update / sec per meeting
 N8N_START_DEDUP_S = float(os.getenv("N8N_START_DEDUP_S", "60"))
 
 #N8N_WEBHOOK = os.getenv("N8N_TEST", "")    
@@ -63,6 +66,12 @@ def _append_timeline(meeting_id: str, msg: Dict[str, Any]) -> None:
         state["result"] = msg
 
     _save_state(meeting_id, state)
+
+def _cleanup_updates(now: float, ttl: float = 3600.0):
+    # Remove meetings that haven't updated in 1h
+    dead = [mid for mid, ts in _last_update_ts.items() if (now - ts) > ttl]
+    for mid in dead:
+        _last_update_ts.pop(mid, None)
     
 
 @router.post("/start/{meeting_id}")
@@ -133,36 +142,64 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
 
 @router.post("/update/{meeting_id}")
 def update_status(meeting_id: str, payload: Dict[str, Any]):
-    from Backend.store import read_current_meeting, save_meetings, load_meetings
-
-    # Normalize legacy/alternative field names
-    if "Summary" in payload and "notes" not in payload:
+    # Normalize legacy/alternative field names early
+    if isinstance(payload, dict) and "Summary" in payload and "notes" not in payload:
         payload["notes"] = payload["Summary"]
-    # Save the summary to file
-    run_dir = RUNS_DIR / meeting_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    summary_path = run_dir / "summary.json"
-    summary_data = {
-        "meeting_id": meeting_id,
-        "received_at": datetime.now().isoformat(timespec="seconds"),
-        "notes": payload.get("notes"),
-        "raw": payload  # optional: store full raw payload
-    }
-
-    summary_path.write_text(json.dumps(summary_data, indent=2, ensure_ascii=False), encoding="utf-8")
-    if "EmailDraft" in payload and "email_draft" not in payload:
+    if isinstance(payload, dict) and "EmailDraft" in payload and "email_draft" not in payload:
         payload["email_draft"] = payload["EmailDraft"]
-    if "Tasks" in payload and "tasks" not in payload:
+    if isinstance(payload, dict) and "Tasks" in payload and "tasks" not in payload:
         payload["tasks"] = payload["Tasks"]
+
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Payload must be a JSON object.")
 
+    # ✅ Decide if this is a "final-ish" update we MUST not debounce
+    is_final = any(k in payload for k in ("notes", "email_draft", "tasks")) and (
+        payload.get("notes") or payload.get("email_draft") or payload.get("tasks")
+    )
+
+    # ✅ Debounce only non-final status updates
+    now = time.time()
+    if not is_final:
+        with _update_lock:
+            # optional cleanup
+            # _cleanup_updates(now)
+
+            last = _last_update_ts.get(meeting_id, 0.0)
+            if (now - last) < N8N_UPDATE_DEBOUNCE_S:
+                # Drop this update quietly (prevents spam & IO)
+                return {"ok": True, "debounced": True}
+
+            _last_update_ts[meeting_id] = now
+    else:
+        # Always accept final updates (and record timestamp too)
+        with _update_lock:
+            _last_update_ts[meeting_id] = now
+
+    # ✅ Build the message for your timeline/state file
     msg = {
         "type": payload.get("type", "Status"),
         "text": payload.get("text") or payload.get("status") or "",
         **payload,
     }
+
+    # ✅ Only write summary.json when it's a final/summary payload (reduces disk IO)
+    if is_final:
+        run_dir = RUNS_DIR / meeting_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        summary_path = run_dir / "summary.json"
+        summary_data = {
+            "meeting_id": meeting_id,
+            "received_at": datetime.now().isoformat(timespec="seconds"),
+            "notes": payload.get("notes"),
+            "raw": payload,
+        }
+        summary_path.write_text(
+            json.dumps(summary_data, indent=2, ensure_ascii=False),
+            encoding="utf-8"
+        )
+
     _append_timeline(meeting_id, msg)
     return {"ok": True}
 

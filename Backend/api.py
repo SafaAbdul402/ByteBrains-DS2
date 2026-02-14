@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Any, Dict
@@ -12,6 +12,12 @@ import time as pytime
 import os
 
 DISABLE_TRELLO = os.getenv("DISABLE_TRELLO", "0") == "1"
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+
+def _block_trello_in_demo():
+    if DEMO_MODE:
+        raise HTTPException(status_code=403, detail="Trello is disabled in DEMO_MODE.")
+
 
 app = FastAPI(title="ByteBrains Backend")
 if not DISABLE_TRELLO:
@@ -52,6 +58,7 @@ class ProfilesPayload(BaseModel):
 
 @app.get("/profiles")
 def get_profiles():
+    _block_trello_in_demo()
     now = pytime.time()
     if _profiles_cache["data"] is not None and (now - _profiles_cache["ts"]) < PROFILES_CACHE_TTL:
         return _profiles_cache["data"]
@@ -63,6 +70,7 @@ def get_profiles():
 
 @app.get("/profiles/summary")
 def profiles_summary():
+    _block_trello_in_demo()
     data = load_profiles()
     team = data.get("team", []) or []
 
@@ -79,6 +87,7 @@ def profiles_summary():
 # Backend/api.py
 @app.post("/profiles")
 def post_profiles(payload: ProfilesPayload):
+    _block_trello_in_demo()
     existing = load_profiles()
     team_dicts = [p.model_dump() for p in payload.team]
 
@@ -92,6 +101,7 @@ class SettingsPayload(BaseModel):
 
 @app.get("/settings")
 def get_settings():
+    _block_trello_in_demo()
     data = load_profiles()
     return {
         "trello_board": data.get("trello_board", "") or "",
@@ -100,6 +110,7 @@ def get_settings():
 
 @app.post("/settings")
 def save_settings_endpoint(payload: SettingsPayload):
+    _block_trello_in_demo()
     data = load_profiles()
     data["trello_board"] = (payload.trello_board or "").strip()
     # keep team + last sync as-is
