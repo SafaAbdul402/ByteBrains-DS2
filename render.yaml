@@ -1,0 +1,40 @@
+# Exported from Render on 2026-02-14T18:17:23Z
+version: "1"
+projects:
+- name: My project
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: bytebrains-backend
+      runtime: python
+      repo: https://github.com/SafaAbdul402/ByteBrains-DS2
+      branch: n8n_demo
+      plan: free
+      envVars:
+      - key: GLOBAL_START_COOLDOWN_S
+        sync: false
+      - key: N8N_ROUTE_SECRET
+        sync: false
+      - key: N8N_START_DEDUP_S
+        sync: false
+      - key: PROFILES_CACHE_TTL
+        sync: false
+      - key: DISABLE_TRELLO
+        sync: false
+      - key: DATA_DIR
+        sync: false
+      - key: API_BASE
+        sync: false
+      - key: N8N_WEBHOOK
+        sync: false
+      - key: TRELLO_API_KEY
+        sync: false
+      - key: N8N_TEST
+        sync: false
+      - key: TRELLO_TOKEN
+        sync: false
+      region: frankfurt
+      buildCommand: pip install -r requirements.txt
+      startCommand: uvicorn Backend.api:app --host 0.0.0.0 --port $PORT
+      autoDeployTrigger: commit

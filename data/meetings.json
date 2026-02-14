@@ -1,0 +1,78 @@
+[
+  {
+    "meeting_id": "meeting-1770230517",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 19:42",
+    "notes": "- The team is working on a smart wearable device that adapts to users' daily habits, which is a departure from their usual projects of updating software.\n- Key aspects of the device include intelligence, privacy, comfort, and durability, with on-device processing to protect privacy and minimize cloud reliance.\n- The device aims to monitor stress and fatigue, providing active recovery assistance through notifications, vibrations, breathing guidance, and temperature changes.\n- Safety and regulatory considerations are crucial, with multiple testing phases planned, beginning with lab simulations and progressing to real-world testing.\n- Sensor choices include heart rate, skin temperature, and motion sensors, balancing the need for data with battery life and possibly making some sensors optional.\n- Manufacturing capabilities and scalability are concerns, requiring early consultation with partners.\n- The timeline is aimed at long-term development, prioritizing quality over speed.\n- Team members are assigned tasks, including drafting technical roadmaps, user testing plans, documentation, challenging assumptions, and analyzing market positioning.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770230271",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-04 19:38",
+    "notes": "- The project involves creating an entirely new device, a smart wearable that adapts to user’s daily habits.\n- Key challenges identified include balancing innovation with practicality, particularly regarding hardware, comfort, cost, and battery life.\n- Core pillars for the design are intelligence, privacy, comfort, and durability.\n- The device aims to monitor stress and fatigue, providing recovery through notifications, gentle vibrations, breathing guidance, and subtle temperature changes.\n- Uniqueness in features could involve risks, but careful management is advised to avoid overpromising.\n- Documentation will focus on explaining features, safety, and necessitate extensive testing phases.\n- Sensor choices, including heart rate, skin temperature, and motion, are influenced by regulatory classifications.\n- Considerations include manufacturing feasibility and the impact of design choices on production.\n- The project is seen as long-term, emphasizing quality over speed for the first-generation product.\n- Roles established: Safa for technical roadmap, S7 for user testing plan, S8 for documentation, Tabia to challenge assumptions, Farshad for market positioning, and Mobin to lead the transformation of ideas into a real device.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770157813",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-03 23:30",
+    "notes": "- New Project Direction: The team discussed the launch of a novel project focused on developing a smart wearable device distinct from their usual software updates.\n- Device Concept: The wearable will adapt to the user's habits and aims to monitor and aid in recovery from stress and fatigue through features such as gentle vibrations, breathing guidance, and temperature changes.\n- Core Pillars: Intelligence, privacy, comfort, and durability were identified as the four essential elements for the wearable's success.\n- Privacy and Safety Concerns: Emphasis was placed on ensuring privacy by using on-device processing to avoid cloud reliance and ensuring safety through extensive testing phases.\n- Technical and Design Considerations: Discussions included balancing battery efficiency, choosing appropriate sensors (e.g., heart rate, skin temperature, motion), and addressing manufacturability at scale.\n- Testing and Documentation: The team stressed on user testing, iterative development, and clear documentation to explain features and ensure regulatory compliance.\n- Project Outlook: Recognized as a long-term commitment, the focus is on creating a high-quality first-generation product. Each team member was assigned specific roles to advance the project, such as drafting technical roadmaps and outlining testing plans.",
+    "email_draft": "(placeholder email)",
+    "tasks": [],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770122423",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-03 13:40",
+    "notes": "Meeting summary created by n8n (dummy).",
+    "email_draft": "Hi team,\n\nThanks for the meeting. Here are the next steps...\n\nBest",
+    "tasks": [
+      {
+        "task": "Prepare project plan",
+        "assigned_to": "Alice",
+        "deadline": "2026-02-10",
+        "reason": "Project coordination",
+        "status": "Open"
+      }
+    ],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  },
+  {
+    "meeting_id": "meeting-1770122115",
+    "title": "Processed Meeting",
+    "created_at": "2026-02-03 13:36",
+    "notes": "Meeting summary created by n8n (dummy).",
+    "email_draft": "Hi team,\n\nThanks for the meeting. Here are the next steps...\n\nBest",
+    "tasks": [
+      {
+        "task": "Prepare project plan",
+        "assigned_to": "Alice",
+        "deadline": "2026-02-10",
+        "reason": "Project coordination",
+        "status": "Open"
+      }
+    ],
+    "trello_sync": {
+      "last_status": "Not sent",
+      "last_timestamp": null
+    }
+  }
+]

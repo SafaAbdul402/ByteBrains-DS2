@@ -7,12 +7,23 @@
       "trello_id": "691cfb6877a5455b0f060b6b",
       "trello_username": "adarshharidas2",
       "email": "adarsh.haridas@stud.tu-darmstadt.de",
+<<<<<<< HEAD
       "role": "AI Engineer",
       "skills": [
         "Python",
         "Voice Recognition"
       ],
       "notes": "",
+=======
+      "role": "Audio Preprocessing",
+      "skills": [
+        "Python",
+        "AI", 
+        "Data Science",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "Passionate about exploring new ideas and transforming them into practical solutions.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -22,9 +33,15 @@
       "trello_id": "691cfe3cd850a0c7e050fb0c",
       "trello_username": "ananthuvijayan2",
       "email": "ananthu.vijayan@stud.tu-darmstadt.de",
+<<<<<<< HEAD
       "role": "",
       "skills": [],
       "notes": "",
+=======
+      "role": "Business Analyst",
+      "skills": ["Python", "PyTorch", "ML / AI"],
+      "notes": "Strategist, Driven by curiosity and in love with problem solving.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -34,9 +51,15 @@
       "trello_id": "691d6957f31278bc04161b86",
       "trello_username": "christinemathewvathiyathmathai",
       "email": "christinemathewvm@gmail.com",
+<<<<<<< HEAD
       "role": "",
       "skills": [],
       "notes": "",
+=======
+      "role": "Audio Transcription Specialist",
+      "skills": ["Python", "Data Science", "Microsoft PowerPoint"],
+      "notes": "I like to learn new skills and interested in exploring advancements in technology.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -46,9 +69,15 @@
       "trello_id": "691dc049bee1daebfa96ccdb",
       "trello_username": "farshadsoleimani3",
       "email": "",
+<<<<<<< HEAD
       "role": "n8n Workflow Engineer",
       "skills": ["n8n", "Python"],
       "notes": "",
+=======
+      "role": "Project Coordinator, n8n Automation Engineer",
+      "skills": ["n8n", "Python", "Mcrosoft Project", "Trello"],
+      "notes": "I am good at time managememt, and I am sociable and eager to learn new things. I like the roles related to applicable softwares which have broad usages.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -58,9 +87,15 @@
       "trello_id": "6926238add3cf015343d72ad",
       "trello_username": "johanneswowra2",
       "email": "",
+<<<<<<< HEAD
       "role": "",
       "skills": [],
       "notes": "",
+=======
+      "role": "Project Supervisor",
+      "skills": ["Management", "Leadership", "Communication"],
+      "notes": "I have experience in project management and team leadership. I am passionate about guiding teams to success and ensuring effective communication among members.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -70,9 +105,15 @@
       "trello_id": "691cde56cb97a82831ddf2df",
       "trello_username": "mobin148",
       "email": "mobin.liaghi@gmail.com",
+<<<<<<< HEAD
       "role": "AI Automation Engineer",
       "skills": [],
       "notes": "",
+=======
+      "role": "n8n Automation Engineer",
+      "skills": ["Python", "n8n", "API", "Microsoft PowerPoint"],
+      "notes": "I love being in order, learn new things specifically the things related to computer technologies.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -82,9 +123,15 @@
       "trello_id": "691cfa215ae73978990743f6",
       "trello_username": "safavabdulravuf",
       "email": "safaravuf98@gmail.com",
+<<<<<<< HEAD
       "role": "",
       "skills": [],
       "notes": "",
+=======
+      "role": "Information and Engineering Student",
+      "skills": ["Python", "Data Science", "Machine Learning", "Speaker Diarization"],
+      "notes": "Organised, enthusisatic about learning new skills, expereince with software development",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     },
@@ -95,8 +142,13 @@
       "trello_username": "tabiakarim",
       "email": "tabia.karim@stud.tu-darmstadt.de",
       "role": "Frontend Developer",
+<<<<<<< HEAD
       "skills": ["Python", "Streamlit", "C++", "ROS2"],
       "notes": "",
+=======
+      "skills": ["Python", "Streamlit", "C++", "ROS2", "Java"],
+      "notes": "A robotics student with an interest in Data Science and AI. I am eager to learn new skills and contribute to the team. My focus is on frontend development, but I am also interested in exploring other areas.",
+>>>>>>> origin/final_app
       "photo": null,
       "status": "imported"
     }

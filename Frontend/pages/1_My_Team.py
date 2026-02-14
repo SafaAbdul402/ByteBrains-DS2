@@ -4,8 +4,19 @@ from datetime import datetime
 import uuid
 import json
 import requests
+<<<<<<< HEAD
 
 API_BASE = "http://localhost:8000"
+=======
+import os
+#from Frontend.auth import require_password
+from pathlib import Path
+
+#require_password()
+
+API_BASE = os.getenv("API_BASE", "")
+PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
+>>>>>>> origin/final_app
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
@@ -52,6 +63,33 @@ def profile_state(p: dict) -> str:
         return "eligible"
     return "incomplete"
 
+<<<<<<< HEAD
+=======
+def load_completed_profiles() -> list[dict]:
+    if not PROFILES_COMPLETED_PATH.exists():
+        return []
+    try:
+        data = json.loads(PROFILES_COMPLETED_PATH.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data.get("team", []) or []
+        if isinstance(data, list):
+            return data
+    except Exception:
+        pass
+    return []
+
+def save_completed_profiles(team: list[dict]) -> None:
+    """
+    Optional: if you want edits to persist to the completed file (local dev only).
+    On Render this will NOT persist reliably.
+    """
+    PROFILES_COMPLETED_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PROFILES_COMPLETED_PATH.write_text(
+        json.dumps({"team": team}, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
+
+>>>>>>> origin/final_app
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
 
@@ -79,6 +117,11 @@ if "integrations" not in st.session_state:
         "trello_webhook_url": "",
         "n8n_base_url": "",
     }
+<<<<<<< HEAD
+=======
+if "use_completed_profiles" not in st.session_state:
+    st.session_state.use_completed_profiles = False
+>>>>>>> origin/final_app
 
 # -----------------------
 # Helpers
@@ -107,9 +150,16 @@ def normalize_skills(skills_text: str):
 # -----------------------
 with st.expander("Trello Board URL:", expanded=(not st.session_state.trello_board)):
     st.text_input(
+<<<<<<< HEAD
         "",
         key="trello_board",
         placeholder="https://trello.com/..."
+=======
+        "Trello board URL",
+        key="trello_board",
+        placeholder="https://trello.com/...",
+        label_visibility="collapsed",
+>>>>>>> origin/final_app
     )
 
 # -----------------------
@@ -124,15 +174,45 @@ with top_l:
     )
 
 with top_r:
+<<<<<<< HEAD
     if st.button("Update/Import members", use_container_width=True):
         api_sync_trello(st.session_state.trello_board)
         #st.session_state.show_add = True
         #reset_edit()
         #st.rerun()
+=======
+    if st.button("Update/Import members", width="stretch"):
+        if st.session_state.use_completed_profiles:
+            st.warning("Completed profiles mode is ON. Turn it off to import from Trello.")
+        else:
+            api_sync_trello(st.session_state.trello_board)
+>>>>>>> origin/final_app
 
 with top_rr:
     # Optional: show/hide table view later; for now just a quick count
     st.metric("Members", len(st.session_state.team))
+<<<<<<< HEAD
+=======
+    st.divider()
+    use_completed = st.toggle(
+        "Use completed profiles",
+        help="Loads profiles from data/profiles_complete.json (for demo/testing).",
+        key="use_completed_profiles",
+    )
+
+    if use_completed:
+        st.session_state.team = load_completed_profiles()
+        st.info("Using completed profiles (file-based). Trello import + backend save are disabled.")
+    else:
+        # If we just toggled back, reload from backend once
+        # (so you don't stay on file data)
+        try:
+            data = api_get_profiles()
+            st.session_state.team = data.get("team", [])
+            st.session_state.trello_board = data.get("trello_board", "") or ""
+        except Exception:
+            pass
+>>>>>>> origin/final_app
 
 
 # -----------------------
@@ -174,8 +254,13 @@ if edit_mode: #st.session_state.show_add or
                 )
                 st.caption("If empty, a default avatar is shown.")
 
+<<<<<<< HEAD
             save = st.form_submit_button("Save", use_container_width=True)
             cancel = st.form_submit_button("Cancel", use_container_width=True)
+=======
+            save = st.form_submit_button("Save", width="stretch")
+            cancel = st.form_submit_button("Cancel", width="stretch")
+>>>>>>> origin/final_app
 
         if cancel:
             #st.session_state.show_add = False
@@ -213,7 +298,16 @@ if edit_mode: #st.session_state.show_add or
                         current["trello_username"] = current.get("trello_username", "")
                         current["trello_id"] = current.get("trello_id", "")
                     st.success("Saved.")
+<<<<<<< HEAD
                     api_save_profiles(st.session_state.team)
+=======
+                    if st.session_state.use_completed_profiles:
+                        # Optional: persist locally (works only locally)
+                        # save_completed_profiles(st.session_state.team)
+                        st.info("Completed profiles mode: not saving to backend.")
+                    else:
+                        api_save_profiles(st.session_state.team)
+>>>>>>> origin/final_app
                     #st.session_state.show_add = False
                     reset_edit()
                     st.rerun()
@@ -266,7 +360,11 @@ with st.expander("Table view", expanded=False):
             for m in st.session_state.team
         ]
     )
+<<<<<<< HEAD
     st.dataframe(df, use_container_width=True, hide_index=True)
+=======
+    st.dataframe(df, width="stretch", hide_index=True)
+>>>>>>> origin/final_app
 
 if not st.session_state.team:
     st.warning("No team members yet. Pleaes import your Trello board members.")
@@ -303,7 +401,11 @@ else:
                             unsafe_allow_html=True,)
 
                         # Only clickable control:
+<<<<<<< HEAD
                         if st.button("Delete", key=f"del_{m['id']}", type="secondary", use_container_width=True):
+=======
+                        if st.button("Delete", key=f"del_{m['id']}", type="secondary", width="stretch"):
+>>>>>>> origin/final_app
                             delete_member(m["id"])
                             st.rerun()
                     continue
@@ -336,11 +438,19 @@ else:
                         
                         top_l, top_r = st.columns([1, 1])
                         with top_l:
+<<<<<<< HEAD
                             if st.button("Edit", key=f"edit_{m['id']}", use_container_width=True):
+=======
+                            if st.button("Edit", key=f"edit_{m['id']}", width="stretch"):
+>>>>>>> origin/final_app
                                 st.session_state.team_edit_id = m["id"]
                                 #st.session_state.show_add = False
                                 st.rerun()
                         with top_r:
+<<<<<<< HEAD
                             if st.button("Delete", key=f"del_{m['id']}", type="secondary", use_container_width=True):
+=======
+                            if st.button("Delete", key=f"del_{m['id']}", type="secondary", width="stretch"):
+>>>>>>> origin/final_app
                                 delete_member(m["id"])
                                 st.rerun()

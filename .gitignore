@@ -5,8 +5,54 @@ __pycache__/
 # Virtual environment
 .venv/
 .env
+<<<<<<< HEAD
+=======
+.env.*
+!.env.example
+>>>>>>> origin/final_app
 pyannote/
 venv/
 
 # PyCharm settings
 .idea/
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual envs
+.venv/
+.venv-*/
+.venv-vr/
+venv/
+env/
+
+# Streamlit
+.streamlit/
+
+# Local runs / generated outputs
+data/runs/
+VoiceRecognitionModule/data/runs/
+VoiceRecognitionModule/data/outputs/
+VoiceRecognitionModule/data/segments/
+*.wav
+*.mp3
+*.mp4
+
+# HuggingFace cache (optional)
+.huggingface/
+
+# local envs
+.venv*/
+.venv-vr/
+
+# run artifacts
+data/n8n_status/
+data/runs/
+VoiceRecognitionModule/data/runs/
+
+# mac
+.DS_Store

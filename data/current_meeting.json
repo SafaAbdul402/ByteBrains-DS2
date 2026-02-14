@@ -1,8 +1,17 @@
 {
+<<<<<<< HEAD
   "meeting_id": "meeting-1769800675",
   "participants": 1,
   "recording_path": "C:\\Users\\safar\\PycharmProjects\\DataScienceProject\\VoiceRecognitionProject\\data\\runs\\meeting-1769800675\\test_meeting_5min.wav",
   "created_at": "2026-01-30T19:17:55",
   "status": "uploaded",
   "run_dir": "C:\\Users\\safar\\PycharmProjects\\DataScienceProject\\VoiceRecognitionProject\\data\\runs\\meeting-1769800675"
+=======
+  "meeting_id": "meeting-1771100600",
+  "participants": 1,
+  "recording_path": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771100600/test.wav",
+  "created_at": "2026-02-14T21:23:20",
+  "status": "uploaded",
+  "run_dir": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771100600"
+>>>>>>> origin/final_app
 }

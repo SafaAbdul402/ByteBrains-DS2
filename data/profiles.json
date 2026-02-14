@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "updated_at": "2026-01-29T11:03:54",
+=======
+  "updated_at": "2026-01-29T11:55:13",
+>>>>>>> origin/final_app
   "team": [
     {
       "id": "trello-691cfb6877a5455b0f060b6b",
@@ -7,8 +11,16 @@
       "trello_id": "691cfb6877a5455b0f060b6b",
       "trello_username": "adarshharidas2",
       "email": "",
+<<<<<<< HEAD
       "role": "",
       "skills": [],
+=======
+      "role": "AI Engineer",
+      "skills": [
+        "Python",
+        "Voice Recognition"
+      ],
+>>>>>>> origin/final_app
       "notes": "",
       "photo": null,
       "status": "imported"
@@ -79,10 +91,15 @@
       "trello_id": "691cfa215ae73978990743f6",
       "trello_username": "safavabdulravuf",
       "email": "",
+<<<<<<< HEAD
       "role": "Student",
       "skills": [
         "Python"
       ],
+=======
+      "role": "",
+      "skills": [],
+>>>>>>> origin/final_app
       "notes": "",
       "photo": null,
       "status": "imported"
@@ -101,5 +118,9 @@
     }
   ],
   "trello_board": "https://trello.com/b/yXS7VY3T/bytebrains-dsii",
+<<<<<<< HEAD
   "trello_last_sync": "2026-01-29T11:00:33"
+=======
+  "trello_last_sync": "2026-01-29T11:54:49"
+>>>>>>> origin/final_app
 }

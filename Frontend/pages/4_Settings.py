@@ -1,7 +1,16 @@
 import streamlit as st
 import requests
+<<<<<<< HEAD
 
 API_BASE = "http://localhost:8000"
+=======
+import os
+from Frontend.auth import require_password
+
+require_password()
+
+API_BASE = os.getenv("API_BASE", "")
+>>>>>>> origin/final_app
 
 def api_get_settings():
     r = requests.get(f"{API_BASE}/settings", timeout=10)
