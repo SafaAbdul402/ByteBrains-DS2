@@ -13,17 +13,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # ByteBrains/
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from Backend.pipeline_stub import vr_process, build_final_transcript, n8n_run
+from Backend.pipeline_stub import vr_process
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
 API_BASE = "http://localhost:8000"
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
+
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
     r.raise_for_status()
     return r.json()
+
 
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
@@ -33,6 +35,7 @@ def load_completed_profiles() -> list[dict]:
         return data.get("team", []) if isinstance(data, dict) else []
     except Exception:
         return []
+
 
 def profile_state(p: dict) -> str:
     # returns: "deleted" | "incomplete" | "eligible"
@@ -46,6 +49,64 @@ def profile_state(p: dict) -> str:
     if role_ok and skills_ok:
         return "eligible"
     return "incomplete"
+
+
+# n8n status updates:
+STATUS_PROGRESS = {
+    "n8n": 0.45,
+    "input": 0.50,
+    "summary": 0.65,
+    "tasks": 0.80,
+    "trello": 0.90,
+    "done": 1.0,
+}
+
+STATUS_LABELS = {
+    "n8n": "n8n: Workflow started...",
+    "input": "n8n: Input received...",
+    "summary": "n8n: Creating summary...",
+    "tasks": "n8n: Extracting tasks...",
+    "trello": "n8n: Creating Trello cards...",
+    "done": "n8n: Finished.",
+}
+
+
+def apply_n8n_status(status: dict):
+    text = (status.get("text") or status.get("status") or "").strip()
+    low = text.lower()
+
+    matched_key = None
+    for key in STATUS_PROGRESS.keys():
+        if key in low:
+            matched_key = key
+            break
+
+    if matched_key:
+        st.session_state.status_text = STATUS_LABELS.get(matched_key, f"n8n: {text}")
+        st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[matched_key])
+    else:
+        st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
+
+
+def api_get_n8n_status(meeting_id: str) -> dict:
+    r = requests.get(
+        f"{API_BASE}/n8n/status/{meeting_id}",
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def api_get_n8n_result(meeting_id: str) -> dict:
+    r = requests.get(
+        f"{API_BASE}/n8n/result/{meeting_id}",
+        headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json()
+
 
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
@@ -82,19 +143,25 @@ if "file_buffer" not in st.session_state:
     st.session_state.file_buffer = None
 if "team_demo_override" not in st.session_state:
     st.session_state.team_demo_override = None
+if "n8n_started" not in st.session_state:
+    st.session_state.n8n_started = False
+if "n8n_poll_count" not in st.session_state:
+    st.session_state.n8n_poll_count = 0
 if st.session_state.workflow_step == "READY":
     try:
         st.session_state.team = api_get_profiles().get("team", [])
     except:
         pass
 
+
 # Block the site, if there are no team members
-#if len(st.session_state.team) == 0:
- #   st.warning("No team profiles found. Please add/import profiles in 'My Team' first.")
+# if len(st.session_state.team) == 0:
+#   st.warning("No team profiles found. Please add/import profiles in 'My Team' first.")
 
 
 def log(msg):
     st.session_state.logs.append(msg)
+
 
 def reset_session():
     st.session_state.workflow_step = "READY"
@@ -109,13 +176,17 @@ def reset_session():
     st.session_state.file_buffer = None
     st.session_state.participants = None
     st.session_state.team_demo_override = None
+    st.session_state.n8n_started = False
+
 
 def request_cancel():
     st.session_state.cancel_requested = True
     st.session_state.paused = False  # cancel overrides pause
 
+
 def toggle_pause():
     st.session_state.paused = not st.session_state.paused
+
 
 def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
@@ -139,7 +210,7 @@ if st.session_state.get("cancel_requested", False):
     reset_session()
     st.stop()
 
-left, right = st.columns([1, 1], gap = "large")
+left, right = st.columns([1, 1], gap="large")
 with left:
     st.header("Upload a Meeting Recording")
 
@@ -174,7 +245,7 @@ with left:
     else:
         file = st.file_uploader(
             "Meeting Recording:",
-            type=["wav", "mp3"],
+            type=["wav", "mp3", "m4a"],
             key=f"uploader_{st.session_state.upload_key}",
         )
 
@@ -218,6 +289,24 @@ with left:
         st.session_state.workflow_step = "VR_TRANSCRIPTION"
         st.rerun()
 
+    if st.button("Skip VR (demo)", use_container_width=True):
+        st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
+        run_dir = RUNS_DIR / st.session_state.meeting_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        # fake vr_result so UI can continue
+        st.session_state.vr_result = {
+            "speakers": ["Speaker 0", "Speaker 1"],
+            "transcript": [
+                {"speaker": "Speaker 0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
+                {"speaker": "Speaker 1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
+            ],
+        }
+
+        st.session_state.detected_speakers = st.session_state.vr_result["speakers"]
+        st.session_state.workflow_step = "UI_ASSIGNMENT_2"
+        st.rerun()
+
     ###Track Status
     status_container = st.container()
     status_placeholder = st.empty()
@@ -225,7 +314,7 @@ with left:
     with status_container:
         status_placeholder.status(
             st.session_state.status_text,
-            state="running" if st.session_state.workflow_step not in ["READY","DONE","NEXT"] else "complete",
+            state="running" if st.session_state.workflow_step not in ["READY", "DONE", "NEXT"] else "complete",
             expanded=True
         )
         st.progress(st.session_state.progress)
@@ -262,8 +351,7 @@ with left:
     with st.expander("Logs / Debug Output", expanded=False):
         st.code("\n".join(st.session_state.logs))
 
-
-### Workflow  
+### Workflow
 if st.session_state.workflow_step == "VR_TRANSCRIPTION":
     st.session_state.status_text = "Transcribing meeting..."
     st.session_state.progress = 0.2
@@ -281,7 +369,7 @@ if st.session_state.workflow_step == "VR_RECOGNITION":
     log("Speaker Recognition")
 
     speakers = st.session_state.vr_result.get("speakers", [])
-    speaker_clips = st.session_state.vr_result.get("speaker_clips", {})
+    st.session_state.detected_speakers = speakers
 
     st.session_state.workflow_step = "UI_ASSIGNMENT"
     st.rerun()
@@ -296,47 +384,85 @@ if st.session_state.workflow_step == "UI_ASSIGNMENT":
 
 with right:
     if st.session_state.workflow_step == "UI_ASSIGNMENT_2":
-        
         st.subheader("")
         st.subheader("")
         st.subheader("Assign speakers to team members")
 
-        speakers = st.session_state.get("detected_speakers", ["Speaker A", "Speaker B", "Speaker C"])
-        
-        base_team = st.session_state.team
-        demo_team = st.session_state.team_demo_override
+        meeting_id = st.session_state.meeting_id
+
+        # Use speakers detected by VR
+        speakers = st.session_state.get("detected_speakers") or st.session_state.vr_result.get("speakers", [])
+        if not speakers:
+            st.error("No speakers found from Voice Recognition module.")
+            st.stop()
+
+        # Active team
+        base_team = st.session_state.get("team", [])
+        demo_team = st.session_state.get("team_demo_override")
         active_team = demo_team if demo_team is not None else base_team
 
         eligible_profiles = [p for p in active_team if profile_state(p) == "eligible"]
-        team_members = [p.get("name","") for p in eligible_profiles if p.get("name")]
+        team_members = [p.get("name", "") for p in eligible_profiles if p.get("name")]
+
         if not team_members:
             st.warning("No eligible profiles for speaker mapping.")
             st.info("To be eligible, a profile must NOT be deleted and must have: Role + at least 1 Skill.")
             st.stop()
-        options = ["— Select person —"] + team_members
 
-        # --- Initialize mapping (important!)
+        # Add Noise/Ignore option
+        options = ["— Select person —", "Noise / Ignore"] + team_members
+
+        # --- Locate speaker audio folder (Option B)
+        speakers_audio_dir = RUNS_DIR / meeting_id / "speakers_audio"
+
+
+        def find_speaker_wavs(speaker_id: str) -> list[Path]:
+            """
+            Return list of wav snippets for a speaker.
+            We match by filename containing the speaker id (robust to naming).
+            """
+            if not speakers_audio_dir.exists():
+                return []
+            wavs = []
+            for p in speakers_audio_dir.glob("*.wav"):
+                if speaker_id in p.name:
+                    wavs.append(p)
+            return sorted(wavs)
+
+
+        # --- Initialize mapping
         for speaker in speakers:
             if speaker not in st.session_state.speaker_mapping:
                 st.session_state.speaker_mapping[speaker] = None
 
         # --- UI
+        if not speakers_audio_dir.exists():
+            st.warning(f"Speaker audio folder not found: {speakers_audio_dir}")
+            st.info("UI will still work, but no speaker audio snippets can be played.")
+
         for speaker in speakers:
             col_speaker, col_profile = st.columns([2, 3])
 
             with col_speaker:
                 st.markdown(f"**{speaker}**")
-                clip = None
-                if st.session_state.vr_result:
-                    clip = st.session_state.vr_result.get("speaker_clips", {}).get(speaker)
 
-                st.audio(clip)  # placeholder for voice clip
+                wavs = find_speaker_wavs(speaker)
+                if wavs:
+                    # Show a few snippets (avoid flooding UI)
+                    max_snippets = 5
+                    for w in wavs[:max_snippets]:
+                        st.caption(w.name)
+                        st.audio(str(w), format="audio/wav")
+                    if len(wavs) > max_snippets:
+                        st.caption(f"...and {len(wavs) - max_snippets} more snippet(s)")
+                else:
+                    st.caption("No .wav snippets found for this speaker.")
 
             with col_profile:
                 selection = st.selectbox(
                     "",
                     options,
-                    key=f"assign_{st.session_state.meeting_id}_{speaker}",
+                    key=f"assign_{meeting_id}_{speaker}",
                     placeholder="Select person",
                 )
 
@@ -344,87 +470,128 @@ with right:
                     None if selection == "— Select person —" else selection
                 )
 
-        # --- Validation
+        # --- Validation (must choose something: person OR Noise/Ignore)
         all_assigned = all(
-            st.session_state.speaker_mapping[s] is not None
+            st.session_state.speaker_mapping.get(s) is not None
             for s in speakers
         )
 
         if not all_assigned:
-            st.warning("Please assign all speakers before continuing.")
+            st.warning("Please assign all speakers before continuing (choose a person or Noise / Ignore).")
 
         c1, c2 = st.columns([2, 3])
-        with c1: 
-            confirm = st.button(
-                "Confirm speaker assignment",
-                disabled=not all_assigned
-                )
 
-            if confirm and all_assigned:
+        with c1:
+            confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
+
+            if confirm and all_assigned and not st.session_state.n8n_started:
                 log("Speaker assignment confirmed")
 
-                transcript = st.session_state.vr_result["transcript"]  # or raw_transcript if you use that
-                final_transcript = build_final_transcript(transcript, st.session_state.speaker_mapping)
-                if "final_transcript" not in st.session_state:
-                    st.session_state.final_transcript = None
+                transcript = st.session_state.vr_result.get("transcript")
+                if transcript is None:
+                    st.error("No transcript returned from Voice Recognition module.")
+                    st.stop()
 
-                profiles = eligible_profiles  # only completed + non-deleted
-                st.session_state.n8n_result = n8n_run(final_transcript, profiles)
+                speaker_mapping = st.session_state.speaker_mapping
 
-                st.session_state.workflow_step = "n8n_SUMMARIZING"
+                st.session_state.n8n_started = True
+
+                # Pass-through to n8n (no final transcript building)
+                profiles = eligible_profiles
+                payload = {
+                    "meeting_id": meeting_id,
+                    "transcript": transcript,
+                    "speaker_mapping": speaker_mapping,
+                    "profiles": profiles,
+                }
+
+                # call backend to start the workflow
+                r = requests.post(
+                    f"{API_BASE}/n8n/start/{meeting_id}",
+                    json=payload,
+                    headers={"X-BB-SECRET": os.getenv("TEST_SHARED_SECRET", "byte-test-tk")},
+                    timeout=20,
+                )
+                r.raise_for_status()
+
+                st.session_state.workflow_step = "n8n_RUNNING"
+                st.session_state.progress = max(st.session_state.progress, 0.45)
+                st.session_state.status_text = "n8n: Workflow started..."
                 st.rerun()
-        with c2: 
+
+        with c2:
             if st.button("Use completed profiles"):
                 demo_profiles = load_completed_profiles()
                 if not demo_profiles:
-                    st.error("profiles_completed.json not found or empty.")
+                    st.error("profiles_complete.json not found or empty.")
                 else:
                     st.session_state.team_demo_override = demo_profiles
                     st.success("Switched to completed demo profiles.")
                     st.rerun()
 
+if st.session_state.workflow_step == "n8n_RUNNING":
+    st.session_state.n8n_poll_count += 1
 
-        
+    status = api_get_n8n_status(st.session_state.meeting_id)
+    apply_n8n_status(status)
 
-if st.session_state.workflow_step == "n8n_SUMMARIZING":
-    st.session_state.status_text = "Summarizing Meeting Transcript..."
-    st.session_state.progress = 0.5
-    log("Meeting Summary")
+    text = (status.get("text") or status.get("status") or "").lower()
 
-    st.session_state.workflow_step = "n8n_NOTES"
+    if "error" in text:
+        st.error(f"n8n error: {status}")
+        st.stop()
+
+    if "done" in text:
+        result = api_get_n8n_result(st.session_state.meeting_id)
+        if result:
+            st.session_state.n8n_result = result
+        st.session_state.progress = 1.0
+        st.session_state.status_text = "n8n: Finished."
+        st.session_state.workflow_step = "DONE"
+        st.rerun()
+
+    time.sleep(1.0)
     st.rerun()
 
-if st.session_state.workflow_step == "n8n_NOTES":
-    st.session_state.status_text = "Creating Meeting Notes..."
-    st.session_state.progress = 0.6
-    log("Meeting Notes")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_TASK_EXTR"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_TASK_EXTR":
-    st.session_state.status_text = "Extracting Tasks..."
-    st.session_state.progress = 0.7
-    log("Task Extraction")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_TASK_ASSI"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_TASK_ASSI":
-    st.session_state.status_text = "Assigning Tasks..."
-    st.session_state.progress = 0.8
-    log("Task Assignment")
-    time.sleep(1)
-    st.session_state.workflow_step = "n8n_MAIL"
-    st.rerun()
-
-if st.session_state.workflow_step == "n8n_MAIL":
-    st.session_state.status_text = "Writing E-Mail Draft..."
-    st.session_state.progress = 0.9
-    log("Mail Draft")
-    time.sleep(1)
-    st.session_state.workflow_step = "DONE"
-    st.rerun()
+# if st.session_state.workflow_step == "n8n_SUMMARIZING":
+#    st.session_state.status_text = "Summarizing Meeting Transcript..."
+#    st.session_state.progress = 0.5
+#    log("Meeting Summary")
+#
+#    st.session_state.workflow_step = "n8n_NOTES"
+#    st.rerun()
+#
+# if st.session_state.workflow_step == "n8n_NOTES":
+#    st.session_state.status_text = "Creating Meeting Notes..."
+#    st.session_state.progress = 0.6
+#    log("Meeting Notes")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_TASK_EXTR"
+#    st.rerun()
+#
+# if st.session_state.workflow_step == "n8n_TASK_EXTR":
+#    st.session_state.status_text = "Extracting Tasks..."
+#    st.session_state.progress = 0.7
+#    log("Task Extraction")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_TASK_ASSI"
+#    st.rerun()
+#
+# if st.session_state.workflow_step == "n8n_TASK_ASSI":
+#    st.session_state.status_text = "Assigning Tasks..."
+#    st.session_state.progress = 0.8
+#   log("Task Assignment")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "n8n_MAIL"
+#    st.rerun()
+#
+# if st.session_state.workflow_step == "n8n_MAIL":
+#    st.session_state.status_text = "Writing E-Mail Draft..."
+#   st.session_state.progress = 0.9
+#    log("Mail Draft")
+#    time.sleep(1)
+#    st.session_state.workflow_step = "DONE"
+#    st.rerun()
 
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"
@@ -439,7 +606,7 @@ if st.session_state.workflow_step == "DONE":
             notes=result["notes"],
             email_draft=result["email_draft"],
             tasks=result["tasks"],
-            meeting_id=st.session_state.meeting_id,   # << MUST
+            meeting_id=st.session_state.meeting_id,  # << MUST
         )
     else:
         insert_meeting(
@@ -458,9 +625,8 @@ if st.session_state.workflow_step == "DONE":
 
     # 4) Navigate
     st.switch_page("Frontend/pages/2_Meetings.py")
-    
 
-    
-    
+
+
 
 

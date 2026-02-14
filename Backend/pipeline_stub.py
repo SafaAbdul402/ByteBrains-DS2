@@ -2,7 +2,8 @@ from typing import Dict, List, Any
 from pathlib import Path
 import json
 from Backend.config import RUNS_DIR
-from VoiceRecognitionModule.pipeline import process_meeting #change?
+from VoiceRecognitionModule.src.pipeline.run_pipeline import process_meeting
+ #change?
 
 def vr_process(meeting_id: str) -> dict:
     run_dir = RUNS_DIR / meeting_id

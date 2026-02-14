@@ -4,11 +4,11 @@ from pathlib import Path
 # Allow imports from src/
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-from speaker.audio_snippets import save_speaker_audio_snippets
+from VoiceRecognitionModule.src.speaker.audio_snippets import save_speaker_audio_snippets
 
 
 def test_audio_snippets():
-    meeting_dir = Path("data/runs/meeting2-test")
+    meeting_dir = Path("data/runs/meeting-1769461158")
 
     processed_wav = meeting_dir / ".voice_internal" / "processed.wav"
     diarization_json = meeting_dir / ".voice_internal" / "diarization.json"

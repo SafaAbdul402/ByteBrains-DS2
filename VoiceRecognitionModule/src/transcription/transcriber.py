@@ -3,6 +3,33 @@ import json
 import torchaudio
 from faster_whisper import WhisperModel
 from typing import List, Dict
+import torch
+MIN_SEGMENT_DURATION = 1.0  # skip segments shorter than 1 second
+
+def merge_consecutive_transcript_segments(segments):
+    """
+    Merge consecutive transcript segments of the same speaker
+    into clean UI-friendly blocks.
+    """
+    if not segments:
+        return []
+
+    merged = []
+    buffer = segments[0].copy()
+
+    for seg in segments[1:]:
+        if seg["speaker"] == buffer["speaker"]:
+            # merge text with spacing
+            buffer["text"] += " " + seg["text"]
+            buffer["end"] = seg["end"]
+        else:
+            merged.append(buffer)
+            buffer = seg.copy()
+
+    merged.append(buffer)
+    return merged
+
+
 
 # ===============================
 # MODEL LOADING (cached singleton)
@@ -12,12 +39,38 @@ _MODEL = None
 
 def get_whisper_model(
     model_size: str = "medium",
-    device: str = "cpu"
+    device: str = "cuda" if True else "cpu"
 ) -> WhisperModel:
     global _MODEL
     if _MODEL is None:
         _MODEL = WhisperModel(model_size, device=device)
     return _MODEL
+# ===============================
+# MERGE CONSECUTIVE SPEAKERS
+# ===============================
+
+
+def merge_consecutive_speaker_segments(segments):
+    """
+    Merge consecutive segments of the same speaker.
+    """
+    if not segments:
+        return []
+
+    merged = []
+    buffer = segments[0].copy()
+
+    for seg in segments[1:]:
+        if seg["speaker"] == buffer["speaker"]:
+            # same speaker → extend end time
+            buffer["end"] = seg["end"]
+        else:
+            merged.append(buffer)
+            buffer = seg.copy()
+
+    merged.append(buffer)
+    return merged
+
 
 
 # ===============================
@@ -29,7 +82,7 @@ def transcribe_with_diarization(
     diarization_json_path: Path,
     *,
     model_size: str = "medium",
-    device: str = "cpu",
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
     language: str = "en"
 ) -> List[Dict]:
     """
@@ -52,6 +105,8 @@ def transcribe_with_diarization(
     # Load diarization
     with open(diarization_json_path, "r", encoding="utf-8") as f:
         diarization_segments = json.load(f)
+    # Merge consecutive same-speaker segments BEFORE transcription
+    diarization_segments = merge_consecutive_speaker_segments(diarization_segments)
 
     model = get_whisper_model(model_size=model_size, device=device)
 
@@ -64,6 +119,13 @@ def transcribe_with_diarization(
 
         if end_sec <= start_sec:
             continue
+
+        # --- NEW: skip very short segments ---
+        duration = end_sec - start_sec
+        if duration < MIN_SEGMENT_DURATION:
+            print(f"⏭ Skipping short segment ({duration:.2f}s) for {speaker}")
+            continue
+        # -------------------------------------
 
         start_frame = int(start_sec * sr)
         end_frame = int(end_sec * sr)
@@ -94,7 +156,10 @@ def transcribe_with_diarization(
 
     # Critical: global ordering
     all_segments.sort(key=lambda x: x["start"])
-    return all_segments
+    # ✅ NEW: merge consecutive same-speaker transcript segments for UI
+    ui_segments = merge_consecutive_transcript_segments(all_segments)
+
+    return ui_segments
 
 def save_transcript_with_speakers(
     segments: List[Dict],
