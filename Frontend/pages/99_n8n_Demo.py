@@ -53,7 +53,7 @@ def demo_payload(meeting_id: str) -> dict:
                 "Voice Recognition"
             ],
             "notes": "",
-            "photo": null,
+            "photo": None,
             "status": "imported"
             },
             {
@@ -68,7 +68,7 @@ def demo_payload(meeting_id: str) -> dict:
                 "Python"
             ],
             "notes": "",
-            "photo": null,
+            "photo": None,
             "status": "imported"
             },
             {
@@ -85,7 +85,7 @@ def demo_payload(meeting_id: str) -> dict:
                 "ROS2"
             ],
             "notes": "",
-            "photo": null,
+            "photo": None,
             "status": "imported"
             }
         ]
@@ -144,7 +144,7 @@ with col3:
 st.divider()
 
 # --- Send button
-payload = demo_payload(st.session_state.demo_meeting_id)
+payload = demo_payload(meeting_id)
 
 with st.expander("Payload preview (exact shape)", expanded=False):
     st.json(payload)
