@@ -17,6 +17,14 @@ PROFILES_TTL_S = 60  # cache /profiles for 30s in this Streamlit session
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 DEMO_TEAM = os.getenv("DEMO_TEAM", "1") == "1"
 DISABLE_TRELLO = os.getenv("DISABLE_TRELLO", "0") == "1"
+DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
+if DEMO_MODE:
+    st.set_page_config(page_title="ByteBrains – Demo", layout="centered")
+    st.title("Demo deployment")
+    st.info("This deployment is for n8n testing only. Please use the **n8n Demo** page.")
+    if st.button("Go to n8n Demo", type="primary", use_container_width=True):
+        st.switch_page("pages/0_N8N_Demo.py")
+    st.stop()
 # -----------------------
 # Local helpers
 # -----------------------

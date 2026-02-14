@@ -34,6 +34,14 @@ IS_RENDER = bool(os.getenv("RENDER"))
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 
+if DEMO_MODE:
+    st.set_page_config(page_title="ByteBrains – Demo", layout="centered")
+    st.title("Demo deployment")
+    st.info("This deployment is for n8n testing only. Please use the **n8n Demo** page.")
+    if st.button("Go to n8n Demo", type="primary", use_container_width=True):
+        st.switch_page("pages/99_n8n_Demo.py")
+    st.stop()
+
 def api_get_n8n_status(meeting_id: str) -> dict:
     # ttl_s small prevents rerun spam, name includes meeting_id to avoid collisions
     return api_get_json(
