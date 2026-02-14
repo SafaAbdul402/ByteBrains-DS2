@@ -1518,14 +1518,14 @@ def build_demo_payload(meeting_id: str) -> dict:
             "trello_id": "691cfb6877a5455b0f060b6b",
             "trello_username": "adarshharidas2",
             "email": "adarsh.haridas@stud.tu-darmstadt.de",
-            "role": "AI Engineer",
+            "role": "Audio Preprocessing",
             "skills": [
                 "Python",
-                "Voice Recognition",
-                "Data Analysis",
-                "Machine Learning"
+                "Data Science",
+                "AI",
+                "Microsoft PowerPoint"
             ],
-            "notes": "I am experienced in AI engineering and have a strong background in Python, voice recognition, data analysis, and machine learning.",
+            "notes": "Passionate about exploring new ideas and transforming them into practical solutions.",
             "photo": None,
             "status": "imported"
             },
@@ -1535,13 +1535,13 @@ def build_demo_payload(meeting_id: str) -> dict:
             "trello_id": "691cfe3cd850a0c7e050fb0c",
             "trello_username": "ananthuvijayan2",
             "email": "ananthu.vijayan@stud.tu-darmstadt.de",
-            "role": "Voice Recognition Specialist",
+            "role": "Business Analyst",
             "skills": [
                 "Python",
-                "Voice Recognition",
-                "Data Analysis"
+                "PyTorch",
+                "ML/AI"
             ],
-            "notes": "I am experienced in voice recognition and data analysis. I enjoy working with audio data and extracting meaningful insights.",
+            "notes": "Strategist, Driven by curiosity and in love with problem solving.",
             "photo": None,
             "status": "imported"
             },
