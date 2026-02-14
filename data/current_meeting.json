@@ -1,0 +1,8 @@
+{
+  "meeting_id": "meeting-1769800675",
+  "participants": 1,
+  "recording_path": "C:\\Users\\safar\\PycharmProjects\\DataScienceProject\\VoiceRecognitionProject\\data\\runs\\meeting-1769800675\\test_meeting_5min.wav",
+  "created_at": "2026-01-30T19:17:55",
+  "status": "uploaded",
+  "run_dir": "C:\\Users\\safar\\PycharmProjects\\DataScienceProject\\VoiceRecognitionProject\\data\\runs\\meeting-1769800675"
+}
