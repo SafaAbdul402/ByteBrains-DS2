@@ -30,9 +30,6 @@ __pycache__/
 venv/
 env/
 
-# Streamlit
-.streamlit/
-
 # Local runs / generated outputs
 data/runs/
 VoiceRecognitionModule/data/runs/

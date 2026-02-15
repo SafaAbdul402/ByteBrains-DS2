@@ -1,0 +1,38 @@
+[server]
+maxUploadSize = 1024
+
+#basic:
+#[theme]
+#base="light"
+#primaryColor="#9464D6"
+#backgroundColor="#ffffff"
+#secondaryBackgroundColor="#F6F7FB"
+#textColor="#0F172A"
+#font="sans serif"
+
+#clean:
+#[theme]
+#base = "light"
+#primaryColor = "#7C4DFF"                 # vivid purple (logo)
+#backgroundColor = "#F6F8FC"              # clean off-white
+#secondaryBackgroundColor = "#EEF2FF"     # soft indigo tint
+#textColor = "#0F172A"                    # slate-900
+#font = "sans serif"
+
+#airy:
+#[theme]
+#base = "light"
+#primaryColor = "#8B5CF6"
+#backgroundColor = "#F8FAFF"
+#secondaryBackgroundColor = "#EAF2FF"
+#textColor = "#0B1220"
+#font = "sans serif"
+
+#dark
+[theme]
+base = "dark"
+primaryColor = "#8B5CF6"
+backgroundColor = "#0B1020"
+secondaryBackgroundColor = "#121A33"
+textColor = "#E7ECFF"
+font = "sans serif"
