@@ -737,63 +737,61 @@ with right:
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
 
-    # Poll interval (ms). 4000–8000 is a nice range.
     POLL_MS = 4000
     POLL_EVERY = POLL_MS / 1000.0
 
-    # Auto-rerun the page every POLL_MS
-    st.autorefresh(interval=POLL_MS, key=f"n8n_auto_{meeting_id}")
-
-    # Throttle actual API calls (important because Streamlit can rerun for other reasons too)
     now = time.time()
     last = st.session_state.get("last_n8n_poll_ts", 0.0)
-    if (now - last) < POLL_EVERY:
-        st.caption("n8n: waiting for next poll…")
-        st.stop()
 
-    st.session_state.last_n8n_poll_ts = now
+    should_poll = (now - last) >= POLL_EVERY
+    if should_poll:
+        st.session_state.last_n8n_poll_ts = now
 
-    try:
-        data = api_get_n8n_status(meeting_id)
-    except Exception as e:
-        log(f"[n8n] Poll error: {e}")
-        st.caption("n8n: poll failed, retrying…")
-        st.stop()
+        try:
+            data = api_get_n8n_status(meeting_id)
+        except Exception as e:
+            log(f"[n8n] Poll error: {e}")
+            st.caption("n8n: poll failed, retrying…")
+            time.sleep(1.0)
+            st.rerun()
 
-    latest = data.get("latest")
-    result = data.get("result")
+        latest = data.get("latest")
+        result = data.get("result")
 
-    run_dir = RUNS_DIR / meeting_id
-    save_local_debug(run_dir, "n8n_status_latest.json", latest)
-    save_local_debug(run_dir, "n8n_status_full.json", data)
-    if result:
-        save_local_debug(run_dir, "n8n_result_from_api.json", result)
+        run_dir = RUNS_DIR / meeting_id
+        save_local_debug(run_dir, "n8n_status_latest.json", latest)
+        save_local_debug(run_dir, "n8n_status_full.json", data)
+        if result:
+            save_local_debug(run_dir, "n8n_result_from_api.json", result)
 
-    apply_n8n_status(latest)
+        apply_n8n_status(latest)
 
-    latest_type = (latest or {}).get("type", "")
-    latest_stage = (latest or {}).get("stage", "")
-    latest_key = (latest_stage or latest_type or "").strip().lower()
+        # --- done detection
+        latest_type = (latest or {}).get("type", "")
+        latest_stage = (latest or {}).get("stage", "")
+        latest_key = (latest_stage or latest_type or "").strip().lower()
 
-    has_summary = bool((result or {}).get("summary"))
-    has_tasks = isinstance((result or {}).get("tasks"), list) and len((result or {}).get("tasks")) > 0
-    has_transcript = isinstance((result or {}).get("transcript"), list) and len((result or {}).get("transcript")) > 0
+        has_summary = bool((result or {}).get("summary"))
+        has_tasks = isinstance((result or {}).get("tasks"), list) and len((result or {}).get("tasks")) > 0
+        has_transcript = isinstance((result or {}).get("transcript"), list) and len((result or {}).get("transcript")) > 0
 
-    is_done_signal = latest_key in ("done", "complete", "completed", "finished")
+        is_done_signal = latest_key in ("done", "complete", "completed", "finished")
 
-    if result and (is_done_signal or (has_summary and has_tasks and has_transcript)):
-        result.setdefault("summary", "")
-        result.setdefault("tasks", [])
-        result.setdefault("transcript", [])
+        if result and (is_done_signal or (has_summary and has_tasks and has_transcript)):
+            result.setdefault("summary", "")
+            result.setdefault("tasks", [])
+            result.setdefault("transcript", [])
 
-        st.session_state.n8n_result = result
-        st.session_state.status_text = "n8n: Finished."
-        st.session_state.progress = 1.0
-        st.session_state.workflow_step = "DONE"
-        st.rerun()
+            st.session_state.n8n_result = result
+            st.session_state.status_text = "n8n: Finished."
+            st.session_state.progress = 1.0
+            st.session_state.workflow_step = "DONE"
+            st.rerun()
 
+    # not done yet → wait a bit then rerun
     st.caption("n8n: still running…")
-    st.stop()
+    time.sleep(1.0)
+    st.rerun()
         
 if st.session_state.workflow_step == "DONE":
     st.session_state.status_text = "Done"
