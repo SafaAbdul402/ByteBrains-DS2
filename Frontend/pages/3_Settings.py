@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import os
 #from Frontend.auth import require_password
+from Frontend.ui_branding import apply_branding
 
 #require_password()
 
@@ -27,6 +28,7 @@ def api_save_settings(trello_board: str):
 
 st.set_page_config(page_title="ByteBrains – Settings", layout="centered")
 st.title("Settings")
+apply_branding()
 
 # Load settings once per session
 if "settings" not in st.session_state:
@@ -50,7 +52,7 @@ with st.form("settings_form"):
     st.caption(f"Last sync: {last_sync if last_sync else '—'}")
 
     col1, col2 = st.columns([1, 1])
-    save = col1.form_submit_button("Save", use_container_width=True)
+    save = col1.form_submit_button("Save", use_container_width=True, type="primary")
     clear = col2.form_submit_button("Clear", use_container_width=True)
 
 if save:

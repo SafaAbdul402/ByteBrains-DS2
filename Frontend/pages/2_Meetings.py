@@ -9,10 +9,12 @@ import streamlit as st
 from pathlib import Path
 
 from Backend.config import MEETINGS_PATH, RUNS_DIR
+from Frontend.ui_branding import apply_branding
 #from Frontend.auth import require_password
 
 # MUST be first Streamlit call
-st.set_page_config(page_title="Meetings / Results", layout="wide")
+st.set_page_config(page_title="Meeting Results", layout="wide")
+apply_branding()
 
 #require_password()
 
@@ -99,17 +101,29 @@ def transcript_candidates(run_dir: Path) -> List[Path]:
 
 def load_transcript(run_dir: Path) -> Optional[Any]:
     for p in transcript_candidates(run_dir):
-        if p.exists():
-            try:
-                data = json.loads(p.read_text(encoding="utf-8"))
+        if not p.exists():
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
 
-                # If merged file, extract transcript
-                if isinstance(data, dict) and "transcript" in data:
-                    return data["transcript"]
-
+            # common shapes:
+            # A) [ {...}, {...} ]
+            if isinstance(data, list):
                 return data
-            except Exception:
-                return {"_error": f"Could not parse transcript JSON: {p.name}"}
+
+            # B) { "transcript": [...] }
+            if isinstance(data, dict) and isinstance(data.get("transcript"), list):
+                return data["transcript"]
+
+            # C) { "result": { "transcript": [...] } } (just in case)
+            if isinstance(data, dict):
+                inner = data.get("result")
+                if isinstance(inner, dict) and isinstance(inner.get("transcript"), list):
+                    return inner["transcript"]
+
+            return data
+        except Exception:
+            return {"_error": f"Could not parse transcript JSON: {p.name}"}
     return None
 
 def speaker_audio_labels(run_dir: Path) -> List[str]:
@@ -451,7 +465,7 @@ with col_details:
     b1, b2 = st.columns([1, 1])
     with b1:
         if trello_board_url:
-            st.link_button("See in Trello", trello_board_url, use_container_width=True)
+            st.link_button("See in Trello", trello_board_url, type="primary", use_container_width=True)
         else:
             st.caption("Trello board URL not set. Add it in My Team or Settings.")
     with b2:

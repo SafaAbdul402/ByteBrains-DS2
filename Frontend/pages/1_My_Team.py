@@ -7,6 +7,7 @@ import requests
 import os
 # from Frontend.auth import require_password
 from pathlib import Path
+from Frontend.ui_branding import apply_branding 
 
 # require_password()
 
@@ -96,6 +97,7 @@ def save_completed_profiles(team: list[dict]) -> None:
 
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
+apply_branding()
 
 # -----------------------
 # Session state init
@@ -173,7 +175,7 @@ with top_l:
     )
 
 with top_r:
-    if st.button("Update/Import members", width="stretch"):
+    if st.button("Update/Import members", width="stretch", type="primary"):
         if st.session_state.use_completed_profiles:
             st.warning("Completed profiles mode is ON. Turn it off to import from Trello.")
         else:

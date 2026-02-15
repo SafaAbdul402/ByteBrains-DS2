@@ -10,7 +10,16 @@ from datetime import datetime
 import requests
 from pathlib import Path
 import subprocess, signal
-#from Frontend.auth import require_password
+from Frontend.ui_branding import apply_branding, page_header
+
+ICON = Path(__file__).resolve().parent / "assets" / "favicon.png"
+st.set_page_config(page_title="[APP NAME] – AI Meeting Assistant", layout="wide", page_icon=str(ICON))
+
+page_header(
+    "[APP NAME] – Your AI Meeting Assistant",
+    "An intelligen Meeting Assistant by ByteBrains. Upload your meeting recording and let AI handle the rest."
+)
+apply_branding()
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", message="Torchaudio's I/O functions")
@@ -324,8 +333,6 @@ def apply_speaker_mapping_to_transcript(transcript: list[dict], mapping: dict) -
         out.append({**line, "speaker": mapped})
     return out
 
-st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
-
 ### Session States, to avoid reloading and resetting of the page after each interaction
 if "workflow_step" not in st.session_state:
     st.session_state.workflow_step = "READY"
@@ -371,9 +378,6 @@ if "team" not in st.session_state:
         st.session_state.team = []
         log(f"[ERROR] Failed to load team profiles: {e}")
 
-
-st.title("ByteBrains – AI Meeting Assistant")
-st.markdown("Upload your meeting recording and let AI handle the rest.")
 
 left, right = st.columns([1, 1], gap = "large")
 with left:
