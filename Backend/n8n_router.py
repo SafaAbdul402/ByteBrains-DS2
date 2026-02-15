@@ -80,7 +80,7 @@ def start_n8n(meeting_id: str, payload: Dict[str, Any]):
         requests.post(
             N8N_WEBHOOK,
             json=start_payload,
-            timeout=3,   # SHORT
+            timeout=15,   # SHORT
         )
     except Exception as e:
         # DO NOT FAIL

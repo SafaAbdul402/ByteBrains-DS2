@@ -239,23 +239,38 @@ def apply_n8n_status(status: dict | None):
         log(f"[{timestamp}] [n8n] No status received - waiting for updates")
         return
 
-    stage = (status.get("stage") or status.get("type") or "").strip().lower()
-
+    raw_type = (status.get("type") or "").strip().lower()
     raw_text = status.get("text") or status.get("status") or ""
+
+    # normalize text (might be dict if someone accidentally sends transcript/tasks here)
     if isinstance(raw_text, str):
         text = raw_text.strip()
     else:
-        # dict/list payloads (Transcript/Tasks) – stringify safely
         text = json.dumps(raw_text, ensure_ascii=False)
 
-    log(f"[{timestamp}] [n8n→Streamlit] Received status: stage='{stage}', text='{text[:120]}'")
+    # ✅ IMPORTANT: if it's a Status message, the "text" IS the stage key
+    if raw_type == "status":
+        stage = text.strip().lower()
+    else:
+        # for Summary/Tasks/Transcript messages, use the type as stage (or ignore)
+        stage = raw_type
+
+    log(f"[{timestamp}] [n8n→Streamlit] type='{raw_type}', text='{text[:120]}', stage='{stage}'")
 
     if stage in STATUS_PROGRESS:
         st.session_state.status_text = STATUS_LABELS.get(stage, f"n8n: {stage}")
         st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[stage])
         return
 
-    st.session_state.status_text = f"n8n: {stage or 'working...'}"
+    # fallback: show the text (not "status")
+    st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
+
+def wake_backend():
+    try:
+        requests.get(f"{API_BASE}/health", timeout=5)
+        log("[backend] awake")
+    except Exception as e:
+        log(f"[backend] wake failed: {e}")
 
 def log(msg):
     """Add timestamped message to session logs"""
@@ -742,6 +757,8 @@ if st.session_state.workflow_step == "n8n_RUNNING":
 
     now = time.time()
     last = st.session_state.get("last_n8n_poll_ts", 0.0)
+
+    wake_backend()
 
     should_poll = (now - last) >= POLL_EVERY
     if should_poll:
