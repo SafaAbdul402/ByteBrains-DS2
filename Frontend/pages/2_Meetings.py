@@ -358,13 +358,46 @@ with col_details:
     # ---------- Tasks
     st.markdown("### Action Items")
     tasks = normalize_tasks(meeting.get("tasks"))
-    df = pd.DataFrame(tasks) if tasks else pd.DataFrame(
-        columns=["task", "assigned_to", "deadline", "reason", "status"]
-    )
+    if not tasks:
+        st.info("No action items found for this meeting yet.")
+    else:
+        df = pd.DataFrame(tasks)
 
-    st.dataframe(df, use_container_width=True, hide_index=True)
+        # 1) Drop internal / noisy columns (hide trello_id)
+        drop_cols = [c for c in ["trello_id", "trelloId", "card_id", "id"] if c in df.columns]
+        if drop_cols:
+            df = df.drop(columns=drop_cols)
 
-    b1, b2 = st.columns([1, 1, 1])
+        # 2) Rename columns to be human-friendly
+        rename_map = {
+            "taskName": "Task",
+            "task": "Task",
+            "descr": "Description",
+            "description": "Description",
+            "due_date": "Due",
+            "deadline": "Due",
+            "assigned_to": "Assignee",
+            "owner": "Assignee",
+            "status": "Status",
+            "reason": "Notes",
+        }
+        df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
+
+        # 3) Keep only the columns we want, in a nice order
+        preferred_order = ["Task", "Description", "Assignee", "Due", "Status", "Notes"]
+        keep = [c for c in preferred_order if c in df.columns]
+        # also keep any unexpected extra columns at the end (optional)
+        extras = [c for c in df.columns if c not in keep]
+        df = df[keep + extras]
+
+        # 4) Cosmetic: ensure missing values look clean
+        if "Due" in df.columns:
+            df["Due"] = df["Due"].apply(lambda x: "—" if not str(x).strip() else str(x))
+        df = df.fillna("")
+
+        st.dataframe(df, width="stretch", hide_index=True)
+
+    b1, b2 = st.columns([1, 1])
     with b1:
         if trello_board_url:
             st.link_button("See in Trello", trello_board_url, use_container_width=True)

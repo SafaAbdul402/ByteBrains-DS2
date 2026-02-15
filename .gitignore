@@ -60,3 +60,5 @@ VoiceRecognitionModule/data/runs/
 
 # mac
 .DS_Store
+data/meetings.json
+data/current_meeting.json

@@ -17,7 +17,7 @@ if not API_BASE.startswith("http"):
     st.stop()
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
-st.write("API_BASE =", repr(os.getenv("API_BASE")))
+#st.write("API_BASE =", repr(os.getenv("API_BASE")))
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
@@ -186,7 +186,7 @@ with top_r:
 
     if use_completed:
         st.session_state.team = load_completed_profiles()
-        st.info("Using completed profiles (file-based). Trello import + backend save are disabled.")
+        #st.info("Using completed profiles (file-based). Trello import + backend save are disabled.")
     else:
         # If we just toggled back, reload from backend once
         # (so you don't stay on file data)
