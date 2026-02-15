@@ -94,28 +94,49 @@ def pretty_speaker_label(raw: str, scheme: str = "letters") -> str:
 
 def vr_paths(meeting_id: str):
     run_dir = RUNS_DIR / meeting_id
+    meta_dir = RUNS_DIR / "_meta"
     return {
         "run_dir": run_dir,
-        "status": run_dir / "vr_status.json",
-        "result": run_dir / "vr_result.json",
-        "log": run_dir / "vr.log",
-        "pid": run_dir / "vr.pid",
+        "status": meta_dir / meeting_id / "vr_status.json",
+        "result": meta_dir / meeting_id / "vr_result.json",
+        "log": RUNS_DIR / "_logs" / f"{meeting_id}.vr.log",
+        "pid": RUNS_DIR / "_logs" / f"{meeting_id}.vr.pid",
     }
 
 def start_vr_subprocess(meeting_id: str) -> int:
     p = vr_paths(meeting_id)
     p["run_dir"].mkdir(parents=True, exist_ok=True)
+    p["log"].parent.mkdir(parents=True, exist_ok=True)
+    p["pid"].parent.mkdir(parents=True, exist_ok=True)
 
-    logf = p["log"].open("a", encoding="utf-8")
-    # start_new_session=True => lets us kill the whole process group (important)
+    logf = p["log"].open("a", encoding="utf-8", buffering=1)
+
     proc = subprocess.Popen(
         [sys.executable, "-m", "Backend.vr_worker", meeting_id],
-        stdout=logf,
-        stderr=logf,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
         start_new_session=True,
         cwd=str(REPO_ROOT),
     )
+
     p["pid"].write_text(str(proc.pid), encoding="utf-8")
+
+    def _tee():
+        try:
+            for line in proc.stdout:
+                print(line, end="", flush=True)   # ✅ terminal live
+                logf.write(line)                  # ✅ file for UI parsing
+        finally:
+            try:
+                logf.close()
+            except Exception:
+                pass
+
+    import threading
+    threading.Thread(target=_tee, daemon=True).start()
+
     return proc.pid
 
 def kill_vr_process(meeting_id: str):
@@ -167,6 +188,7 @@ def update_progress_from_vr_log(meeting_id: str):
         return
 
     txt = log_path.read_text(encoding="utf-8", errors="ignore")
+    txt = txt[-200_000:]
 
     # pick the highest stage reached
     best_key = None
@@ -511,7 +533,7 @@ with left:
 
 ### Workflow  
 if st.session_state.workflow_step == "VR_TRANSCRIPTION":
-    st.session_state.status_text = "Starting voice pipeline..."
+    st.session_state.status_text = "Starting Voice Recognition..."
     st.session_state.progress = max(st.session_state.progress, 0.12)
 
     if not st.session_state.get("vr_pid"):
@@ -526,7 +548,6 @@ if st.session_state.workflow_step == "VR_RUNNING":
     p = vr_paths(meeting_id)
 
     update_progress_from_vr_log(meeting_id)
-    st.session_state.status_text = "Voice pipeline running... (check logs)"
 
     # Poll status file
     if p["status"].exists():
@@ -546,7 +567,7 @@ if st.session_state.workflow_step == "VR_RUNNING":
             st.code(status.get("trace", ""))
             st.stop()
 
-    st.info("VR still running. Click Refresh status or wait.")
+    #st.info("VR still running. Click Refresh status or wait.")
     time.sleep(2)
     st.rerun()
 
