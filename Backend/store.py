@@ -109,3 +109,20 @@ def insert_meeting(title, notes, email_draft, tasks, meeting_id: str | None = No
     meetings.insert(0, meeting)
     save_meetings(meetings)
     return meeting
+
+def update_meeting_notes(meeting_id: str, notes: str):
+    meetings = load_meetings()
+    for m in meetings:
+        if m.get("meeting_id") == meeting_id:
+            m["notes"] = notes
+            save_meetings(meetings)
+            return m
+    return None
+
+def delete_meeting(meeting_id: str) -> bool:
+    meetings = load_meetings()
+    new_meetings = [m for m in meetings if m.get("meeting_id") != meeting_id]
+    if len(new_meetings) == len(meetings):
+        return False
+    save_meetings(new_meetings)
+    return True

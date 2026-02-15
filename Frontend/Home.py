@@ -185,6 +185,11 @@ def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     log(f"File saved: {audio_path}")
     return str(audio_path)
 
+def save_local_debug(run_dir: Path, name: str, obj):
+    run_dir.mkdir(parents=True, exist_ok=True)
+    p = run_dir / name
+    p.write_text(json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8")
+
 def build_speaker_mapping(raw_mapping: dict) -> dict:
     return {
         speaker: (name if name != "Noise / Ignore" else None)
@@ -558,6 +563,32 @@ with right:
                 st.session_state.workflow_step = "n8n_RUNNING"
                 st.session_state.progress = max(st.session_state.progress, 0.45)
                 st.rerun()
+            
+            skip_n8n = st.button("Skip n8n (demo)", width="stretch")
+            if skip_n8n and all_assigned:
+                transcript = st.session_state.vr_result.get("transcript") or []
+                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
+                final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
+
+                fake_result = {
+                    "summary": "Demo summary (n8n skipped).",
+                    "tasks": [
+                        {"taskName": "Review meeting summary", "descr": "Validate the demo pipeline output.", "due_date": "", "trello_id": ""},
+                    ],
+                    "transcript": final_transcript,
+                }
+
+                run_dir = RUNS_DIR / meeting_id
+                run_dir.mkdir(parents=True, exist_ok=True)
+                (run_dir / "n8n_result_skipped.json").write_text(
+                    json.dumps(fake_result, indent=2, ensure_ascii=False),
+                    encoding="utf-8"
+                )
+
+                st.session_state.n8n_result = fake_result
+                st.session_state.workflow_step = "DONE"
+                st.session_state.progress = 1.0
+                st.rerun()
 
         with c2:
             if st.button("Use completed profiles"):
@@ -594,6 +625,12 @@ if st.session_state.workflow_step == "n8n_RUNNING":
 
     latest = data.get("latest")
     result = data.get("result")
+
+    run_dir = RUNS_DIR / meeting_id
+    save_local_debug(run_dir, "n8n_status_latest.json", latest)
+    save_local_debug(run_dir, "n8n_status_full.json", data)
+    if result:
+        save_local_debug(run_dir, "n8n_result_from_api.json", result)
 
     apply_n8n_status(latest)
 
