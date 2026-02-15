@@ -492,7 +492,8 @@ with left:
 
         with col_b:
             if st.button("*View Results*", type="primary", width="stretch"):
-                st.rerun()
+                st.session_state["force_reload_meetings"] = True
+                st.switch_page("pages/2_Meetings.py")
 
     st.divider()
 
@@ -743,25 +744,28 @@ with right:
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
 
-    POLL_EVERY = 8.0
+    # Poll interval (ms). 4000–8000 is a nice range.
+    POLL_MS = 4000
+    POLL_EVERY = POLL_MS / 1000.0
+
+    # Auto-rerun the page every POLL_MS
+    st.autorefresh(interval=POLL_MS, key=f"n8n_auto_{meeting_id}")
+
+    # Throttle actual API calls (important because Streamlit can rerun for other reasons too)
     now = time.time()
     last = st.session_state.get("last_n8n_poll_ts", 0.0)
-    can_poll = (now - last) >= POLL_EVERY
-
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        refresh = st.button("↻ Refresh status", width="stretch", disabled=not can_poll)
-        remaining = max(0, int(POLL_EVERY - (now - last)))
-        st.caption(f"Next refresh in {remaining}s")
-    with c2:
-        st.caption("Manual refresh prevents rate limits and Render restarts.")
-
-    if not refresh:
-        st.info("Click refresh to check n8n status.")
+    if (now - last) < POLL_EVERY:
+        st.caption("n8n: waiting for next poll…")
         st.stop()
 
     st.session_state.last_n8n_poll_ts = now
-    data = api_get_n8n_status(meeting_id)
+
+    try:
+        data = api_get_n8n_status(meeting_id)
+    except Exception as e:
+        log(f"[n8n] Poll error: {e}")
+        st.caption("n8n: poll failed, retrying…")
+        st.stop()
 
     latest = data.get("latest")
     result = data.get("result")
@@ -775,7 +779,6 @@ if st.session_state.workflow_step == "n8n_RUNNING":
     apply_n8n_status(latest)
 
     if result and (result.get("summary") or result.get("tasks") or result.get("transcript")):
-        # normalize fields we care about
         result.setdefault("summary", "")
         result.setdefault("tasks", [])
         result.setdefault("transcript", [])
@@ -786,7 +789,7 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         st.session_state.workflow_step = "DONE"
         st.rerun()
 
-    st.info("Not finished yet. Refresh again in a few seconds.")
+    st.caption("n8n: still running…")
     st.stop()
         
 if st.session_state.workflow_step == "DONE":
@@ -831,6 +834,7 @@ if st.session_state.workflow_step == "DONE":
     st.session_state["selected_meeting_id"] = st.session_state.meeting_id
 
     # 4) Navigate
+    st.session_state["force_reload_meetings"] = True
     st.switch_page("pages/2_Meetings.py")
     
 

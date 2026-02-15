@@ -77,17 +77,24 @@ def find_meeting(meetings: List[Dict[str, Any]], meeting_id: str) -> Optional[Di
 
 def transcript_candidates(run_dir: Path) -> List[Path]:
     """
-    VR team file names have changed a few times.
-    We support multiple candidates without breaking.
+    Prefer the transcript that includes FINAL names (n8n output),
+    then fall back to VR transcripts.
     """
     return [
+        # ✅ best: n8n-produced transcript with names
+        run_dir / "n8n_transcript.json",
+
+        # ✅ also acceptable: merged result that contains transcript
+        run_dir / "n8n_result_merged.json",
+        run_dir / "n8n_result_from_api.json",   # if you save this sometimes
+        run_dir / "n8n_result_skipped.json",    # your skip-n8n demo writes this
+
+        # fallback: VR outputs
         run_dir / "transcript_with_speakers.json",
         run_dir / "vr_transcript.json",
         run_dir / "transcript.json",
         run_dir / ".voice_internal" / "transcript_with_speakers.json",
         run_dir / ".voice_internal" / "vr_transcript.json",
-        run_dir / "n8n_transcript.json",
-        run_dir / "n8n_result_merged.json",
     ]
 
 def load_transcript(run_dir: Path) -> Optional[Any]:
@@ -189,8 +196,9 @@ def trello_id_to_name_from_completed_profiles() -> dict:
 # ---------------------------
 # Session state
 # ---------------------------
-if "meetings" not in st.session_state:
+if "meetings" not in st.session_state or st.session_state.get("force_reload_meetings"):
     st.session_state.meetings = load_meetings()
+    st.session_state.force_reload_meetings = False
 
 # The selected meeting can come from:
 # - Meetings page selection
