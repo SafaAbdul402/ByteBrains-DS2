@@ -112,7 +112,7 @@ def start_vr_subprocess(meeting_id: str) -> int:
     logf = p["log"].open("a", encoding="utf-8", buffering=1)
 
     proc = subprocess.Popen(
-        [sys.executable, "-m", "Backend.vr_worker", meeting_id],
+        [sys.executable, "-u", "-m", "Backend.vr_worker", meeting_id],  # <- add -u
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -171,14 +171,14 @@ VR_STAGE_PROGRESS = {
 
 VR_STAGE_LABELS = {
     "[1/9]": "Preprocessing audio...",
-    "[2/9]": "Diarizing speakers...",
+    "[2/9]": "Recognizing speakers...",
     "[3/9]": "Building speech segments...",
     "[4/9]": "Extracting speaker embeddings...",
     "[5/9]": "Clustering speakers...",
     "[6/9]": "Building speaker timeline...",
     "[7/9]": "Exporting speaker audio...",
-    "[8/9]": "Transcribing with Whisper...",
-    "[9/9]": "Finalizing outputs...",
+    "[8/9]": "Transcribing...",
+    "[9/9]": "Transcribing...",
 }
 
 def update_progress_from_vr_log(meeting_id: str):
@@ -261,6 +261,7 @@ def apply_n8n_status(status: dict | None):
 
 def log(msg):
     """Add timestamped message to session logs"""
+    print(msg, flush=True)
     st.session_state.logs.append(msg)
 
 def reset_session():
@@ -269,8 +270,6 @@ def reset_session():
     st.session_state.progress = 0.0
     st.session_state.speaker_mapping = {}
     st.session_state.logs = []
-    st.session_state.cancel_requested = False
-    st.session_state.paused = False
     st.session_state.last_uploaded_id = None
     st.session_state.upload_key += 1
     st.session_state.file_buffer = None
@@ -281,19 +280,11 @@ def reset_session():
     log("Session reset completed")
 
 def request_cancel():
-    st.session_state.cancel_requested = True
-    st.session_state.paused = False
-
     # NEW: actually stop the VR subprocess
     if st.session_state.get("meeting_id"):
         kill_vr_process(st.session_state.meeting_id)
 
     log("Cancellation requested by user (VR terminated)")
-
-def toggle_pause():
-    st.session_state.paused = not st.session_state.paused
-    state = "paused" if st.session_state.paused else "resumed"
-    log(f"Workflow {state}")
 
 def save_uploaded_file(uploaded_file, meeting_id: str) -> str:
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
@@ -336,10 +327,6 @@ def apply_speaker_mapping_to_transcript(transcript: list[dict], mapping: dict) -
 st.set_page_config(page_title="ByteBrains – AI Meeting Assistant", layout="wide")
 
 ### Session States, to avoid reloading and resetting of the page after each interaction
-if "paused" not in st.session_state:
-    st.session_state.paused = False
-if "cancel_requested" not in st.session_state:
-    st.session_state.cancel_requested = False
 if "workflow_step" not in st.session_state:
     st.session_state.workflow_step = "READY"
 if "speaker_mapping" not in st.session_state:
@@ -387,11 +374,6 @@ if "team" not in st.session_state:
 
 st.title("ByteBrains – AI Meeting Assistant")
 st.markdown("Upload your meeting recording and let AI handle the rest.")
-
-# If cancel requested, reset and stop
-if st.session_state.get("cancel_requested", False):
-    reset_session()
-    st.stop()
 
 left, right = st.columns([1, 1], gap = "large")
 with left:
@@ -496,23 +478,10 @@ with left:
     run_active = st.session_state.workflow_step not in ["READY", "NEXT"]
 
     if run_active:
-        c1, c2 = st.columns([1, 1])
-        with c1:
-            label = "Pause" if not st.session_state.paused else "Resume"
-            if st.button(label, width="stretch"):
-                toggle_pause()
-                st.rerun()
-
-        with c2:
-            if st.button("Cancel", type="secondary", width="stretch"):
-                request_cancel()
-                reset_session()
-                st.rerun()
-    
-    # If paused, don't run heavy workflow steps, but keep UI interactive
-    if st.session_state.get("paused", False) and st.session_state.workflow_step in ["VR_TRANSCRIPTION", "VR_RUNNING", "n8n_RUNNING"]:
-        st.warning("Paused. Click Resume to continue.")
-        st.stop()
+        if st.button("Cancel", type="secondary", width="stretch"):
+            request_cancel()
+            reset_session()
+            st.rerun()
 
     if st.session_state.workflow_step == "NEXT":
         col_a, col_b = st.columns([3, 1])
@@ -555,6 +524,7 @@ if st.session_state.workflow_step == "VR_RUNNING":
         stage = status.get("stage")
 
         if stage == "done" and p["result"].exists():
+            kill_vr_process(meeting_id)
             st.session_state.vr_result = json.loads(p["result"].read_text(encoding="utf-8"))
             st.session_state.detected_speakers = st.session_state.vr_result.get("speakers", [])
             st.session_state.status_text = "Voice pipeline complete."
@@ -569,7 +539,7 @@ if st.session_state.workflow_step == "VR_RUNNING":
 
     #st.info("VR still running. Click Refresh status or wait.")
     time.sleep(2)
-    st.rerun()
+    st.rerun()  
 
 # if st.session_state.workflow_step == "VR_RECOGNITION":
 #     st.session_state.status_text = "Recognizing speakers..."
@@ -584,8 +554,6 @@ if st.session_state.workflow_step == "VR_RUNNING":
 
 with right:
     if st.session_state.workflow_step == "UI_ASSIGNMENT":
-        st.subheader("")
-        st.subheader("")
         st.subheader("Assign speakers to team members")
 
         meeting_id = st.session_state.meeting_id
@@ -627,32 +595,59 @@ with right:
             st.warning(f"Speaker audio folder not found: {speakers_audio_dir}")
             st.info("UI will still work, but no speaker audio snippets can be played.")
 
-        for speaker in speakers:
-            col_speaker, col_profile = st.columns([2, 3])
+        st.markdown("""
+            <style>
+            /* Style ONLY bordered containers (our "cards") */
+            div[data-testid="stContainer"][data-border="true"] {
+            border-radius: 14px;
+            padding: 14px 14px 10px 14px;
+            border: 1px solid rgba(49, 51, 63, 0.14);
+            background: rgba(255,255,255,0.55);
+            margin-bottom: 12px;
+            }
 
-            with col_speaker:
-                st.markdown(f"**{pretty_speaker_label(speaker, scheme='letters')}**")
-                #st.caption(f"Internal ID: {speaker}")  # optional, remove if you don’t want it shown            
+            /* Reduce extra vertical whitespace inside the card */
+            div[data-testid="stContainer"][data-border="true"] > div {
+            gap: 0.35rem;
+            }
+
+            /* Make selectbox align nicely */
+            div[data-testid="stContainer"][data-border="true"] .stSelectbox {
+            margin-top: -2px;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+
+        for speaker in speakers:
+            pretty = pretty_speaker_label(speaker, scheme="letters")
+
+            if speaker not in st.session_state.speaker_mapping:
+                st.session_state.speaker_mapping[speaker] = None
+
+            with st.container(border=True):
+                top_l, top_r = st.columns([1.4, 3.6], vertical_alignment="center")
+
+                with top_l:
+                    st.markdown(f"**{pretty}**")
+
+                with top_r:
+                    selection = st.selectbox(
+                        "Assign speaker",
+                        options,
+                        key=f"assign_{meeting_id}_{speaker}",
+                        label_visibility="collapsed",
+                    )
+                    st.session_state.speaker_mapping[speaker] = (
+                        None if selection == "— Select person —" else selection
+                    )
 
                 speaker_audio_map = st.session_state.vr_result.get("speaker_audio", {})
-
                 audio_path = speaker_audio_map.get(speaker)
+
                 if audio_path:
                     st.audio(audio_path, format="audio/wav")
                 else:
                     st.caption("No speaker audio found.")
-
-            with col_profile:
-                selection = st.selectbox(
-                    "Assign speaker",
-                    options,
-                    key=f"assign_{meeting_id}_{speaker}",
-                    label_visibility="collapsed",
-                )
-
-                st.session_state.speaker_mapping[speaker] = (
-                    None if selection == "— Select person —" else selection
-                )
 
         # --- Validation (must choose something: person OR Noise/Ignore)
         all_assigned = all(

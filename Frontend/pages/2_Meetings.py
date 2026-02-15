@@ -160,6 +160,32 @@ def normalize_tasks(tasks: Any) -> List[Dict[str, Any]]:
         return out
     return []
 
+PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
+
+@st.cache_data(ttl=300)
+def load_completed_profiles_file() -> list[dict]:
+    if not PROFILES_COMPLETED_PATH.exists():
+        return []
+    try:
+        data = json.loads(PROFILES_COMPLETED_PATH.read_text(encoding="utf-8"))
+        team = data.get("team", []) if isinstance(data, dict) else []
+        return team if isinstance(team, list) else []
+    except Exception:
+        return []
+
+@st.cache_data(ttl=300)
+def trello_id_to_name_from_completed_profiles() -> dict:
+    team = load_completed_profiles_file()
+    out = {}
+    for p in team:
+        if not isinstance(p, dict):
+            continue
+        tid = (p.get("trello_id") or "").strip()
+        name = (p.get("name") or "").strip()
+        if tid and name:
+            out[tid] = name
+    return out
+
 # ---------------------------
 # Session state
 # ---------------------------
@@ -382,6 +408,23 @@ with col_details:
             "reason": "Notes",
         }
         df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
+
+        trello_id_to_name = trello_id_to_name_from_completed_profiles()
+
+        def resolve_assignee(val):
+            if val is None:
+                return ""
+            ids = val if isinstance(val, list) else [val]
+            names = []
+            for x in ids:
+                s = str(x).strip()
+                if not s:
+                    continue
+                names.append(trello_id_to_name.get(s, s))  # fallback: show raw if unknown
+            return ", ".join(names)
+
+        if "Assignee" in df.columns:
+            df["Assignee"] = df["Assignee"].apply(resolve_assignee)
 
         # 3) Keep only the columns we want, in a nice order
         preferred_order = ["Task", "Description", "Assignee", "Due", "Status", "Notes"]
