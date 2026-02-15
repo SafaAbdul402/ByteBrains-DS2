@@ -9,6 +9,8 @@ import re
 import warnings
 from datetime import datetime
 import requests
+import threading
+import traceback
 from pathlib import Path
 #from Frontend.auth import require_password
 
@@ -92,6 +94,54 @@ def pretty_speaker_label(raw: str, scheme: str = "letters") -> str:
         return letters
 
     return f"Speaker {idx_to_letters(idx)}"
+
+VR_RESULT_NAME = "vr_result.json"
+VR_ERROR_NAME = "vr_error.txt"
+def infer_vr_status(run_dir: Path) -> tuple[float, str, str]:
+    """
+    Returns (progress, label, stage_key)
+    Progress here is ONLY for the VR portion (0.10 -> 0.40).
+    """
+    voice_internal = run_dir / ".voice_internal"
+    processed = voice_internal / "processed.wav"
+    diar = voice_internal / "diarization.json"
+    speaker_audio_dir = run_dir / "speaker_audio"
+    transcript = run_dir / "transcript_with_speakers.json"
+
+    # stage order: uploaded -> preprocess -> diarize -> snippets -> transcribe -> done
+    if transcript.exists():
+        return 0.40, "Transcript ready.", "done"
+
+    # speaker snippets exist?
+    if speaker_audio_dir.exists() and any(speaker_audio_dir.glob("*.wav")):
+        return 0.33, "Creating Audio Snippets...", "snippets"
+
+    if diar.exists():
+        return 0.28, "Recognizing speakers...", "diarize"
+
+    if processed.exists():
+        return 0.20, "Preprocessing audio…", "preprocess"
+
+    return 0.12, "Processing your meeting…", "start"
+
+
+def run_vr_in_background(meeting_id: str):
+    """
+    Runs VR pipeline and writes vr_result.json (or vr_error.txt) into the run folder.
+    Streamlit thread-safe approach: communicate via files.
+    """
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        res = vr_process(meeting_id)  # your existing pipeline_stub call
+        (run_dir / VR_RESULT_NAME).write_text(
+            json.dumps(res, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except Exception:
+        err = traceback.format_exc()
+        (run_dir / VR_ERROR_NAME).write_text(err, encoding="utf-8")
 
 #n8n status updates:
 STATUS_PROGRESS = {
@@ -254,6 +304,10 @@ if "n8n_started" not in st.session_state:
     st.session_state.n8n_started = False
 if "n8n_poll_count" not in st.session_state:
     st.session_state.n8n_poll_count = 0
+if "vr_bg_started" not in st.session_state:
+    st.session_state.vr_bg_started = False
+if "vr_last_stage" not in st.session_state:
+    st.session_state.vr_last_stage = None
 
 if "team" not in st.session_state:
     try:
@@ -412,26 +466,81 @@ with left:
 
 ### Workflow  
 if st.session_state.workflow_step == "VR_TRANSCRIPTION":
-    st.session_state.status_text = "Transcribing meeting..."
-    st.session_state.progress = 0.2
-    log("Transcription")
+    meeting_id = st.session_state.meeting_id
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
 
-    # VR call
-    st.session_state.vr_result = vr_process(st.session_state.meeting_id)
+    # If user paused, don't auto-rerun loop
+    if st.session_state.get("paused", False):
+        st.session_state.status_text = "Paused (VR running in background)…"
+        st.stop()
 
-    st.session_state.workflow_step = "VR_RECOGNITION"
+    # Start background thread ONCE
+    if not st.session_state.vr_bg_started:
+        st.session_state.status_text = "Processing your meeting..."
+        st.session_state.progress = max(st.session_state.progress, 0.12)
+        log("VR started (background thread)")
+
+        t = threading.Thread(target=run_vr_in_background, args=(meeting_id,), daemon=True)
+        t.start()
+        st.session_state.vr_bg_started = True
+
+        # Immediately rerun so UI updates fast
+        st.rerun()
+
+    # If VR error happened
+    err_path = run_dir / VR_ERROR_NAME
+    if err_path.exists():
+        st.session_state.status_text = "VR: Failed"
+        log("[ERROR] VR pipeline crashed. See vr_error.txt in run folder.")
+        st.error("VR pipeline failed. Check the run folder error log.")
+        st.code(err_path.read_text(encoding="utf-8"))
+        # optional: reset to READY so user can try again
+        # reset_session()
+        st.stop()
+
+    # If VR result ready
+    res_path = run_dir / VR_RESULT_NAME
+    if res_path.exists():
+        st.session_state.status_text = "Voice Recognition completed."
+        st.session_state.progress = max(st.session_state.progress, 0.40)
+        log("VR completed (vr_result.json found)")
+
+        try:
+            st.session_state.vr_result = json.loads(res_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            st.error("Could not parse vr_result.json")
+            st.code(str(e))
+            st.stop()
+
+        # continue your pipeline
+        st.session_state.workflow_step = "UI_ASSIGNMENT"
+        st.rerun()
+
+    # Otherwise: poll file-based progress
+    p, label, stage = infer_vr_status(run_dir)
+    st.session_state.status_text = label
+    st.session_state.progress = max(st.session_state.progress, p)
+
+    # log only when stage changes (avoids spam)
+    if stage != st.session_state.vr_last_stage:
+        log(label)
+        st.session_state.vr_last_stage = stage
+
+    # Poll loop: sleep briefly then rerun to refresh UI
+    time.sleep(0.6)
     st.rerun()
 
-if st.session_state.workflow_step == "VR_RECOGNITION":
-    st.session_state.status_text = "Recognizing speakers..."
-    st.session_state.progress = 0.3
-    log("Speaker Recognition")
+# if st.session_state.workflow_step == "VR_RECOGNITION":
+#     st.session_state.status_text = "Recognizing speakers..."
+#     st.session_state.progress = 0.3
+#     log("Speaker Recognition")
 
-    speakers = st.session_state.vr_result.get("speakers", [])
-    st.session_state.detected_speakers = speakers
+#     speakers = st.session_state.vr_result.get("speakers", [])
+#     st.session_state.detected_speakers = speakers
 
-    st.session_state.workflow_step = "UI_ASSIGNMENT"
-    st.rerun()
+#     st.session_state.workflow_step = "UI_ASSIGNMENT"
+#     st.rerun()
 
 if st.session_state.workflow_step == "UI_ASSIGNMENT":
     st.session_state.status_text = "Waiting for Speaker Assignment..."

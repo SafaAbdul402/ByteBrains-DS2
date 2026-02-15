@@ -177,7 +177,7 @@ if "selected_meeting_id" not in st.session_state or not st.session_state.selecte
 # ---------------------------
 # UI
 # ---------------------------
-st.title("My Meetings / Results")
+st.title("My Meetings")
 st.caption("Browse processed meetings and view transcript, notes, and tasks.")
 
 top_l, top_r = st.columns([3, 1])
@@ -364,7 +364,7 @@ with col_details:
 
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-    b1, b2, b3 = st.columns([1, 1, 1])
+    b1, b2 = st.columns([1, 1, 1])
     with b1:
         if trello_board_url:
             st.link_button("See in Trello", trello_board_url, use_container_width=True)
@@ -378,6 +378,6 @@ with col_details:
             mime="application/json",
             use_container_width=True,
         )
-    with b3:
-        if st.button("Open run folder info", use_container_width=True):
-            st.info(f"Run dir: {run_dir}")
+    #with b3:
+     #   if st.button("Open run folder info", use_container_width=True):
+      #      st.info(f"Run dir: {run_dir}")
