@@ -5,7 +5,11 @@ import os
 
 #require_password()
 
-API_BASE = os.getenv("API_BASE", "")
+from Frontend.env import load_env
+API_BASE = load_env()
+if not API_BASE.startswith("http"):
+    st.error("API_BASE is missing. Set API_BASE=https://<your-render-backend>.onrender.com in .env")
+    st.stop()
 
 def api_get_settings():
     r = requests.get(f"{API_BASE}/settings", timeout=10)

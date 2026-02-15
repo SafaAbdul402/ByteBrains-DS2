@@ -27,7 +27,11 @@ from Backend.pipeline_stub import vr_process
 from Backend.store import insert_meeting, write_meeting_meta
 from Backend.config import RUNS_DIR, DATA_DIR
 
-API_BASE = os.getenv("API_BASE", "")
+from Frontend.env import load_env
+API_BASE = load_env()
+if not API_BASE.startswith("http"):
+    st.error("API_BASE is missing. Set API_BASE=https://<your-render-backend>.onrender.com in .env")
+    st.stop()
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
 def api_get_profiles():

@@ -20,7 +20,11 @@ st.set_page_config(page_title="Meetings / Results", layout="wide")
 # Config / paths
 # ---------------------------
 MEETINGS_FILE = Path(MEETINGS_PATH)
-API_BASE = os.getenv("API_BASE", "")
+from Frontend.env import load_env
+API_BASE = load_env()
+if not API_BASE.startswith("http"):
+    st.error("API_BASE is missing. Set API_BASE=https://<your-render-backend>.onrender.com in .env")
+    st.stop()
 
 if not API_BASE:
     st.caption("API_BASE not set — Trello board link disabled.")

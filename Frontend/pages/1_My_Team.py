@@ -10,9 +10,14 @@ from pathlib import Path
 
 # require_password()
 
-API_BASE = os.getenv("API_BASE", "")
+from Frontend.env import load_env
+API_BASE = load_env()
+if not API_BASE.startswith("http"):
+    st.error("API_BASE is missing. Set API_BASE=https://<your-render-backend>.onrender.com in .env")
+    st.stop()
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
 
+st.write("API_BASE =", repr(os.getenv("API_BASE")))
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
