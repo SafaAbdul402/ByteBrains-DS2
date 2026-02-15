@@ -403,79 +403,49 @@ with col_details:
                 st.session_state[edit_flag_key] = False
                 st.rerun()
 
-    # ---------- Tasks
+        # ---------- Tasks
     st.markdown("### Action Items")
     tasks = normalize_tasks(meeting.get("tasks"))
     if not tasks:
         st.info("No action items found for this meeting yet.")
     else:
-        df = pd.DataFrame(tasks)
+        df_raw = pd.DataFrame(tasks).fillna("")
 
-        # 1) Drop internal / noisy columns (hide trello_id)
-        drop_cols = [c for c in ["trello_id", "trelloId", "card_id", "id"] if c in df.columns]
-        if drop_cols:
-            df = df.drop(columns=drop_cols)
-
-        # 2) Rename columns to be human-friendly
-        rename_map = {
-            "taskName": "Task",
-            "task": "Task",
-            "descr": "Description",
-            "description": "Description",
-            "due_date": "Due",
-            "deadline": "Due",
-            "assigned_to": "Assignee",
-            "owner": "Assignee",
-            "status": "Status",
-            "reason": "Notes",
-        }
-        df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
-
+        # map Trello member id -> name from profiles_complete.json
         trello_id_to_name = trello_id_to_name_from_completed_profiles()
 
-        def resolve_assignee(val):
-            if val is None:
+        def owner_from_trello_id(x):
+            s = str(x).strip()
+            if not s:
                 return ""
-            ids = val if isinstance(val, list) else [val]
-            names = []
-            for x in ids:
-                s = str(x).strip()
-                if not s:
-                    continue
-                names.append(trello_id_to_name.get(s, s))  # fallback: show raw if unknown
-            return ", ".join(names)
+            return trello_id_to_name.get(s, s)  # fallback: show raw id if unknown
 
-        if "Assignee" in df.columns:
-            df["Assignee"] = df["Assignee"].apply(resolve_assignee)
+        # --- Build the output table with exactly the columns you want
+        out = pd.DataFrame()
+        out["Task"] = df_raw["taskName"] if "taskName" in df_raw.columns else df_raw.get("task", "")
+        out["Owner"] = df_raw["trello_id"].apply(owner_from_trello_id) if "trello_id" in df_raw.columns else ""
+        out["Due date"] = df_raw["due_date"] if "due_date" in df_raw.columns else df_raw.get("deadline", "")
+        out["Description"] = df_raw["descr"] if "descr" in df_raw.columns else df_raw.get("description", "")
 
-        # 3) Keep only the columns we want, in a nice order
-        preferred_order = ["Task", "Description", "Assignee", "Due", "Status", "Notes"]
-        keep = [c for c in preferred_order if c in df.columns]
-        # also keep any unexpected extra columns at the end (optional)
-        extras = [c for c in df.columns if c not in keep]
-        df = df[keep + extras]
+        # cosmetic cleanup
+        out["Due date"] = out["Due date"].apply(lambda x: "—" if not str(x).strip() else str(x))
 
-        # 4) Cosmetic: ensure missing values look clean
-        if "Due" in df.columns:
-            df["Due"] = df["Due"].apply(lambda x: "—" if not str(x).strip() else str(x))
-        df = df.fillna("")
+        st.dataframe(out, width="stretch", hide_index=True)
 
-        st.dataframe(df, width="stretch", hide_index=True)
-
-    b1, b2 = st.columns([1, 1])
-    with b1:
-        if trello_board_url:
-            st.link_button("See in Trello", trello_board_url, type="primary", use_container_width=True)
-        else:
-            st.caption("Trello board URL not set. Add it in My Team or Settings.")
-    with b2:
-        st.download_button(
-            "Download tasks.json",
-            data=json.dumps(tasks, indent=2, ensure_ascii=False),
-            file_name=f"{mid}_tasks.json",
-            mime="application/json",
-            use_container_width=True,
-        )
-    #with b3:
-     #   if st.button("Open run folder info", use_container_width=True):
-      #      st.info(f"Run dir: {run_dir}")
+        b1, b2 = st.columns([1, 1])
+        with b1:
+            if trello_board_url:
+                st.link_button("See in Trello", trello_board_url, type="primary", use_container_width=True)
+            else:
+                st.caption("Trello board URL not set. Add it in My Team or Settings.")
+        with b2:
+            st.download_button(
+                "Download tasks.json",
+                data=json.dumps(tasks, indent=2, ensure_ascii=False),
+                file_name=f"{mid}_tasks.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+        #with b3:
+        #   if st.button("Open run folder info", use_container_width=True):
+        #      st.info(f"Run dir: {run_dir}")

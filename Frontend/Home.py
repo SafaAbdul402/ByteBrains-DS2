@@ -290,6 +290,8 @@ def reset_session():
     st.session_state.n8n_started = False
     st.session_state.n8n_poll_count = 0
     st.session_state.vr_pid = None
+    st.session_state.backend_woken = False
+    st.session_state.last_n8n_poll_ts = 0.0
     log("Session reset completed")
 
 def request_cancel():
@@ -701,13 +703,10 @@ with right:
 
                 log(f"Saved payload to {payload_path}")
 
-                # 3. Send to n8n
-                r = requests.post(
-                    f"{API_BASE}/n8n/start/{meeting_id}",
-                    json=payload,
-                    timeout=20,
-                )
-                #r.raise_for_status()
+                try:
+                    requests.post(f"{API_BASE}/n8n/start/{meeting_id}", json=payload, timeout=20)
+                except Exception as e:
+                    log(f"[n8n/start] start call failed (will still poll): {e}")
 
                 st.session_state.workflow_step = "n8n_RUNNING"
                 st.session_state.progress = max(st.session_state.progress, 0.45)
@@ -752,62 +751,72 @@ with right:
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
 
-    POLL_MS = 4000
-    POLL_EVERY = POLL_MS / 1000.0
+    POLL_EVERY = 4.0  # seconds
 
+    # --- wake backend ONCE per run
+    if not st.session_state.get("backend_woken", False):
+        wake_backend()
+        st.session_state.backend_woken = True
+
+    # --- throttle polling
     now = time.time()
     last = st.session_state.get("last_n8n_poll_ts", 0.0)
+    if (now - last) < POLL_EVERY:
+        st.caption("n8n: still running…")
+        time.sleep(0.5)
+        st.rerun()
 
-    wake_backend()
+    st.session_state.last_n8n_poll_ts = now
 
-    should_poll = (now - last) >= POLL_EVERY
-    if should_poll:
-        st.session_state.last_n8n_poll_ts = now
+    # --- poll backend
+    try:
+        data = api_get_n8n_status(meeting_id)
+    except Exception as e:
+        log(f"[n8n] Poll error: {e}")
+        st.caption("n8n: poll failed, retrying…")
+        time.sleep(1.0)
+        st.rerun()
 
-        try:
-            data = api_get_n8n_status(meeting_id)
-        except Exception as e:
-            log(f"[n8n] Poll error: {e}")
-            st.caption("n8n: poll failed, retrying…")
-            time.sleep(1.0)
-            st.rerun()
+    latest = data.get("latest") or {}
+    result = data.get("result") or {}
 
-        latest = data.get("latest")
-        result = data.get("result")
+    # debug files (optional)
+    run_dir = RUNS_DIR / meeting_id
+    save_local_debug(run_dir, "n8n_status_latest.json", latest)
+    save_local_debug(run_dir, "n8n_status_full.json", data)
+    save_local_debug(run_dir, "n8n_result_from_api.json", result)
 
-        run_dir = RUNS_DIR / meeting_id
-        save_local_debug(run_dir, "n8n_status_latest.json", latest)
-        save_local_debug(run_dir, "n8n_status_full.json", data)
-        if result:
-            save_local_debug(run_dir, "n8n_result_from_api.json", result)
+    # update UI progress/text
+    apply_n8n_status(latest)
 
-        apply_n8n_status(latest)
+    # --- DONE DETECTION (based on your protocol)
+    latest_type = (latest.get("type") or "").strip().lower()
+    latest_text = latest.get("text")
 
-        # --- done detection
-        latest_type = (latest or {}).get("type", "")
-        latest_stage = (latest or {}).get("stage", "")
-        latest_key = (latest_stage or latest_type or "").strip().lower()
+    if latest_type == "status" and isinstance(latest_text, str):
+        latest_key = latest_text.strip().lower()  # "summary" | "tasks" | "trello" | "done"
+    else:
+        latest_key = latest_type  # fallback
 
-        has_summary = bool((result or {}).get("summary"))
-        has_tasks = isinstance((result or {}).get("tasks"), list) and len((result or {}).get("tasks")) > 0
-        has_transcript = isinstance((result or {}).get("transcript"), list) and len((result or {}).get("transcript")) > 0
+    has_summary = bool(result.get("summary"))
+    has_tasks = isinstance(result.get("tasks"), list) and len(result["tasks"]) > 0
+    has_transcript = isinstance(result.get("transcript"), list) and len(result["transcript"]) > 0
 
-        is_done_signal = latest_key in ("done", "complete", "completed", "finished")
+    is_done_signal = latest_key in ("done", "complete", "completed", "finished")
 
-        if result and (is_done_signal or (has_summary and has_tasks and has_transcript)):
-            result.setdefault("summary", "")
-            result.setdefault("tasks", [])
-            result.setdefault("transcript", [])
+    if is_done_signal or (has_summary and has_tasks and has_transcript):
+        result.setdefault("summary", "")
+        result.setdefault("tasks", [])
+        result.setdefault("transcript", [])
 
-            st.session_state.n8n_result = result
-            st.session_state.status_text = "n8n: Finished."
-            st.session_state.progress = 1.0
-            st.session_state.workflow_step = "DONE"
-            st.rerun()
+        st.session_state.n8n_result = result
+        st.session_state.status_text = "n8n: Finished."
+        st.session_state.progress = 1.0
+        st.session_state.workflow_step = "DONE"
+        st.rerun()
 
-    # not done yet → wait a bit then rerun
     st.caption("n8n: still running…")
-    time.sleep(1.0)
+    time.sleep(0.5)
     st.rerun()
         
 if st.session_state.workflow_step == "DONE":
