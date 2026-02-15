@@ -232,41 +232,30 @@ STATUS_LABELS = {
 }
 
 def apply_n8n_status(status: dict | None):
-    """
-    Update session state with n8n status information
-    Logs detailed debugging information for n8n communication
-    """
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    
+
     if not status:
         st.session_state.status_text = "n8n: waiting for updates..."
         log(f"[{timestamp}] [n8n] No status received - waiting for updates")
         return
 
     stage = (status.get("stage") or status.get("type") or "").strip().lower()
-    text = (status.get("text") or status.get("status") or "").strip()
-    
-    # Log the raw status received from n8n
-    log(f"[{timestamp}] [n8n→Streamlit] Received status: stage='{stage}', text='{text}'")
-    #log(f"[{timestamp}] [n8n→Streamlit] Full payload: {json.dumps(status, indent=2)}")
+
+    raw_text = status.get("text") or status.get("status") or ""
+    if isinstance(raw_text, str):
+        text = raw_text.strip()
+    else:
+        # dict/list payloads (Transcript/Tasks) – stringify safely
+        text = json.dumps(raw_text, ensure_ascii=False)
+
+    log(f"[{timestamp}] [n8n→Streamlit] Received status: stage='{stage}', text='{text[:120]}'")
 
     if stage in STATUS_PROGRESS:
-        st.session_state.status_text = STATUS_LABELS.get(stage, f"n8n: {text or stage}")
+        st.session_state.status_text = STATUS_LABELS.get(stage, f"n8n: {stage}")
         st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[stage])
-        log(f"[{timestamp}] [n8n] Stage '{stage}' recognized - Progress: {STATUS_PROGRESS[stage]:.0%}")
         return
 
-    # Fallback: keyword matching
-    low = re.sub(r"[^a-z0-9]", "", text.lower())
-    for key in STATUS_PROGRESS.keys():
-        if key in low:
-            st.session_state.status_text = STATUS_LABELS.get(key, f"n8n: {text}")
-            st.session_state.progress = max(st.session_state.progress, STATUS_PROGRESS[key])
-            log(f"[{timestamp}] [n8n] Keyword '{key}' matched in text - Progress: {STATUS_PROGRESS[key]:.0%}")
-            return
-
-    st.session_state.status_text = f"n8n: {text}" if text else "n8n: working..."
-    log(f"[{timestamp}] [n8n] No stage match - using text: '{text}'")
+    st.session_state.status_text = f"n8n: {stage or 'working...'}"
 
 def log(msg):
     """Add timestamped message to session logs"""
@@ -782,7 +771,17 @@ if st.session_state.workflow_step == "n8n_RUNNING":
 
     apply_n8n_status(latest)
 
-    if result and (result.get("summary") or result.get("tasks") or result.get("transcript")):
+    latest_type = (latest or {}).get("type", "")
+    latest_stage = (latest or {}).get("stage", "")
+    latest_key = (latest_stage or latest_type or "").strip().lower()
+
+    has_summary = bool((result or {}).get("summary"))
+    has_tasks = isinstance((result or {}).get("tasks"), list) and len((result or {}).get("tasks")) > 0
+    has_transcript = isinstance((result or {}).get("transcript"), list) and len((result or {}).get("transcript")) > 0
+
+    is_done_signal = latest_key in ("done", "complete", "completed", "finished")
+
+    if result and (is_done_signal or (has_summary and has_tasks and has_transcript)):
         result.setdefault("summary", "")
         result.setdefault("tasks", [])
         result.setdefault("transcript", [])

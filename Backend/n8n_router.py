@@ -151,11 +151,15 @@ def update_status(meeting_id: str, payload: Dict[str, Any]):
     _save_state(meeting_id, state)
 
     # ---- Also keep timeline/latest for debugging
-    msg = {
-        "type": payload.get("type", "Status"),
-        "text": payload.get("text") if isinstance(payload.get("text"), str) else "",
-        **payload,
-    }
+    msg = dict(payload)
+
+    # normalize a UI-friendly text string
+    if not isinstance(msg.get("text"), str):
+        msg["text"] = json.dumps(msg.get("text"), ensure_ascii=False)
+
+    if not msg.get("type"):
+        msg["type"] = "Status"
+
     _append_timeline(meeting_id, msg)
 
     # Optional: write a single merged file
