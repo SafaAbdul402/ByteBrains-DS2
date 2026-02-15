@@ -5,18 +5,20 @@ import uuid
 import json
 import requests
 import os
-#from Frontend.auth import require_password
+# from Frontend.auth import require_password
 from pathlib import Path
 
-#require_password()
+# require_password()
 
 API_BASE = os.getenv("API_BASE", "")
 PROFILES_COMPLETED_PATH = Path("data/profiles_complete.json")
+
 
 def api_get_profiles():
     r = requests.get(f"{API_BASE}/profiles", timeout=10)
     r.raise_for_status()
     return r.json()
+
 
 def api_sync_trello(board_input):
     try:
@@ -40,10 +42,12 @@ def api_sync_trello(board_input):
         st.error("Import failed")
         st.code(str(e))
 
+
 def api_save_profiles(team):
     r = requests.post(f"{API_BASE}/profiles", json={"team": team}, timeout=10)
     r.raise_for_status()
     return r.json()
+
 
 def profile_state(p: dict) -> str:
     # returns: "deleted" | "incomplete" | "eligible"
@@ -58,6 +62,7 @@ def profile_state(p: dict) -> str:
         return "eligible"
     return "incomplete"
 
+
 def load_completed_profiles() -> list[dict]:
     if not PROFILES_COMPLETED_PATH.exists():
         return []
@@ -71,6 +76,7 @@ def load_completed_profiles() -> list[dict]:
         pass
     return []
 
+
 def save_completed_profiles(team: list[dict]) -> None:
     """
     Optional: if you want edits to persist to the completed file (local dev only).
@@ -81,6 +87,7 @@ def save_completed_profiles(team: list[dict]) -> None:
         json.dumps({"team": team}, indent=2, ensure_ascii=False),
         encoding="utf-8"
     )
+
 
 st.set_page_config(page_title="ByteBrains – My Team", layout="wide")
 st.title("My Team / Profiles")
@@ -112,6 +119,7 @@ if "integrations" not in st.session_state:
 if "use_completed_profiles" not in st.session_state:
     st.session_state.use_completed_profiles = False
 
+
 # -----------------------
 # Helpers
 # -----------------------
@@ -122,13 +130,16 @@ def find_member(member_id: str):
             return m
     return None
 
+
 def delete_member(member_id: str):
     st.session_state.team = [m for m in st.session_state.team if m["id"] != member_id]
     if st.session_state.team_edit_id == member_id:
         st.session_state.team_edit_id = None
 
+
 def reset_edit():
     st.session_state.team_edit_id = None
+
 
 def normalize_skills(skills_text: str):
     return [s.strip() for s in skills_text.split(",") if s.strip()]
@@ -184,8 +195,6 @@ with top_r:
 with top_rr:
     # Optional: show/hide table view later; for now just a quick count
     st.metric("Members", len(st.session_state.team))
-    
-
 
 # -----------------------
 # Add/Edit form (expander)
@@ -193,7 +202,7 @@ with top_rr:
 edit_mode = st.session_state.team_edit_id is not None
 current = find_member(st.session_state.team_edit_id) if edit_mode else None
 
-if edit_mode: #st.session_state.show_add or 
+if edit_mode:  # st.session_state.show_add or
     title = "Edit member" if edit_mode else "Add new member"
     with st.expander(title, expanded=True):
         with st.form("member_form", clear_on_submit=False):

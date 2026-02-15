@@ -5,8 +5,11 @@ __pycache__/
 # Virtual environment
 .venv/
 .env
+<<<<<<< HEAD
+=======
 .env.*
 !.env.example
+>>>>>>> origin/final_app
 pyannote/
 venv/
 

@@ -377,4 +377,3 @@ with col_details:
     with b3:
         if st.button("Open run folder info", use_container_width=True):
             st.info(f"Run dir: {run_dir}")
-
