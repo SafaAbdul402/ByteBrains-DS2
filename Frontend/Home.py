@@ -240,6 +240,9 @@ def apply_n8n_status(status: dict | None):
         return
 
     raw_type = (status.get("type") or "").strip().lower()
+    if raw_type == "transcript":
+        log(f"[{timestamp}] [n8n→Streamlit] transcript received (ignored for status UI)")
+        return
     raw_text = status.get("text") or status.get("status") or ""
 
     # normalize text (might be dict if someone accidentally sends transcript/tasks here)
@@ -322,6 +325,14 @@ def build_speaker_mapping(raw_mapping: dict) -> dict:
         for speaker, name in raw_mapping.items()
     }
 
+SPEAKER_RAW_RE = re.compile(r"^\s*(speaker\s*\d+|speaker\s*[a-z]+|speaker[_\-\s]?\d+|speaker[_\-\s]?[a-z]+|SPEAKER[_\-\s]?\d+)\s*$", re.IGNORECASE)
+
+def is_unassigned_speaker_label(s: str) -> bool:
+    if not s:
+        return True
+    s = str(s).strip()
+    return bool(SPEAKER_RAW_RE.match(s))
+
 def apply_speaker_mapping_to_transcript(transcript: list[dict], mapping: dict) -> list[dict]:
     """
     Replace the 'speaker' field in each transcript line with the assigned person name.
@@ -334,6 +345,9 @@ def apply_speaker_mapping_to_transcript(transcript: list[dict], mapping: dict) -
 
         # Noise/Ignore -> drop line
         if mapped is None:
+            continue
+
+        if is_unassigned_speaker_label(mapped):
             continue
 
         out.append({**line, "speaker": mapped})

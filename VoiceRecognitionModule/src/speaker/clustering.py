@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 
 
-def cluster_embeddings(embeddings, threshold=0.65):
+def cluster_embeddings(embeddings, threshold=0.6):
     X = np.array([e["embedding"] for e in embeddings])
 
     clustering = AgglomerativeClustering(
