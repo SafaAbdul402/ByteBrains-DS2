@@ -102,7 +102,7 @@ def update_status(meeting_id: str, payload: Dict[str, Any]):
     text = payload.get("text")
 
     # tolerate common typos
-    if ptype in ("transcipt", "transcript"):
+    if ptype in ("transcipt",):
         ptype = "transcript"
 
     # ---- Load state so we can accumulate result

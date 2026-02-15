@@ -52,6 +52,10 @@ VoiceRecognitionModule/data/segments/
 # run artifacts
 data/n8n_status/
 data/runs/
+data/current_meeting.json
+data/meetings.json
+data/profiles.json
+**/ .DS_Store
 VoiceRecognitionModule/data/runs/
 
 # mac

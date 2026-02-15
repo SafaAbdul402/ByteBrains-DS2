@@ -51,8 +51,7 @@ def save_profiles(payload: dict):
     PROFILES_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     return out
 
-# This is it:
-def write_meeting_meta(meeting_id: str, participants: int, recording_path: str):
+def write_meeting_meta(meeting_id: str, recording_path: str, participants: int = 0):
     run_dir = RUNS_DIR / meeting_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
