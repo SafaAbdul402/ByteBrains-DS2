@@ -22,14 +22,14 @@ if not API_BASE:
 if not DEMO_MODE:
     st.warning("DEMO_MODE is off. This page is intended for demo deployments.")
 
-# Frontend/pages/99_n8n_Demo.py -> parents[1] = Frontend/
 DEMO_TRANSCRIPTS_DIR = Path(__file__).resolve().parents[1] / "demo_transcripts"
 
 DEMO_OPTIONS = {
-    "Short demo (~3 min)": DEMO_TRANSCRIPTS_DIR / "short_3min.json",
-    "Medium demo (~16 min)": DEMO_TRANSCRIPTS_DIR / "medium_16min.json",
-    "Long demo (~29 min)": DEMO_TRANSCRIPTS_DIR / "long_29min.json",
+    "short": ("Short demo (~3 min)", DEMO_TRANSCRIPTS_DIR / "short_3min.json"),
+    "medium": ("Medium demo (~16 min)", DEMO_TRANSCRIPTS_DIR / "medium_16min.json"),
+    "long": ("Long demo (~29 min)", DEMO_TRANSCRIPTS_DIR / "long_29min.json"),
 }
+
 PROFILES_PATH = DEMO_TRANSCRIPTS_DIR / "profiles_complete.json"
 
 
@@ -44,7 +44,6 @@ def load_demo_transcript(path: Path) -> list[dict]:
       B) { "transcript": [ {...}, {...} ] }
     """
     data = json.loads(path.read_text(encoding="utf-8"))
-
     if isinstance(data, dict) and isinstance(data.get("transcript"), list):
         segments = data["transcript"]
     elif isinstance(data, list):
@@ -54,10 +53,7 @@ def load_demo_transcript(path: Path) -> list[dict]:
 
     out = []
     for seg in segments:
-        if not isinstance(seg, dict):
-            continue
-        # minimal requirements
-        if "speaker" in seg and "text" in seg:
+        if isinstance(seg, dict) and "speaker" in seg and "text" in seg:
             out.append(seg)
     return out
 
@@ -94,6 +90,10 @@ def transcript_duration_seconds(segments: list[dict]) -> float:
 
 def fmt_minutes(seconds: float) -> str:
     return f"{seconds / 60.0:.1f} min"
+
+
+def build_demo_payload(meeting_id: str, transcript: list[dict], profiles: list[dict]) -> dict:
+    return {"meeting_id": meeting_id, "transcript": transcript, "profiles": profiles}
 
 
 # -----------------------
@@ -136,14 +136,6 @@ def get_status(meeting_id: str) -> tuple[bool, dict | str]:
         return False, f"Bad JSON response: {r.text[:400]}"
 
 
-def build_demo_payload(meeting_id: str, transcript: list[dict], profiles: list[dict]) -> dict:
-    return {
-        "meeting_id": meeting_id,
-        "transcript": transcript,
-        "profiles": profiles,
-    }
-
-
 # -----------------------
 # Session state
 # -----------------------
@@ -161,18 +153,17 @@ if "last_status_ts" not in st.session_state:
     st.session_state.last_status_ts = 0.0
 if "status_cooldown_s" not in st.session_state:
     st.session_state.status_cooldown_s = 5.0
-if "demo_choice" not in st.session_state:
-    st.session_state.demo_choice = "Medium demo (~16 min)"
-if "auto_send" not in st.session_state:
-    st.session_state.auto_send = False
 
 
 # -----------------------
-# UI header
+# Header
 # -----------------------
 c1, c2, c3 = st.columns([2, 1, 2])
 with c1:
-    st.session_state.meeting_id = st.text_input("Meeting ID", st.session_state.meeting_id).strip() or st.session_state.meeting_id
+    st.session_state.meeting_id = (
+        st.text_input("Meeting ID", st.session_state.meeting_id).strip()
+        or st.session_state.meeting_id
+    )
 with c2:
     if st.button("New ID", use_container_width=True):
         st.session_state.meeting_id = f"demo-{uuid.uuid4().hex[:8]}"
@@ -180,106 +171,81 @@ with c2:
         st.session_state.result = None
         st.session_state.last_start_ts = 0.0
         st.session_state.last_status_ts = 0.0
-        st.session_state.auto_send = False
         st.rerun()
 with c3:
     st.caption(f"Backend: {API_BASE}")
 
 
 # -----------------------
-# Choose transcript
+# Preload data (once)
 # -----------------------
-st.subheader("Choose demo transcript")
-
-choice = st.radio(
-    "Demo length",
-    list(DEMO_OPTIONS.keys()),
-    index=list(DEMO_OPTIONS.keys()).index(st.session_state.demo_choice)
-    if st.session_state.demo_choice in DEMO_OPTIONS else 1,
-    horizontal=True,
-)
-st.session_state.demo_choice = choice
-
-selected_path = DEMO_OPTIONS[choice]
-if not selected_path.exists():
-    st.error(f"Missing demo transcript file: {selected_path}")
-    st.stop()
 if not PROFILES_PATH.exists():
     st.error(f"Missing profiles file: {PROFILES_PATH}")
     st.stop()
 
-try:
-    selected_transcript = load_demo_transcript(selected_path)
-except Exception as e:
-    st.error(f"Could not load {selected_path.name}: {e}")
-    st.stop()
-
 profiles = load_profiles(PROFILES_PATH)
+if not profiles:
+    st.warning("Loaded 0 profiles from profiles_complete.json. Payload will still send, but n8n role-mapping may be weaker.")
 
-dur_s = transcript_duration_seconds(selected_transcript)
-st.caption(f"Loaded **{selected_path.name}** • {len(selected_transcript)} segments • ~{fmt_minutes(dur_s)} • profiles={len(profiles)}")
+payloads: dict[str, dict] = {}
+meta: dict[str, dict] = {}
 
-payload = build_demo_payload(st.session_state.meeting_id, selected_transcript, profiles)
+for key, (label, path) in DEMO_OPTIONS.items():
+    if not path.exists():
+        st.error(f"Missing demo transcript file: {path}")
+        st.stop()
 
-with st.expander("Payload preview", expanded=False):
-    st.json(payload)
+    segments = load_demo_transcript(path)
+    dur_s = transcript_duration_seconds(segments)
+    payloads[key] = build_demo_payload(st.session_state.meeting_id, segments, profiles)
+    meta[key] = {"label": label, "path": path.name, "count": len(segments), "dur": fmt_minutes(dur_s)}
 
-st.divider()
 
 # -----------------------
-# Send controls
+# Send controls (ONLY buttons)
 # -----------------------
+st.subheader("Run a demo")
+st.caption("Each button sends its transcript immediately. No extra 'Send' button.")
+
 now = time.time()
 start_remaining = max(0, int(st.session_state.start_cooldown_s - (now - st.session_state.last_start_ts)))
 can_start = (start_remaining == 0) and (not st.session_state.sent)
-
-st.subheader("Quick run buttons")
-b1, b2, b3 = st.columns(3)
-with b1:
-    if st.button("▶ Run short (~3 min)", use_container_width=True):
-        st.session_state.demo_choice = "Short demo (~3 min)"
-        st.session_state.auto_send = True
-        st.rerun()
-with b2:
-    if st.button("▶ Run medium (~16 min)", use_container_width=True):
-        st.session_state.demo_choice = "Medium demo (~16 min)"
-        st.session_state.auto_send = True
-        st.rerun()
-with b3:
-    if st.button("▶ Run long (~29 min)", use_container_width=True):
-        st.session_state.demo_choice = "Long demo (~29 min)"
-        st.session_state.auto_send = True
-        st.rerun()
-
-st.divider()
-
-send = st.button("Send to n8n", type="primary", use_container_width=True, disabled=not can_start)
 
 if st.session_state.sent:
     st.info("Already sent for this Meeting ID. Click **New ID** to send again.")
 elif not can_start:
     st.caption(f"Start cooldown: try again in {start_remaining}s")
 
-def do_send():
-    ok, msg = post_start(st.session_state.meeting_id, payload)
-    if not ok:
-        st.session_state.sent = False
-        st.session_state.auto_send = False
-        st.error(msg)
-        st.stop()
-    st.session_state.last_start_ts = time.time()
-    st.session_state.sent = True
-    st.session_state.auto_send = False
-    st.success("Sent ✅")
+b1, b2, b3 = st.columns(3)
 
-if send and can_start:
-    do_send()
+def render_demo_column(col, key: str):
+    label = meta[key]["label"]
+    info = f"{meta[key]['path']} • {meta[key]['count']} segments • ~{meta[key]['dur']}"
 
-# Auto-send (from quick buttons)
-if st.session_state.auto_send and can_start and not st.session_state.sent:
-    do_send()
+    with col:
+        st.markdown(f"**{label}**")
+        st.caption(info)
+
+        if st.button(f"▶ Run {key}", use_container_width=True, disabled=not can_start):
+            ok, msg = post_start(st.session_state.meeting_id, payloads[key])
+            if not ok:
+                st.session_state.sent = False
+                st.error(msg)
+                st.stop()
+
+            st.session_state.last_start_ts = time.time()
+            st.session_state.sent = True
+            st.success("Sent ✅")
+
+        with st.expander("Payload preview", expanded=False):
+            st.json(payloads[key])
+
+render_demo_column(b1, "short")
+render_demo_column(b2, "medium")
+render_demo_column(b3, "long")
 
 st.divider()
+
 
 # -----------------------
 # Status polling
