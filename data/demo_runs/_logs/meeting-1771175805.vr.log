@@ -1,0 +1,7 @@
+🎙 Using recording: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771175805/FakeMeeting.mp4
+
+[1/9]  Preprocessing audio...
+Preprocessed audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771175805/.voice_internal/processed.wav
+Done in 0.22 sec
+
+[2/9] 🧠 Pyannote diarization...

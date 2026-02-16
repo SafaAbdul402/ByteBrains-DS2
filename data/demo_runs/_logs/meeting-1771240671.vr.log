@@ -1,0 +1,47 @@
+🎙 Using recording: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/test_short.m4a
+
+[1/9]  Preprocessing audio...
+Preprocessed audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/.voice_internal/processed.wav
+Done in 0.07 sec
+
+[2/9] 🧠 Pyannote diarization...
+/Users/tabiakarim/ByteBrains-DS2/.venv-vr/lib/python3.10/site-packages/pyannote/audio/models/blocks/pooling.py:104: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/native/ReduceOps.cpp:1760.)
+  std = sequences.std(dim=-1, correction=1)
+[✓] Pyannote diarization done
+Done in 2.84 sec
+
+[3/9] ✂️ Converting annotation to segments...
+✅ Pyannote segments (raw): 2
+✅ Segments after filtering: 2
+✅ Speech segments: 2
+
+[4/9] 🧠 Extracting ECAPA embeddings...
+    Embedding segment 1: 1.21 → 6.65
+    ECAPA 1/2 | elapsed 0.1s | ETA 0.0 min
+    Embedding segment 2: 6.83 → 13.36
+    ECAPA 2/2 | elapsed 0.1s | ETA 0.0 min
+✅ Embeddings extracted: 2
+✅ Done in 0.09 sec
+
+[5/9] 🔗 Clustering embeddings...
+✅ Done in 0.00 sec
+[✓] Clustering done
+
+[6/9] 🧭 Building speaker timeline...
+✅ Done in 0.00 sec
+Diarization saved to: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/.voice_internal
+DEBUG — segments being saved: 2
+[{'start': 1.21, 'end': 6.65, 'speaker': 'SPEAKER_0'}, {'start': 6.83, 'end': 13.36, 'speaker': 'SPEAKER_0'}]
+- /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/.voice_internal/diarization.json
+- /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/.voice_internal/diarization.txt
+
+[9/9] 🔊 Exporting speaker audio snippets...
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/speaker_audio/SPEAKER_0.wav (11.94s)
+✅ Done in 0.00 sec
+
+[8/9] 📝 Whisper transcription...
+[2026-02-16 12:18:00.084] [ctranslate2] [thread 6524742] [warning] The compute type inferred from the saved model is float16, but the target device or backend do not support efficient float16 computation. The model weights have been automatically converted to use the float32 compute type instead.
+Transcription Done in 8.03 sec
+Transcript with speakers saved at:
+/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/transcript_with_speakers.json
+✅ Voice pipeline completed successfully

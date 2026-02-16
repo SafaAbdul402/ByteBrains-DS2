@@ -1,0 +1,661 @@
+{
+  "transcript": [
+    {
+      "start": 0.03,
+      "end": 1.83,
+      "speaker": "SPEAKER_5",
+      "text": "Make sure that I have started recording."
+    },
+    {
+      "start": 4.13,
+      "end": 43.730000000000004,
+      "speaker": "SPEAKER_2",
+      "text": "But, please Safa, you continue your recording, so we have a backup option. Okay, okay. And, I think it's now been recording, but I don't know where the file will be saved. It says that it will be saved in my Google Drive, okay. So, everything. And, I turn the option on, that this recording will have the transcript. Okay. So, I don't know how it will be, but I think it will be okay. Anyone else want to talk about?"
+    },
+    {
+      "start": 52.39,
+      "end": 92.55,
+      "speaker": "SPEAKER_0",
+      "text": "I just wanted to mention that maybe for uploading the recording, as you might remember, I think that was last week or the week before that I created a drive folder for all of our information. Maybe I can share the link again so then we can have everything in one place and everyone has access to it. I think that would be easier than overloading the WhatsApp group, especially if the recordings are a bit longer. And then also I think about what my plan is on the front-end side. I think I explained it already in the meeting and yeah I think this meeting with Johannes was definitely..."
+    },
+    {
+      "start": 91.26,
+      "end": 92.86,
+      "speaker": "SPEAKER_18",
+      "text": "Much, much better than last time."
+    },
+    {
+      "start": 93.64,
+      "end": 184.76,
+      "speaker": "SPEAKER_0",
+      "text": "So, I think, overall, we are on a good track, and, yeah, I hope you had access to the chat GPT message that I sent after the meeting. It was basically, yeah, I was just talking to chat GPT, okay, this is our general setup, and then we have this issue of the communication between with N8M and the UI and also the voice recognition, and, yeah, so, basically, the way I understood it, we would have to have a separate backend part, which is just the way I understood it, it would be coordinating all of the three modules that we have, basically, because the way, from my research, what I understood is that the UI and the voice recognition can also not really talk directly with each other, but we need to have a separate, yeah, backend part that does the coordination. Yeah, so, I was talking a little bit more about chat GPT, and it's like a draft of what our repository could look like. I think we can just take it maybe as a guidance, we don't have to follow it exactly, of course, we can just see what works for us, and, of course, once we properly start developing, I think we will get a better understanding on what is really necessary for us and what is just extra. Yeah, I think that's just what I wanted to let you know."
+    },
+    {
+      "start": 184.98,
+      "end": 189.66,
+      "speaker": "SPEAKER_2",
+      "text": "Kaby, you said that you don't have an initial draft from the UI until now, right?"
+    },
+    {
+      "start": 190.04,
+      "end": 204.35999999999999,
+      "speaker": "SPEAKER_0",
+      "text": "Until now, no. I have just been testing different streamlit functions, but basically, like, now, or, like, from tomorrow on or from the weekend on, I will be starting, and then, yeah, I will keep you guys updated on what my progress is."
+    },
+    {
+      "start": 205.2,
+      "end": 234.12,
+      "speaker": "SPEAKER_2",
+      "text": "Okay, thank you. So, one thing that we have to work on is that we will have to see that how we can return information from N8N to UI. For this part, I want to actually also look at Jamie to see that how does that work. Before that, we need to have a UI to test it. So, when it's got processed, please tell us."
+    },
+    {
+      "start": 235.56,
+      "end": 254.76,
+      "speaker": "SPEAKER_14",
+      "text": "Yeah, like I wanted to ask something to Tabia first. The thing is like now with this stream lit you were planning on just assigning the front end, right? Yeah, exactly. Yeah, OK, and now since fascia was also asked how to integrate in Nathan with the UI, I think we can do it via an API."
+    },
+    {
+      "start": 256.62,
+      "end": 261.86,
+      "speaker": "SPEAKER_0",
+      "text": "Yeah, I think fast API would be the easiest option."
+    },
+    {
+      "start": 262.81,
+      "end": 296.53,
+      "speaker": "SPEAKER_14",
+      "text": "Yeah, so then, uh, when we have these, uh, we, we, we actually have to develop an application, maybe have UI API, and then the process of voice recognition and innate and all comes under the API, I think. You can actually link and Nathan voice recognition and UI. This is one thing that comes to my mind, uh, maybe there there's a better option, but then like, um, Tabia said earlier, I think we need an API for integration with the UI."
+    },
+    {
+      "start": 303.75,
+      "end": 310.15,
+      "speaker": "SPEAKER_0",
+      "text": "Y-yeah... Um... Hmph. Don't-don't we need it based on-based on you? Um..."
+    },
+    {
+      "start": 311.31,
+      "end": 328.55,
+      "speaker": "SPEAKER_14",
+      "text": "Yeah, yes, that is what I meant like for voice recognition UI and for the integration between voice recognition and UI, we will need an API, but I'm not sure about NNATON. I don't know. I'm not sure about how NNATON works particularly. So I'm not sure about NNATON, but I think we do actually need an API."
+    },
+    {
+      "start": 328.74,
+      "end": 386.42,
+      "speaker": "SPEAKER_0",
+      "text": "Yeah, exactly. And yeah, I think, yeah, from like what I researched, fast API should be good enough for us. So, like a very good option. But yeah, I was also like, I think, for kids and mobbing can probably tell us more. Maybe after they do their research on like how we can access N8n or like communicate with N8n. But yeah, what I understood is we might need to include some type of like HTTP interface. But I don't really have an experience with HTTP. I don't know if anyone else has. That's what I understood. But I think, yeah, we can, we can research about more about that. At least we can do more research about fast API. And I think mobbing unfortunately, have to look into, yeah, how to do this HTTP or like output stuff."
+    },
+    {
+      "start": 389.54,
+      "end": 392.58000000000004,
+      "speaker": "SPEAKER_2",
+      "text": "I have a question from Christy and Tavia."
+    },
+    {
+      "start": 393.4,
+      "end": 394.44,
+      "speaker": "SPEAKER_4",
+      "text": "Let me, uh..."
+    },
+    {
+      "start": 395.5,
+      "end": 397.82,
+      "speaker": "SPEAKER_2",
+      "text": "connect my device and share paint"
+    },
+    {
+      "start": 398.57,
+      "end": 399.77,
+      "speaker": "SPEAKER_10",
+      "text": "Give me a second, please."
+    },
+    {
+      "start": 399.97,
+      "end": 413.29,
+      "speaker": "SPEAKER_14",
+      "text": "Like, I have some experiences with API, but I was working in C-sharp and .NET. I do not have much experience with Python. But I think the concept would be similar."
+    },
+    {
+      "start": 421.2,
+      "end": 546.5,
+      "speaker": "SPEAKER_2",
+      "text": "Please see this chart without using API and tell me what's the problem, because I think without an API we can do that. Suppose that is the UI, okay? We have a workspace here, which is our files, which are stored here, okay? And for example, we have a VR.py, which is a Python code for voice recognition, and we have, for example, voice.mp3, just suppose something. I just want to tell about the concept. Okay, our UI, for example, runs this, and this Python uses this file to generate the text. Oh, now I see. Here, we have to give it to nhn, and right, here is the problem. But we know that nhn can read from Google Drive if this VR.py file can upload this text file to a Google Drive, maybe anything can read from there. And after all, we need to have a trigger that when nhn completes the work, it does that trigger, and this trigger can be somehow recognizable by the UI. It can be a file, it can be, for example, HTTP request even. For example, we just do a request. It's just not a complicated API, just, for example, a simple request and so on. Okay, now I see that somehow we need API for some parts."
+    },
+    {
+      "start": 551.93,
+      "end": 557.4499999999999,
+      "speaker": "SPEAKER_14",
+      "text": "Farshad, you said that with N8n, we can actually write the text to Google Drive, right?"
+    },
+    {
+      "start": 558.26,
+      "end": 571.72,
+      "speaker": "SPEAKER_2",
+      "text": "Mobin knows better, but as far as I understand from his work, we can read files from Google Drive. There are a node with Google Drive name in it, but Mobin can't..."
+    },
+    {
+      "start": 572.33,
+      "end": 593.47,
+      "speaker": "SPEAKER_14",
+      "text": "So the N8 part, maybe we can do that, but then I have a doubt as to whether via the front end, will we be able to access the text documents in Google Drive? Because the processing of everything should be done. Can we do it in front end itself, Kavya?"
+    },
+    {
+      "start": 596.49,
+      "end": 628.57,
+      "speaker": "SPEAKER_0",
+      "text": "I don't know about that. I have not looked into if Streamlit can access Google Drive, but I think maybe I can look into that. And if that does work, then maybe we can favor if maybe Google Drive would be a better option than having to use faster API. And I also had another thought that if in the end we're running everything on one machine, do we in that case really need an API? If everything is running on one machine, then..."
+    },
+    {
+      "start": 629.72,
+      "end": 630.5600000000001,
+      "speaker": "SPEAKER_21",
+      "text": "Maybe."
+    },
+    {
+      "start": 633.87,
+      "end": 638.99,
+      "speaker": "SPEAKER_2",
+      "text": "Even in one machine, we have to do the requests on pool."
+    },
+    {
+      "start": 643.15,
+      "end": 650.67,
+      "speaker": "SPEAKER_14",
+      "text": "And also, even if we're doing it in one machine, the integration has to be done right."
+    },
+    {
+      "start": 651.71,
+      "end": 652.71,
+      "speaker": "SPEAKER_19",
+      "text": "Thank you."
+    },
+    {
+      "start": 653.31,
+      "end": 678.1099999999999,
+      "speaker": "SPEAKER_2",
+      "text": "This part can be sold by Google Drive, I think. It's not needed that UI upload anything. It can be hard-coded in, for example, voice recognition.python. In the Python code, you upload the final transcript to Google Drive. So it's not need to be a feature of a streamlet. It can be a feature of Python, and I think Python."
+    },
+    {
+      "start": 679.01,
+      "end": 679.85,
+      "speaker": "SPEAKER_4",
+      "text": "uh... has that"
+    },
+    {
+      "start": 680.84,
+      "end": 754.76,
+      "speaker": "SPEAKER_2",
+      "text": "But here, for this part, that Johannes was emphasizing that and it has to tell, for example, the UI that the progress is finished, we have to make a creative way for this. Maybe we use a simple API, or maybe we can do another thing. For example, if UI has access to Google Drive, if, I don't know, if it has, maybe we can put a file like, for example, n.txt on Google Drive. And when we put that in UI, we can see that, OK, a new file, which is called n, is uploaded. And it means that this is finished. If we can access UI to the Google Drive, there is another benefit for that, and which is about the Live Note. Because Live Notes are generated from NHN, and if we can upload the notes on Google Drive, the notes, I mean, and UI can read it from Google Drive, so it can show the notes live."
+    },
+    {
+      "start": 755.71,
+      "end": 756.9100000000001,
+      "speaker": "SPEAKER_10",
+      "text": "On your screen you are."
+    },
+    {
+      "start": 759.34,
+      "end": 788.02,
+      "speaker": "SPEAKER_0",
+      "text": "Um, I think, yeah, I will, I will do some research on what stream led, uh, yeah. About the connection to Google drive, but I'm just like thinking that if we do use that Google drive connection, then wouldn't it feel like very slow, like wouldn't we have like quite a big latency because of course it's not really a small file, it will be a bit longer and then uploading and then downloading"
+    },
+    {
+      "start": 788.46,
+      "end": 794.1800000000001,
+      "speaker": "SPEAKER_2",
+      "text": "It's not very heavy, it's just lower than one megabyte text."
+    },
+    {
+      "start": 794.71,
+      "end": 824.19,
+      "speaker": "SPEAKER_0",
+      "text": "Yeah, but like even if you upload like in the regular PDF to Google Drive, I mean, it doesn't happen in like milliseconds. It does take like maybe 10 to 20 seconds, let's say. And especially for the life notes, I think that would be like, that would be like crazy because you would have to like upload and download from Google Drive like every second. And that's like, I don't I don't know if that's really feasible, but I can check for the Google Drive connection with StreamDrop."
+    },
+    {
+      "start": 824.21,
+      "end": 838.49,
+      "speaker": "SPEAKER_2",
+      "text": "Please check that and actually the main aim of our project is to generate tasks just once and it's not important that this process takes for example 20 seconds more or even one minute more because it's just going to be done once."
+    },
+    {
+      "start": 841.6,
+      "end": 852.08,
+      "speaker": "SPEAKER_1",
+      "text": "I have one more doubt, like in the previous meeting with Bhuvra, we have agreed that we are not, we are currently holding the LiveNot part."
+    },
+    {
+      "start": 852.79,
+      "end": 876.79,
+      "speaker": "SPEAKER_2",
+      "text": "Yeah, we are holding that. But at the end, if we had time, we can change a bit on our project and make this. We can agree with that, but I just wanted to say that if we can connect UI and Google Drive thing, there will be some other benefits that we don't think about them."
+    },
+    {
+      "start": 877.26,
+      "end": 880.26,
+      "speaker": "SPEAKER_1",
+      "text": "Also do we need to do the live transcript part."
+    },
+    {
+      "start": 884.57,
+      "end": 922.33,
+      "speaker": "SPEAKER_2",
+      "text": "I told you, at first, we complete the project as we agreed on. If we had time, we can change a bit on the project and do the live part, too. Actually, live part is not a very, I mean, intensive, more technical need to do that, but it has a more value. It adds value to the project. You know, with some simple changes, we can add a great value to our project."
+    },
+    {
+      "start": 923.45,
+      "end": 929.37,
+      "speaker": "SPEAKER_14",
+      "text": "So, are we like putting on hold both live notes and live transcript as well?"
+    },
+    {
+      "start": 933.2,
+      "end": 937.0400000000001,
+      "speaker": "SPEAKER_2",
+      "text": "I don't remember that Vora told us that do not do it at all."
+    },
+    {
+      "start": 938.04,
+      "end": 956.52,
+      "speaker": "SPEAKER_14",
+      "text": "No, he told us to complete the meeting notes first and then go try out meeting later on. But what I'm asking is if we are actually like keeping on hold both live transcript and live notes as well or is it just live notes that we're keeping on hold?"
+    },
+    {
+      "start": 956.66,
+      "end": 989.3,
+      "speaker": "SPEAKER_2",
+      "text": "No, live transcripts and live notes are in the same process, I mean. Now we don't do it live. We don't do anything live. OK. OK. OK. But actually, because there are some other similar softwares that do that, if we do the live transcripting and the live notes, our software will be more different from the other. And in the time of presentation, I think it's."
+    },
+    {
+      "start": 989.65,
+      "end": 991.01,
+      "speaker": "SPEAKER_10",
+      "text": "it has a better view too."
+    },
+    {
+      "start": 992.99,
+      "end": 1006.13,
+      "speaker": "SPEAKER_2",
+      "text": "Because if we do the process that we are going to do now, at the end, I'm sure that in the presentation day, someone will tell us that, okay, this is another software that exactly does the thing that you are doing."
+    },
+    {
+      "start": 1009.54,
+      "end": 1030.5,
+      "speaker": "SPEAKER_0",
+      "text": "Does N8n have a function of like, because the way I understood N8n now is that, okay, you want to start the workload, and then it runs, and then you have the output. To me, it seems like there is not an option that gives you, like, real-time feedback, you know?"
+    },
+    {
+      "start": 1031.46,
+      "end": 1040.46,
+      "speaker": "SPEAKER_2",
+      "text": "You can run your flowchart, for example, each 5 seconds, each 10 seconds and this makes that lag."
+    },
+    {
+      "start": 1043.48,
+      "end": 1063.96,
+      "speaker": "SPEAKER_0",
+      "text": "Okay. But yeah, I think, of course, for now, we should just focus on the uploaded recording. Once we have the upload recording, we can then, I guess, jump to the app letting listen to the meeting. And then once we also have that, and then if we have time, then we can go to the live notes. But yeah, I think the current plan is good."
+    },
+    {
+      "start": 1066.13,
+      "end": 1115.63,
+      "speaker": "SPEAKER_2",
+      "text": "This is the path that we are going through. Anything else that we have to work on? About the NHM part, for me and Mumin, we have many things to do. One of them is that we have limitation to upload takes to ChatGPT in terms of a number of tokens. So, we have to work on that. I will write it. Oh, you don't see the word? Let me. Number of tokens and limitation. OpenAI. And we have to work on..."
+    },
+    {
+      "start": 1124.55,
+      "end": 1130.05,
+      "speaker": "SPEAKER_1",
+      "text": "Akshay, we are not able to see your screen. Are you sending something?"
+    },
+    {
+      "start": 1131.03,
+      "end": 1132.1499999999999,
+      "speaker": "SPEAKER_2",
+      "text": "You don't see my board?"
+    },
+    {
+      "start": 1161.69,
+      "end": 1165.3500000000001,
+      "speaker": "SPEAKER_0",
+      "text": "I don't know about stuff increasing, but I can see your word document."
+    },
+    {
+      "start": 1167.49,
+      "end": 1169.73,
+      "speaker": "SPEAKER_2",
+      "text": "And were you seeing that before?"
+    },
+    {
+      "start": 1171.05,
+      "end": 1175.29,
+      "speaker": "SPEAKER_0",
+      "text": "Before you had your paint open right? But in the beginning, yes."
+    },
+    {
+      "start": 1178.48,
+      "end": 1181.92,
+      "speaker": "SPEAKER_14",
+      "text": "Yeah, in the beginning we could see, but then now we can't see the presentation."
+    },
+    {
+      "start": 1183.26,
+      "end": 1184.22,
+      "speaker": "SPEAKER_5",
+      "text": "Now do you see?"
+    },
+    {
+      "start": 1183.27,
+      "end": 1186.6299999999999,
+      "speaker": "SPEAKER_14",
+      "text": "Now do you see? The voice is breaking."
+    },
+    {
+      "start": 1186.66,
+      "end": 1188.46,
+      "speaker": "SPEAKER_2",
+      "text": "Do you see that I'm writing?"
+    },
+    {
+      "start": 1191.32,
+      "end": 1194.52,
+      "speaker": "SPEAKER_14",
+      "text": "No, maybe we'll try leaving, exiting and joining again."
+    },
+    {
+      "start": 1196.62,
+      "end": 1201.4199999999998,
+      "speaker": "SPEAKER_2",
+      "text": "Kaby, are you seeing that I'm writing in Google, or I'm writing in Microsoft?"
+    },
+    {
+      "start": 1203.07,
+      "end": 1204.87,
+      "speaker": "SPEAKER_0",
+      "text": "Um, yeah, I can see it."
+    },
+    {
+      "start": 1207.12,
+      "end": 1218.62,
+      "speaker": "SPEAKER_2",
+      "text": "What about you moving? You just wait until Chris joins."
+    },
+    {
+      "start": 1222.47,
+      "end": 1224.47,
+      "speaker": "SPEAKER_7",
+      "text": "So we're going to look at this slide."
+    },
+    {
+      "start": 1227.35,
+      "end": 1228.6299999999999,
+      "speaker": "SPEAKER_6",
+      "text": "with the cobwebs here."
+    },
+    {
+      "start": 1235.42,
+      "end": 1238.42,
+      "speaker": "SPEAKER_2",
+      "text": "Yeah, but I couldn't understand what you said."
+    },
+    {
+      "start": 1239.13,
+      "end": 1255.5300000000002,
+      "speaker": "SPEAKER_3",
+      "text": "I said, nothing to add. I know it's distracted for a moment. I heard he said, Fabio, if I have something to add, I don't know the course. Which course was it?"
+    },
+    {
+      "start": 1261.03,
+      "end": 1263.95,
+      "speaker": "SPEAKER_2",
+      "text": "When the quality of your voice was not good for me."
+    },
+    {
+      "start": 1266.28,
+      "end": 1269.28,
+      "speaker": "SPEAKER_14",
+      "text": "We can see the screen now."
+    },
+    {
+      "start": 1271.44,
+      "end": 1289.28,
+      "speaker": "SPEAKER_3",
+      "text": "Can you, is it better now? Yeah. OK. My question was, is there a sign-in between the two of you in the team? Have you ever been speaking on this stuff? We haven't had an experience that way before. Which part was it?"
+    },
+    {
+      "start": 1296.77,
+      "end": 1298.77,
+      "speaker": "SPEAKER_11",
+      "text": "Sorry, I couldn't hear you."
+    },
+    {
+      "start": 1301.58,
+      "end": 1304.58,
+      "speaker": "SPEAKER_12",
+      "text": "So, good to see you in the chat."
+    },
+    {
+      "start": 1304.99,
+      "end": 1311.55,
+      "speaker": "SPEAKER_2",
+      "text": "yeah yeah of course write it in the chat please sorry because my ears are not very precise"
+    },
+    {
+      "start": 1320.43,
+      "end": 1321.63,
+      "speaker": "SPEAKER_15",
+      "text": "Thank you."
+    },
+    {
+      "start": 1328.68,
+      "end": 1330.68,
+      "speaker": "SPEAKER_6",
+      "text": "All the best, all the best, all the best!"
+    },
+    {
+      "start": 1349.63,
+      "end": 1354.63,
+      "speaker": "SPEAKER_3",
+      "text": "I'm going to send you the Google Expo Chat."
+    },
+    {
+      "start": 1366.01,
+      "end": 1376.73,
+      "speaker": "SPEAKER_2",
+      "text": "It was a question that, I think, Tabia asked from me. And it was about, breathing a fire, right Tabia?"
+    },
+    {
+      "start": 1377.45,
+      "end": 1386.05,
+      "speaker": "SPEAKER_0",
+      "text": "I think it was something about the connection from any end with Google Drive and something like this. I don't remember exactly."
+    },
+    {
+      "start": 1385.22,
+      "end": 1386.42,
+      "speaker": "SPEAKER_2",
+      "text": "Yeah, it was a long time ago."
+    },
+    {
+      "start": 1389.54,
+      "end": 1390.54,
+      "speaker": "SPEAKER_17",
+      "text": "And, uh..."
+    },
+    {
+      "start": 1392.72,
+      "end": 1409.24,
+      "speaker": "SPEAKER_2",
+      "text": "The moment I told them that there is a node, if I'm wrong, please correct me. There is a node that it can be connected using some credentials to Google Drive and read or write files."
+    },
+    {
+      "start": 1412.97,
+      "end": 1440.99,
+      "speaker": "SPEAKER_3",
+      "text": "we have the node, we have Google Drive access. We can see if a folder or if a file changes, we can define a folder. As today, you understood, we can define a shared folder so that our credentials, our own credentials won't be accessed by anyone else. I hope so, I have to check that."
+    },
+    {
+      "start": 1442.05,
+      "end": 1444.6499999999999,
+      "speaker": "SPEAKER_2",
+      "text": "But Tabia, we have a Google Drive for everyone, right?"
+    },
+    {
+      "start": 1446.0,
+      "end": 1459.88,
+      "speaker": "SPEAKER_0",
+      "text": "I Mean the shared folder I made for the good Yeah, I think did I not change the link maybe it's on my notion that I sent I should I think that's the link"
+    },
+    {
+      "start": 1461.14,
+      "end": 1463.74,
+      "speaker": "SPEAKER_2",
+      "text": "I mean, there's a much noise, uh..."
+    },
+    {
+      "start": 1464.68,
+      "end": 1466.68,
+      "speaker": "SPEAKER_7",
+      "text": "In your microphone"
+    },
+    {
+      "start": 1469.54,
+      "end": 1486.78,
+      "speaker": "SPEAKER_2",
+      "text": "I think, Javier, you shared a folder inside your email, right? So, you cannot give us the credential for writing or reading a file on that. I think it's better to write, to make a new email for the whole group, for this project. Okay. Yeah."
+    },
+    {
+      "start": 1487.16,
+      "end": 1492.28,
+      "speaker": "SPEAKER_0",
+      "text": "Okay, uh, I thought maybe I gave everyone access maybe you can double check your access, but uh, yes"
+    },
+    {
+      "start": 1492.42,
+      "end": 1498.22,
+      "speaker": "SPEAKER_2",
+      "text": "Maybe you have access, but for writing and reading files from anything, I think we need more credentials."
+    },
+    {
+      "start": 1500.34,
+      "end": 1510.26,
+      "speaker": "SPEAKER_0",
+      "text": "Then so you suggest, OK, I think first we would have to I will have to double check if Google Drive even is a good option. And if yes, then yes, we can create maybe like a joint."
+    },
+    {
+      "start": 1510.39,
+      "end": 1511.5900000000001,
+      "speaker": "SPEAKER_20",
+      "text": "Google.com for the project."
+    },
+    {
+      "start": 1519.1,
+      "end": 1524.74,
+      "speaker": "SPEAKER_2",
+      "text": "If it was not a good option, please bring us a better option."
+    },
+    {
+      "start": 1526.44,
+      "end": 1527.64,
+      "speaker": "SPEAKER_8",
+      "text": "Yes, we will research."
+    },
+    {
+      "start": 1529.34,
+      "end": 1601.62,
+      "speaker": "SPEAKER_2",
+      "text": "We will also do that. And actually, Movin researched a lot about this, too, receiving a file. And the webhook was his answer about this. Anything else that we want to work on? What about worst recognition? You had to work on comparing different models, which were three, right? Working on person, identification, speaker identification. Anything else? Anyone wants to add anything?"
+    },
+    {
+      "start": 1608.86,
+      "end": 1610.9799999999998,
+      "speaker": "SPEAKER_1",
+      "text": "We don't have anything to add from our side."
+    },
+    {
+      "start": 1614.73,
+      "end": 1627.33,
+      "speaker": "SPEAKER_2",
+      "text": "I ... put some of these in red, which I think ... are bottlenecks for now. We need to solve them before we can process to the next steps of the project."
+    },
+    {
+      "start": 1629.82,
+      "end": 1631.1,
+      "speaker": "SPEAKER_12",
+      "text": "This is two things."
+    },
+    {
+      "start": 1634.59,
+      "end": 1660.27,
+      "speaker": "SPEAKER_2",
+      "text": "Things are... I think these things are more important, and... For the speaker identification, what is the tool that you are going to use? Again, it's the same as transcripting or it's differenting. You are going to use a differenting."
+    },
+    {
+      "start": 1662.71,
+      "end": 1681.8700000000001,
+      "speaker": "SPEAKER_14",
+      "text": "Yeah, for speaker identification we have planned on designing a model and then using to convert each audio clips into vectors and then compare it with cosine similarity for speaker differentiation. That is our plan as of now."
+    },
+    {
+      "start": 1685.74,
+      "end": 1703.6200000000001,
+      "speaker": "SPEAKER_2",
+      "text": "Thank you. Anything else? Should I say good night?"
+    },
+    {
+      "start": 1706.95,
+      "end": 1712.8700000000001,
+      "speaker": "SPEAKER_0",
+      "text": "Yes, I think everybody knows now what we will be working on, so sounds like a plan."
+    },
+    {
+      "start": 1715.81,
+      "end": 1723.77,
+      "speaker": "SPEAKER_2",
+      "text": "Good night all you guys, and have a nice holiday. See you on the 2nd of January."
+    },
+    {
+      "start": 1732.47,
+      "end": 1735.47,
+      "speaker": "SPEAKER_14",
+      "text": "Adarsha Anand is the only one. The rest are gone."
+    },
+    {
+      "start": 1740.38,
+      "end": 1744.38,
+      "speaker": "SPEAKER_9",
+      "text": "No, it's because of us You shouldn't have"
+    },
+    {
+      "start": 1743.84,
+      "end": 1745.84,
+      "speaker": "SPEAKER_16",
+      "text": "Thank you."
+    },
+    {
+      "start": 1746.17,
+      "end": 1751.01,
+      "speaker": "SPEAKER_14",
+      "text": "Let me stop the recording It will be 5 minutes"
+    },
+    {
+      "start": 1752.06,
+      "end": 1757.5,
+      "speaker": "SPEAKER_1",
+      "text": "Another love, the other love, the other love."
+    }
+  ],
+  "speakers": [
+    "SPEAKER_0",
+    "SPEAKER_1",
+    "SPEAKER_14",
+    "SPEAKER_2",
+    "SPEAKER_3"
+  ],
+  "speaker_audio": {
+    "SPEAKER_0": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771183526/speaker_audio/SPEAKER_0.wav",
+    "SPEAKER_1": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771183526/speaker_audio/SPEAKER_1.wav",
+    "SPEAKER_14": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771183526/speaker_audio/SPEAKER_14.wav",
+    "SPEAKER_2": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771183526/speaker_audio/SPEAKER_2.wav",
+    "SPEAKER_3": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771183526/speaker_audio/SPEAKER_3.wav"
+  },
+  "status": "uploaded"
+}

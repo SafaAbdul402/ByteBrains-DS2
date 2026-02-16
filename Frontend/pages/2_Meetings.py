@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 import streamlit as st
 from pathlib import Path
-
+import re
 from Backend.config import MEETINGS_PATH, RUNS_DIR
 from Frontend.ui_branding import apply_branding
 #from Frontend.auth import require_password
@@ -21,7 +21,9 @@ apply_branding()
 # ---------------------------
 # Config / paths
 # ---------------------------
-MEETINGS_FILE = Path(MEETINGS_PATH)
+DEMO_RUNS_DIR = Path("data/demo_runs")
+OVERRIDES_FILE = Path("data/meeting_overrides.json")  # new
+
 from Frontend.env import load_env
 API_BASE = load_env()
 if not API_BASE.startswith("http"):
@@ -31,10 +33,6 @@ if not API_BASE.startswith("http"):
 if not API_BASE:
     st.caption("API_BASE not set — Trello board link disabled.")
 
-def api_get_profiles():
-    r = requests.get(f"{API_BASE}/profiles", timeout=10)
-    r.raise_for_status()
-    return r.json()
 # ---------------------------
 # Helpers
 # ---------------------------
@@ -52,17 +50,98 @@ def get_trello_board_url(api_base: str) -> str:
 
 trello_board_url = get_trello_board_url(API_BASE)
 
-def load_meetings() -> List[Dict[str, Any]]:
-    if not MEETINGS_FILE.exists():
+SEED_MEETINGS = Path("data/permanent_meetings.json")
+
+def load_overrides() -> dict:
+    if not OVERRIDES_FILE.exists():
+        return {}
+    try:
+        data = json.loads(OVERRIDES_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+def save_overrides(overrides: dict) -> None:
+    OVERRIDES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OVERRIDES_FILE.write_text(json.dumps(overrides, indent=2, ensure_ascii=False), encoding="utf-8")
+
+def set_override(mid: str, patch: dict) -> None:
+    overrides = load_overrides()
+    cur = overrides.get(mid, {})
+    if not isinstance(cur, dict):
+        cur = {}
+    cur.update(patch)
+    overrides[mid] = cur
+    save_overrides(overrides)
+
+def load_seed_meetings() -> list[dict]:
+    if not SEED_MEETINGS.exists():
         return []
     try:
-        return json.loads(MEETINGS_FILE.read_text(encoding="utf-8"))
+        data = json.loads(SEED_MEETINGS.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
     except Exception:
         return []
 
-def save_meetings(meetings: List[Dict[str, Any]]) -> None:
-    MEETINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MEETINGS_FILE.write_text(json.dumps(meetings, indent=2, ensure_ascii=False), encoding="utf-8")
+def find_run_dir(mid: str) -> Path | None:
+    d = RUNS_DIR / mid
+    if d.exists():
+        return d
+    d = DEMO_RUNS_DIR / mid
+    if d.exists():
+        return d
+    return None
+
+def discover_meeting_ids(*bases: Path) -> set[str]:
+    out = set()
+    for base in bases:
+        if not base.exists():
+            continue
+        for d in base.glob("meeting-*"):
+            if d.is_dir():
+                out.add(d.name)
+    return out
+
+def load_meetings() -> list[dict]:
+    seed = load_seed_meetings()
+    seed_titles = {
+        (s.get("meeting_id") or "").strip(): (s.get("title") or "").strip()
+        for s in seed
+        if isinstance(s, dict)
+    }
+    seed_ids = {mid for mid in seed_titles.keys() if mid}
+
+    discovered = discover_meeting_ids(RUNS_DIR, DEMO_RUNS_DIR)
+    all_ids = sorted(discovered.union(seed_ids))
+
+    overrides = load_overrides()
+    meetings: list[dict] = []
+
+    for mid in all_ids:
+        if overrides.get(mid, {}).get("hidden"):
+            continue
+
+        run_dir = find_run_dir(mid)
+
+        created_at = "Demo" if mid in seed_ids else ""
+        if run_dir:
+            meta = run_dir / "meeting_meta.json"
+            if meta.exists():
+                try:
+                    m = json.loads(meta.read_text(encoding="utf-8"))
+                    if isinstance(m, dict):
+                        created_at = (m.get("created_at") or m.get("createdAt") or created_at or "").strip()
+                except Exception:
+                    pass
+
+        title = seed_titles.get(mid) or "Processed Meeting"
+        ov = overrides.get(mid, {})
+        if isinstance(ov, dict) and (ov.get("title") or "").strip():
+            title = ov["title"].strip()
+
+        meetings.append({"meeting_id": mid, "title": title, "created_at": created_at})
+
+    return meetings
 
 def meeting_label(m: Dict[str, Any]) -> str:
     title = (m.get("title") or "Untitled meeting").strip()
@@ -87,9 +166,8 @@ def transcript_candidates(run_dir: Path) -> List[Path]:
         run_dir / "n8n_transcript.json",
 
         # ✅ also acceptable: merged result that contains transcript
-        run_dir / "n8n_result_merged.json",
         run_dir / "n8n_result_from_api.json",   # if you save this sometimes
-        run_dir / "n8n_result_skipped.json",    # your skip-n8n demo writes this
+        #run_dir / "n8n_result_skipped.json",    # your skip-n8n demo writes this
 
         # fallback: VR outputs
         run_dir / "transcript_with_speakers.json",
@@ -126,46 +204,9 @@ def load_transcript(run_dir: Path) -> Optional[Any]:
             return {"_error": f"Could not parse transcript JSON: {p.name}"}
     return None
 
-def speaker_audio_labels(run_dir: Path) -> List[str]:
-    """
-    If VR doesn't produce speakers.json, we infer speakers from speaker_audio/*.wav
-    """
-    speaker_dir = run_dir / "speaker_audio"
-    if not speaker_dir.exists():
-        # also tolerate older/typo folder name if needed
-        speaker_dir = run_dir / "speakers_audio"
-    if not speaker_dir.exists():
-        return []
-
-    speakers = []
-    for wav in sorted(speaker_dir.glob("*.wav")):
-        speakers.append(wav.stem)  # e.g. "SPEAKER_0"
-    # de-dup while preserving order
-    seen = set()
-    out = []
-    for s in speakers:
-        if s not in seen:
-            out.append(s)
-            seen.add(s)
-    return out
-
-def format_speaker_for_ui(raw: str) -> str:
-    """
-    SPEAKER_0 -> Speaker A
-    SPEAKER_1 -> Speaker B
-    ...
-    If index is big, fallback to number.
-    """
-    raw = (raw or "").strip()
-    if raw.upper().startswith("SPEAKER_"):
-        try:
-            idx = int(raw.split("_", 1)[1])
-            letter = chr(ord("A") + idx) if 0 <= idx < 26 else str(idx + 1)
-            return f"Speaker {letter}"
-        except Exception:
-            pass
-    # fallback formatting
-    return raw.replace("_", " ")
+def is_placeholder_speaker(s: str) -> bool:
+    s = (s or "").strip()
+    return bool(re.match(r"^SPEAKER[\s_-]?\d+$", s, flags=re.IGNORECASE))
 
 def normalize_tasks(tasks: Any) -> List[Dict[str, Any]]:
     if not tasks:
@@ -207,6 +248,41 @@ def trello_id_to_name_from_completed_profiles() -> dict:
             out[tid] = name
     return out
 
+def load_n8n_result(run_dir: Path) -> dict | None:
+    candidates = [
+        run_dir / "n8n_result_from_api.json",
+        run_dir / "n8n_result_merged.json",
+        run_dir / "n8n_result_skipped.json",
+    ]
+    for p in candidates:
+        if p.exists():
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+                return data if isinstance(data, dict) else None
+            except Exception:
+                return None
+    return None
+
+
+def get_meeting_notes(mid: str, run_dir: Path | None) -> str:
+    # user override wins
+    ov = load_overrides().get(mid, {})
+    if isinstance(ov, dict) and "notes" in ov:
+        return ov.get("notes") or ""
+
+    if not run_dir:
+        return ""
+
+    res = load_n8n_result(run_dir) or {}
+    return (res.get("summary") or "").strip()
+
+def get_meeting_tasks(run_dir: Path | None) -> list[dict]:
+    if not run_dir:
+        return []
+    res = load_n8n_result(run_dir) or {}
+    t = res.get("tasks")
+    return t if isinstance(t, list) else []
+
 # ---------------------------
 # Session state
 # ---------------------------
@@ -229,10 +305,10 @@ st.title("My Meetings")
 st.caption("Browse processed meetings and view transcript, notes, and tasks.")
 
 top_l, top_r = st.columns([3, 1])
-with top_r:
-    if st.button("↻ Refresh list", use_container_width=True):
-        st.session_state.meetings = load_meetings()
-        st.rerun()
+#with top_r:
+ #   if st.button("↻ Refresh list", use_container_width=True):
+  #      st.session_state.meetings = load_meetings()
+   #     st.rerun()
 
 col_list, col_details = st.columns([1, 2], gap="large")
 
@@ -277,11 +353,10 @@ with col_list:
 
         if st.session_state.selected_meeting_id:
             if st.button("🗑️ Delete selected meeting", type="secondary", use_container_width=True):
-                mid = st.session_state.selected_meeting_id
-                st.session_state.meetings = [m for m in meetings if m.get("meeting_id") != mid]
-                save_meetings(st.session_state.meetings)
+                set_override(mid, {"hidden": True})
+                st.success("Hidden meeting.")
                 st.session_state.selected_meeting_id = None
-                st.success("Deleted meeting.")
+                st.session_state.force_reload_meetings = True
                 st.rerun()
 
 # ---- Right: meeting details
@@ -300,10 +375,47 @@ with col_details:
     title = meeting.get("title") or "Meeting"
     created_at = meeting.get("created_at") or "—"
 
-    st.subheader(title)
-    st.caption(f"Meeting ID: {mid} • Created: {created_at}")
+    # ---- Title editor
+    title_edit_key = f"title_editing__{mid}"
+    title_text_key = f"title_text__{mid}"
 
-    run_dir = RUNS_DIR / mid
+    if title_edit_key not in st.session_state:
+        st.session_state[title_edit_key] = False
+
+    row_l, row_r = st.columns([3, 1])
+
+    with row_l:
+        if not st.session_state[title_edit_key]:
+            st.subheader(title)
+        else:
+            st.text_input(
+                "Meeting title",
+                value=st.session_state.get(title_text_key, title),
+                key=title_text_key,
+                label_visibility="collapsed",
+            )
+
+    with row_r:
+        if not st.session_state[title_edit_key]:
+            if st.button("Edit title", use_container_width=True):
+                st.session_state[title_text_key] = title
+                st.session_state[title_edit_key] = True
+                st.rerun()
+        else:
+            if st.button("Save title", type="primary", use_container_width=True):
+                new_title = (st.session_state.get(title_text_key, "") or "").strip()
+                if new_title:
+                    set_override(mid, {"title": new_title})
+                else:
+                    set_override(mid, {"title": ""})  # or just do nothing
+                set_override(mid, {"title": new_title})
+                st.session_state[title_edit_key] = False
+                st.success("Saved title.")
+                st.rerun()
+
+    st.caption(f"Meeting ID: {mid} • Created: {created_at}")
+    
+    run_dir = find_run_dir(mid)
 
     # ---------- Transcript
     with st.expander("Transcript", expanded=False):
@@ -317,10 +429,7 @@ with col_details:
             elif isinstance(t, dict) and t.get("_error"):
                 st.error(t["_error"])
             else:
-                # Try multiple shapes:
-                # A) { "segments": [...] }
-                # B) [ {speaker, text, ...}, ... ]
-                segments = None
+                # normalize transcript to a list of segments
                 if isinstance(t, dict) and isinstance(t.get("segments"), list):
                     segments = t["segments"]
                 elif isinstance(t, list):
@@ -331,18 +440,28 @@ with col_details:
                 if not segments:
                     st.info("Transcript loaded, but no segments were found.")
                 else:
-                    # Build mapping from raw speaker IDs to pretty names
-                    raw_speakers = speaker_audio_labels(run_dir)
-                    pretty_map = {s: format_speaker_for_ui(s) for s in raw_speakers}
+                    def seg_speaker(seg: dict) -> str:
+                        return (seg.get("speaker") or seg.get("speaker_id") or "").strip()
+
+                    # Only hide SPEAKER_x if we ALSO have real names
+                    has_named_speakers = any(
+                        s and not is_placeholder_speaker(s)
+                        for s in (seg_speaker(seg) for seg in segments if isinstance(seg, dict))
+                    )
 
                     for seg in segments:
                         if not isinstance(seg, dict):
                             continue
-                        raw_spk = seg.get("speaker") or seg.get("speaker_id") or "UNKNOWN"
-                        ui_spk = pretty_map.get(raw_spk, format_speaker_for_ui(str(raw_spk)))
-                        text = seg.get("text") or ""
-                        if text:
-                            st.markdown(f"**{ui_spk}**: {text}")
+                        raw_spk = seg_speaker(seg)
+                        text = (seg.get("text") or "").strip()
+                        if not text:
+                            continue
+
+                        if has_named_speakers and is_placeholder_speaker(raw_spk):
+                            continue
+
+                        spk = raw_spk or "Unknown"
+                        st.markdown(f"**{spk}**: {text}")
 
                     st.download_button(
                         "Download transcript JSON",
@@ -350,12 +469,12 @@ with col_details:
                         file_name=f"{mid}_transcript.json",
                         mime="application/json",
                         use_container_width=True,
-                    )
+                    )       
 
     # ---------- Notes
     st.markdown("### Meeting Notes")
 
-    notes = meeting.get("notes") or ""
+    notes = get_meeting_notes(mid, run_dir)
 
     # per-meeting state keys (prevents cross-meeting bleed)
     edit_flag_key = f"notes_editing__{mid}"
@@ -394,7 +513,7 @@ with col_details:
         with b1:
             if st.button("Save", type="primary", use_container_width=True):
                 meeting["notes"] = st.session_state.get(notes_key, "")
-                save_meetings(st.session_state.meetings)
+                set_override(mid, {"notes": st.session_state.get(notes_key, "")})
                 st.session_state[edit_flag_key] = False
                 st.success("Saved notes.")
                 st.rerun()
@@ -405,7 +524,7 @@ with col_details:
 
         # ---------- Tasks
     st.markdown("### Action Items")
-    tasks = normalize_tasks(meeting.get("tasks"))
+    tasks = normalize_tasks(get_meeting_tasks(run_dir))
     if not tasks:
         st.info("No action items found for this meeting yet.")
     else:

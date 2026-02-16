@@ -1,0 +1,249 @@
+{
+  "meeting_id": "meeting-1771182601",
+  "transcript": [
+    {
+      "start": 0.03,
+      "end": 4.19,
+      "speaker": "Farshad Soleimani",
+      "text": "record because I saw your face that's very good"
+    },
+    {
+      "start": 10.65,
+      "end": 12.01,
+      "speaker": "SPEAKER_7",
+      "text": "I don't know others, are you okay?"
+    },
+    {
+      "start": 12.99,
+      "end": 13.99,
+      "speaker": "SPEAKER_4",
+      "text": "Yes. Yeah, yeah."
+    },
+    {
+      "start": 21.48,
+      "end": 42.14,
+      "speaker": "Farshad Soleimani",
+      "text": "Good morning, everyone. Thanks for joining on time. The goal of today's meeting is to finalize the scope and workflow of our AI meeting assistant project. We want to clearly define what the system will do, who the target users are, and what features we will prioritize for the first version. Let's keep this discussion focused and actionable."
+    },
+    {
+      "start": 44.45,
+      "end": 64.45,
+      "speaker": "Mobin",
+      "text": "Sounds good. I think the main problem we are addressing is that after meetings, people often forget decisions and action items. Writing minutes manually takes time and is error-prone. Our system should automatically generate a clear meeting summary and extract tasks without requiring extra effort from the users."
+    },
+    {
+      "start": 66.7,
+      "end": 82.46000000000001,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "I agree. From a user perspective, HR teams and project managers would benefit the most. They attend many meetings every day and summarizing each one manually is inefficient. A tool could save time and also bring consistency in how meeting outcomes are documented."
+    },
+    {
+      "start": 83.66,
+      "end": 100.41999999999999,
+      "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "text": "To build on that, I think the structure of the output is very important. The summary shouldn't just be a block of text. It should clearly separate key discussion points, decisions made, and action items with owners and declines, if possible."
+    },
+    {
+      "start": 103.27,
+      "end": 119.91,
+      "speaker": "Adarsh Haridas",
+      "text": "Yes, and technically speaking, we should keep the first version simple. For example, we can start with post-meeting audio processing instead of real-time analysis. That reduces complexity while still demonstrating strong value. Later, we can extend it to live meetings."
+    },
+    {
+      "start": 123.39,
+      "end": 138.91,
+      "speaker": "Ananthu Vijayan",
+      "text": "Also, task extraction accuracy will be critical. If the system assigns wrong tasks or misses important ones, users will lose trust quickly. We should focus on precision, even if recall is slightly lower in the beginning."
+    },
+    {
+      "start": 141.78,
+      "end": 156.18,
+      "speaker": "Tabia Karim",
+      "text": "I want to add something from the usability side. The interface should be very simple. Users should be able to upload a meeting, recording, or transcript and immediately get the summary and task list. No complicated settings, at least in the final version, in the first version."
+    },
+    {
+      "start": 162.98,
+      "end": 180.16,
+      "speaker": "Farshad Soleimani",
+      "text": "Great point so far, let's talk briefly about the workflow. As I see it, the input will be either an audio recording or a transcript. Then we run a speech to text if needed, followed by NLP-based summarization and task extraction. Does everyone agree with this pipeline?"
+    },
+    {
+      "start": 182.43,
+      "end": 196.39000000000001,
+      "speaker": "Mobin",
+      "text": "Yes, that's perfect and works. We can also like intermediate outputs for explainability. For example, highlighting which sentences led to a specific task extraction would align well with explainable AI principles."
+    },
+    {
+      "start": 198.82,
+      "end": 210.82,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "That's important, especially since this is an academic project, explainability will help users trust the system. Even a simple explanation like this task was extracted from this sentence would be sufficient."
+    },
+    {
+      "start": 213.63,
+      "end": 223.63,
+      "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "text": "I also think multilingual support could be mentioned as a future improvement. Many organizations have international teams and meetings don't always happen."
+    },
+    {
+      "start": 227.67,
+      "end": 239.19,
+      "speaker": "Adarsh Haridas",
+      "text": "For now, we can clearly state that the initial version supports English only, but the architecture allows extension to other languages later that supports foresight without over-promising."
+    },
+    {
+      "start": 241.04,
+      "end": 254.85999999999999,
+      "speaker": "Ananthu Vijayan",
+      "text": "One more thing, evaluation. We should define how we measure success. For example, comparing AI-generated summaries with the human written ones, or measuring task assertion accuracy using labeled examples."
+    },
+    {
+      "start": 256.11,
+      "end": 265.23,
+      "speaker": "Tabia Karim",
+      "text": "Yes, and we should also mention who benefits directly. HR teams, project managers, team leaders, and meeting secretaries. That makes the use case very concrete."
+    },
+    {
+      "start": 272.41,
+      "end": 273.01000000000005,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Okay, guys."
+    }
+  ],
+  "profiles": [
+    {
+      "id": "trello-691cfb6877a5455b0f060b6b",
+      "name": "Adarsh Haridas",
+      "trello_id": "691cfb6877a5455b0f060b6b",
+      "trello_username": "adarshharidas2",
+      "email": "adarsh.haridas@stud.tu-darmstadt.de",
+      "role": "Audio Preprocessing",
+      "skills": [
+        "Python",
+        "AI",
+        "Data Science",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "Passionate about exploring new ideas and transforming them into practical solutions.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cfe3cd850a0c7e050fb0c",
+      "name": "Ananthu Vijayan",
+      "trello_id": "691cfe3cd850a0c7e050fb0c",
+      "trello_username": "ananthuvijayan2",
+      "email": "ananthu.vijayan@stud.tu-darmstadt.de",
+      "role": "Business Analyst",
+      "skills": [
+        "Python",
+        "PyTorch",
+        "ML / AI"
+      ],
+      "notes": "Strategist, Driven by curiosity and in love with problem solving.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691d6957f31278bc04161b86",
+      "name": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "trello_id": "691d6957f31278bc04161b86",
+      "trello_username": "christinemathewvathiyathmathai",
+      "email": "christinemathewvm@gmail.com",
+      "role": "Audio Transcription Specialist",
+      "skills": [
+        "Python",
+        "Data Science",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "I like to learn new skills and interested in exploring advancements in technology.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691dc049bee1daebfa96ccdb",
+      "name": "Farshad Soleimani",
+      "trello_id": "691dc049bee1daebfa96ccdb",
+      "trello_username": "farshadsoleimani3",
+      "email": "",
+      "role": "Project Coordinator, n8n Automation Engineer",
+      "skills": [
+        "n8n",
+        "Python",
+        "Mcrosoft Project",
+        "Trello"
+      ],
+      "notes": "I am good at time managememt, and I am sociable and eager to learn new things. I like the roles related to applicable softwares which have broad usages.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-6926238add3cf015343d72ad",
+      "name": "Johannes Wowra",
+      "trello_id": "6926238add3cf015343d72ad",
+      "trello_username": "johanneswowra2",
+      "email": "",
+      "role": "Project Supervisor",
+      "skills": [
+        "Management",
+        "Leadership",
+        "Communication"
+      ],
+      "notes": "I have experience in project management and team leadership. I am passionate about guiding teams to success and ensuring effective communication among members.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cde56cb97a82831ddf2df",
+      "name": "Mobin",
+      "trello_id": "691cde56cb97a82831ddf2df",
+      "trello_username": "mobin148",
+      "email": "mobin.liaghi@gmail.com",
+      "role": "n8n Automation Engineer",
+      "skills": [
+        "Python",
+        "n8n",
+        "API",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "I love being in order, learn new things specifically the things related to computer technologies.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cfa215ae73978990743f6",
+      "name": "Safa V Abdul Ravuf",
+      "trello_id": "691cfa215ae73978990743f6",
+      "trello_username": "safavabdulravuf",
+      "email": "safaravuf98@gmail.com",
+      "role": "Information and Engineering Student",
+      "skills": [
+        "Python",
+        "Data Science",
+        "Machine Learning",
+        "Speaker Diarization"
+      ],
+      "notes": "Organised, enthusisatic about learning new skills, expereince with software development",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cc9c0b8b51e2811fe2bf4",
+      "name": "Tabia Karim",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4",
+      "trello_username": "tabiakarim",
+      "email": "tabia.karim@stud.tu-darmstadt.de",
+      "role": "Frontend Developer",
+      "skills": [
+        "Python",
+        "Streamlit",
+        "C++",
+        "ROS2",
+        "Java"
+      ],
+      "notes": "A robotics student with an interest in Data Science and AI. I am eager to learn new skills and contribute to the team. My focus is on frontend development, but I am also interested in exploring other areas.",
+      "photo": null,
+      "status": "imported"
+    }
+  ]
+}

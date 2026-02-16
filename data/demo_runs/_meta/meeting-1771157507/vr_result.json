@@ -1,0 +1,67 @@
+{
+  "transcript": [
+    {
+      "start": 0.6,
+      "end": 13.959999999999999,
+      "speaker": "SPEAKER_2",
+      "text": "I want to add something from the usability side. The interface should be very simple. Users should be able to upload a meeting recording or transcript and immediately get the summary and task list. No complicated settings, at least in the first version."
+    },
+    {
+      "start": 33.07,
+      "end": 41.43,
+      "speaker": "SPEAKER_4",
+      "text": "For now, we can clearly state that the initial version supports English only, but the architecture allows extension to other languages later. That shows foresight without overpromising."
+    },
+    {
+      "start": 44.06,
+      "end": 54.5,
+      "speaker": "SPEAKER_0",
+      "text": "I also think multilingual support could be mentioned as a future improvement. Many organizations have international themes and meetings don't always happen in English."
+    },
+    {
+      "start": 65.17,
+      "end": 77.89,
+      "speaker": "SPEAKER_1",
+      "text": "That's important, especially since this is an academic project. Explainability will help users trust the system. Even a simple explanation like this task was extracted from this sentence would be sufficient."
+    },
+    {
+      "start": 78.47,
+      "end": 98.95,
+      "speaker": "SPEAKER_3",
+      "text": "evaluation. We should define how we measure success. For example, comparing AI-generated summaries with human written ones, or measuring task extraction accuracy using labelled examples."
+    },
+    {
+      "start": 99.26,
+      "end": 114.54,
+      "speaker": "SPEAKER_1",
+      "text": "I agree. From a user perspective, HR teams and project managers would benefit the most. They attend many meetings every day and summarizing each one manually is inefficient. Our tool could save time and also bring consistency in how meeting outcomes are documented."
+    },
+    {
+      "start": 116.45,
+      "end": 131.25,
+      "speaker": "SPEAKER_0",
+      "text": "To build on that, I think the structure of the output is very important. The summary shouldn't just be a block of text. It should clearly separate key discussion points, decisions made and action items with owners and deadlines, if possible."
+    },
+    {
+      "start": 135.79,
+      "end": 186.45,
+      "speaker": "SPEAKER_3",
+      "text": "make sense. Also task extraction accuracy will be critical. If the system assigns wrong tasks or misses important ones, users will lose trust quickly. We should focus on precision even if recall is slightly lower in the beginning. One more thing, evaluation. We should define how we measure success. For example, comparing AI generated summaries with human written ones or measuring task extraction accuracy using labelled examples."
+    }
+  ],
+  "speakers": [
+    "SPEAKER_0",
+    "SPEAKER_1",
+    "SPEAKER_2",
+    "SPEAKER_3",
+    "SPEAKER_4"
+  ],
+  "speaker_audio": {
+    "SPEAKER_0": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771157507/speaker_audio/SPEAKER_0.wav",
+    "SPEAKER_1": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771157507/speaker_audio/SPEAKER_1.wav",
+    "SPEAKER_2": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771157507/speaker_audio/SPEAKER_2.wav",
+    "SPEAKER_3": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771157507/speaker_audio/SPEAKER_3.wav",
+    "SPEAKER_4": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771157507/speaker_audio/SPEAKER_4.wav"
+  },
+  "status": "uploaded"
+}

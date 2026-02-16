@@ -1,0 +1,199 @@
+{
+  "latest": {
+    "type": "Tasks",
+    "text": "{\"0\": {\"json\": {\"taskName\": \"Design Audio Preprocessing Workflow\", \"descr\": \"Use Python and refer to resources like the 'Python Machine Learning' book and online tutorials on AI audio processing to outline a simple audio preprocessing pipeline.\", \"due_date\": \"2026-02-18 00:00:00\", \"trello_id\": \"691cfb6877a5455b0f060b6b\"}, \"pairedItem\": {\"item\": 0, \"input\": null}}, \"1\": {\"json\": {\"taskName\": \"Research Post-Meeting Audio Processing\", \"descr\": \"Consult AI and data science platforms to explore effective methods of post-meeting audio processing, focusing on widely used AI tools for audio analysis.\", \"due_date\": \"2026-02-20 00:00:00\", \"trello_id\": \"691cfb6877a5455b0f060b6b\"}, \"pairedItem\": {\"item\": 1, \"input\": null}}, \"2\": {\"json\": {\"taskName\": \"Implement Audio Segmentation\", \"descr\": \"Create an initial implementation of audio segmentation using Python libraries like librosa; refer to the official documentation for best practices.\", \"due_date\": \"2026-02-22 00:00:00\", \"trello_id\": \"691cfb6877a5455b0f060b6b\"}, \"pairedItem\": {\"item\": 2, \"input\": null}}, \"3\": {\"json\": {\"taskName\": \"Evaluate Preprocessing Techniques\", \"descr\": \"Organize a review session to evaluate the effectiveness of different preprocessing techniques using tools like Microsoft PowerPoint for presentation.\", \"due_date\": \"2026-02-24 00:00:00\", \"trello_id\": \"691cfb6877a5455b0f060b6b\"}, \"pairedItem\": {\"item\": 3, \"input\": null}}, \"4\": {\"json\": {\"taskName\": \"Formulate Business Requirements\", \"descr\": \"Analyze meeting transcripts to understand the core business needs and formulate clear requirements by referencing successful case studies in the AI field.\", \"due_date\": \"2026-02-17 00:00:00\", \"trello_id\": \"691cfe3cd850a0c7e050fb0c\"}, \"pairedItem\": {\"item\": 4, \"input\": null}}, \"5\": {\"json\": {\"taskName\": \"Define Success Metrics\", \"descr\": \"Research industry standards and scholarly articles to define measurable success criteria for the AI meeting assistant project's deliverables.\", \"due_date\": \"2026-02-19 00:00:00\", \"trello_id\": \"691cfe3cd850a0c7e050fb0c\"}, \"pairedItem\": {\"item\": 5, \"input\": null}}, \"6\": {\"json\": {\"taskName\": \"Prepare Use Case Scenarios\", \"descr\": \"Develop detailed use case scenarios for target users such as HR and project managers, with insights from industry-specific resources and interviews.\", \"due_date\": \"2026-02-21 00:00:00\", \"trello_id\": \"691cfe3cd850a0c7e050fb0c\"}, \"pairedItem\": {\"item\": 6, \"input\": null}}, \"7\": {\"json\": {\"taskName\": \"Develop Speech-to-Text Algorithms\", \"descr\": \"Utilize Python libraries and speech processing tutorials to develop initial speech-to-text transcription algorithms suitable for meeting audio.\", \"due_date\": \"2026-02-18 00:00:00\", \"trello_id\": \"691d6957f31278bc04161b86\"}, \"pairedItem\": {\"item\": 7, \"input\": null}}, \"8\": {\"json\": {\"taskName\": \"Evaluate Transcription Models\", \"descr\": \"Conduct thorough testing and evaluation of various transcription models using test datasets, guided by academic papers on speech recognition.\", \"due_date\": \"2026-02-21 00:00:00\", \"trello_id\": \"691d6957f31278bc04161b86\"}, \"pairedItem\": {\"item\": 8, \"input\": null}}, \"9\": {\"json\": {\"taskName\": \"Optimize Transcription Accuracy\", \"descr\": \"Apply advanced techniques and adjustments studied from data science forums and documentation to improve transcription accuracy.\", \"due_date\": \"2026-02-23 00:00:00\", \"trello_id\": \"691d6957f31278bc04161b86\"}, \"pairedItem\": {\"item\": 9, \"input\": null}}, \"10\": {\"json\": {\"taskName\": \"Coordinate Project Milestones\", \"descr\": \"Utilize Microsoft Project to map out and regularly update the project timeline, ensuring alignment with team goals and deadlines.\", \"due_date\": \"2026-02-17 00:00:00\", \"trello_id\": \"691dc049bee1daebfa96ccdb\"}, \"pairedItem\": {\"item\": 10, \"input\": null}}, \"11\": {\"json\": {\"taskName\": \"Set Up Trello for Task Management\", \"descr\": \"Use Trello's official guide to set up project boards and organize tasks to enhance project visibility and team collaboration.\", \"due_date\": \"2026-02-18 00:00:00\", \"trello_id\": \"691dc049bee1daebfa96ccdb\"}, \"pairedItem\": {\"item\": 11, \"input\": null}}, \"12\": {\"json\": {\"taskName\": \"Automate Workflow with n8n\", \"descr\": \"Deploy n8n automation to streamline data and task management workflows utilizing the community documentation for complex scenarios.\", \"due_date\": \"2026-02-20 00:00:00\", \"trello_id\": \"691dc049bee1daebfa96ccdb\"}, \"pairedItem\": {\"item\": 12, \"input\": null}}, \"13\": {\"json\": {\"taskName\": \"Create Intermediate Outputs\", \"descr\": \"Design n8n workflows to produce explainable intermediate outputs, drawing on guidelines from explainable AI resources.\", \"due_date\": \"2026-02-22 00:00:00\", \"trello_id\": \"691cde56cb97a82831ddf2df\"}, \"pairedItem\": {\"item\": 13, \"input\": null}}, \"14\": {\"json\": {\"taskName\": \"Develop NLP-Based Summarization\", \"descr\": \"Implement NLP-based summarization using Python NLP libraries, with implementation strategies borrowed from the official library tutorials.\", \"due_date\": \"2026-02-18 00:00:00\", \"trello_id\": \"691cfa215ae73978990743f6\"}, \"pairedItem\": {\"item\": 14, \"input\": null}}, \"15\": {\"json\": {\"taskName\": \"Work on Task Extraction Accuracy\", \"descr\": \"Use machine learning techniques to enhance task extraction accuracy, guided by tutorials from respected machine learning courses.\", \"due_date\": \"2026-02-19 00:00:00\", \"trello_id\": \"691cfa215ae73978990743f6\"}, \"pairedItem\": {\"item\": 15, \"input\": null}}, \"16\": {\"json\": {\"taskName\": \"Integrate Multilingual Capability\", \"descr\": \"Architect a framework for potential multilingual support in the future, using best practices described in resources from language processing forums.\", \"due_date\": \"2026-02-21 00:00:00\", \"trello_id\": \"691cc9c0b8b51e2811fe2bf4\"}, \"pairedItem\": {\"item\": 16, \"input\": null}}, \"17\": {\"json\": {\"taskName\": \"Develop Simple User Interface\", \"descr\": \"Develop a simple frontend interface that uploads audio or transcripts and displays the summary and tasks; refer to 'Streamlit for Begginers' for guidance.\", \"due_date\": \"2026-02-19 00:00:00\", \"trello_id\": \"691cc9c0b8b51e2811fe2bf4\"}, \"pairedItem\": {\"item\": 17, \"input\": null}}, \"18\": {\"json\": {\"taskName\": \"Design User Interaction Flows\", \"descr\": \"Design intuitive user flows to ensure effortless interaction, inspired by modern UI/UX design principles found in industry-standard literature.\", \"due_date\": \"2026-02-20 00:00:00\", \"trello_id\": \"691cc9c0b8b51e2811fe2bf4\"}, \"pairedItem\": {\"item\": 18, \"input\": null}}}"
+  },
+  "result": {
+    "transcript": [
+      {
+        "speaker": "Farshad Soleimani",
+        "text": "record because I saw your face that's very good"
+      },
+      {
+        "speaker": "SPEAKER_7",
+        "text": "I don't know others, are you okay?"
+      },
+      {
+        "speaker": "SPEAKER_4",
+        "text": "Yes. Yeah, yeah."
+      },
+      {
+        "speaker": "Farshad Soleimani",
+        "text": "Good morning, everyone. Thanks for joining on time. The goal of today's meeting is to finalize the scope and workflow of our AI meeting assistant project. We want to clearly define what the system will do, who the target users are, and what features we will prioritize for the first version. Let's keep this discussion focused and actionable."
+      },
+      {
+        "speaker": "Mobin",
+        "text": "Sounds good. I think the main problem we are addressing is that after meetings, people often forget decisions and action items. Writing minutes manually takes time and is error-prone. Our system should automatically generate a clear meeting summary and extract tasks without requiring extra effort from the users."
+      },
+      {
+        "speaker": "Safa V Abdul Ravuf",
+        "text": "I agree. From a user perspective, HR teams and project managers would benefit the most. They attend many meetings every day and summarizing each one manually is inefficient. A tool could save time and also bring consistency in how meeting outcomes are documented."
+      },
+      {
+        "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+        "text": "To build on that, I think the structure of the output is very important. The summary shouldn't just be a block of text. It should clearly separate key discussion points, decisions made, and action items with owners and deadlines, if possible."
+      },
+      {
+        "speaker": "Adarsh Haridas",
+        "text": "Yes, and technically speaking, we should keep the first version simple. For example, we can start with post-meeting audio processing instead of real-time analysis. That reduces complexity while still demonstrating strong value. Later, we can extend it to live meetings."
+      },
+      {
+        "speaker": "Ananthu Vijayan",
+        "text": "Also, task extraction accuracy will be critical. If the system assigns wrong tasks or misses important ones, users will lose trust quickly. We should focus on precision, even if recall is slightly lower in the beginning."
+      },
+      {
+        "speaker": "Tabia Karim",
+        "text": "I want to add something from the usability side. The interface should be very simple. Users should be able to upload a meeting, recording, or transcript and immediately get the summary and task list. No complicated settings, at least in the first version."
+      },
+      {
+        "speaker": "Farshad Soleimani",
+        "text": "Great point so far, let's talk briefly about the workflow. As I see it, the input will be either an audio recording or a transcript. Then we run a speech to text if needed, followed by NLP-based summarization and task extraction. Does everyone agree with this pipeline?"
+      },
+      {
+        "speaker": "Mobin",
+        "text": "Yes, that's perfect and works. We can also like intermediate outputs for explainability. For example, highlighting which sentences led to a specific task extraction would align well with explainable AI principles."
+      },
+      {
+        "speaker": "Safa V Abdul Ravuf",
+        "text": "That's important, especially since this is an academic project, explainability will help users trust the system. Even a simple explanation like this task was extracted from this sentence would be sufficient."
+      },
+      {
+        "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+        "text": "I also think multilingual support could be mentioned as a future improvement. Many organizations have international teams and meetings don't always happen in English."
+      },
+      {
+        "speaker": "Adarsh Haridas",
+        "text": "For now, we can clearly state that the initial version supports English only, but the architecture allows extension to other languages later that supports foresight without over-promising."
+      },
+      {
+        "speaker": "Ananthu Vijayan",
+        "text": "One more thing, evaluation. We should define how we measure success. For example, comparing AI-generated summaries with the human written ones, or measuring task extraction accuracy using labeled examples."
+      },
+      {
+        "speaker": "Tabia Karim",
+        "text": "Yes, and we should also mention who benefits directly. HR teams, project managers, team leaders, and meeting secretaries. That makes the use case very concrete."
+      },
+      {
+        "speaker": "Safa V Abdul Ravuf",
+        "text": "Okay, guys."
+      }
+    ],
+    "summary": "- Farshad Soleimani kicked off the meeting by outlining the goal: to finalize the scope and workflow of the AI meeting assistant project, specifying its functionality, target users, and prioritizing features for the first version.****- Mobin highlighted the main problem the project aims to solve: the inefficiency and error-prone nature of manually writing meeting minutes, suggesting the system should automatically generate summaries and extract tasks.****- Safa V Abdul Ravuf agreed, emphasizing that HR teams and project managers would benefit significantly as they handle numerous meetings daily, making manual summarization inefficient.****- Christine Mathew Vathiyath Mathai pointed out the importance of structuring the output to clearly separate discussion points, decisions, and action items, including owners and deadlines.****- Adarsh Haridas suggested starting with post-meeting audio processing for simplicity and later extending to real-time analysis.****- Ananthu Vijayan stressed the critical importance of task extraction accuracy to maintain user trust, suggesting a focus on precision.****- Tabia Karim addressed the usability aspect, advocating for a simple interface where users can easily get summaries and task lists from uploaded recordings or transcripts without complex settings.****- Farshad Soleimani proposed a workflow involving speech-to-text conversion followed by NLP-based summarization and task extraction, which was agreed upon by Mobin who also suggested including explainability features.****- Safa highlighted the importance of explainability for user trust, especially in an academic setting.****- Christine mentioned multilingual support as a future improvement for international organizations.****- Adarsh advised that the initial version should support English only but be extendable to other languages later.****- Ananthu suggested defining success metrics, such as comparing AI-generated summaries with human-written ones and measuring task extraction accuracy.****- Tabia highlighted the beneficiaries, including HR teams, project managers, team leaders, and meeting secretaries, to make the use case concrete.",
+    "tasks": [
+      {
+        "taskName": "Design Audio Preprocessing Workflow",
+        "descr": "Use Python and refer to resources like the 'Python Machine Learning' book and online tutorials on AI audio processing to outline a simple audio preprocessing pipeline.",
+        "due_date": "2026-02-18 00:00:00",
+        "trello_id": "691cfb6877a5455b0f060b6b"
+      },
+      {
+        "taskName": "Research Post-Meeting Audio Processing",
+        "descr": "Consult AI and data science platforms to explore effective methods of post-meeting audio processing, focusing on widely used AI tools for audio analysis.",
+        "due_date": "2026-02-20 00:00:00",
+        "trello_id": "691cfb6877a5455b0f060b6b"
+      },
+      {
+        "taskName": "Coordinate Project Milestones",
+        "descr": "Utilize Microsoft Project to map out and regularly update the project timeline, ensuring alignment with team goals and deadlines.",
+        "due_date": "2026-02-17 00:00:00",
+        "trello_id": "691dc049bee1daebfa96ccdb"
+      },
+      {
+        "taskName": "Set Up Trello for Task Management",
+        "descr": "Use Trello's official guide to set up project boards and organize tasks to enhance project visibility and team collaboration.",
+        "due_date": "2026-02-18 00:00:00",
+        "trello_id": "691dc049bee1daebfa96ccdb"
+      },
+      {
+        "taskName": "Automate Workflow with n8n",
+        "descr": "Deploy n8n automation to streamline data and task management workflows utilizing the community documentation for complex scenarios.",
+        "due_date": "2026-02-20 00:00:00",
+        "trello_id": "691dc049bee1daebfa96ccdb"
+      },
+      {
+        "taskName": "Create Intermediate Outputs",
+        "descr": "Design n8n workflows to produce explainable intermediate outputs, drawing on guidelines from explainable AI resources.",
+        "due_date": "2026-02-22 00:00:00",
+        "trello_id": "691cde56cb97a82831ddf2df"
+      },
+      {
+        "taskName": "Develop NLP-Based Summarization",
+        "descr": "Implement NLP-based summarization using Python NLP libraries, with implementation strategies borrowed from the official library tutorials.",
+        "due_date": "2026-02-18 00:00:00",
+        "trello_id": "691cfa215ae73978990743f6"
+      },
+      {
+        "taskName": "Work on Task Extraction Accuracy",
+        "descr": "Use machine learning techniques to enhance task extraction accuracy, guided by tutorials from respected machine learning courses.",
+        "due_date": "2026-02-19 00:00:00",
+        "trello_id": "691cfa215ae73978990743f6"
+      },
+      {
+        "taskName": "Integrate Multilingual Capability",
+        "descr": "Architect a framework for potential multilingual support in the future, using best practices described in resources from language processing forums.",
+        "due_date": "2026-02-21 00:00:00",
+        "trello_id": "691cc9c0b8b51e2811fe2bf4"
+      },
+      {
+        "taskName": "Develop Simple User Interface",
+        "descr": "Develop a simple frontend interface that uploads audio or transcripts and displays the summary and tasks; refer to 'Streamlit for Begginers' for guidance.",
+        "due_date": "2026-02-19 00:00:00",
+        "trello_id": "691cc9c0b8b51e2811fe2bf4"
+      },
+      {
+        "taskName": "Design User Interaction Flows",
+        "descr": "Design intuitive user flows to ensure effortless interaction, inspired by modern UI/UX design principles found in industry-standard literature.",
+        "due_date": "2026-02-20 00:00:00",
+        "trello_id": "691cc9c0b8b51e2811fe2bf4"
+      },
+      {
+        "taskName": "Implement Audio Segmentation",
+        "descr": "Create an initial implementation of audio segmentation using Python libraries like librosa; refer to the official documentation for best practices.",
+        "due_date": "2026-02-22 00:00:00",
+        "trello_id": "691cfb6877a5455b0f060b6b"
+      },
+      {
+        "taskName": "Evaluate Preprocessing Techniques",
+        "descr": "Organize a review session to evaluate the effectiveness of different preprocessing techniques using tools like Microsoft PowerPoint for presentation.",
+        "due_date": "2026-02-24 00:00:00",
+        "trello_id": "691cfb6877a5455b0f060b6b"
+      },
+      {
+        "taskName": "Formulate Business Requirements",
+        "descr": "Analyze meeting transcripts to understand the core business needs and formulate clear requirements by referencing successful case studies in the AI field.",
+        "due_date": "2026-02-17 00:00:00",
+        "trello_id": "691cfe3cd850a0c7e050fb0c"
+      },
+      {
+        "taskName": "Define Success Metrics",
+        "descr": "Research industry standards and scholarly articles to define measurable success criteria for the AI meeting assistant project's deliverables.",
+        "due_date": "2026-02-19 00:00:00",
+        "trello_id": "691cfe3cd850a0c7e050fb0c"
+      },
+      {
+        "taskName": "Prepare Use Case Scenarios",
+        "descr": "Develop detailed use case scenarios for target users such as HR and project managers, with insights from industry-specific resources and interviews.",
+        "due_date": "2026-02-21 00:00:00",
+        "trello_id": "691cfe3cd850a0c7e050fb0c"
+      },
+      {
+        "taskName": "Develop Speech-to-Text Algorithms",
+        "descr": "Utilize Python libraries and speech processing tutorials to develop initial speech-to-text transcription algorithms suitable for meeting audio.",
+        "due_date": "2026-02-18 00:00:00",
+        "trello_id": "691d6957f31278bc04161b86"
+      },
+      {
+        "taskName": "Evaluate Transcription Models",
+        "descr": "Conduct thorough testing and evaluation of various transcription models using test datasets, guided by academic papers on speech recognition.",
+        "due_date": "2026-02-21 00:00:00",
+        "trello_id": "691d6957f31278bc04161b86"
+      },
+      {
+        "taskName": "Optimize Transcription Accuracy",
+        "descr": "Apply advanced techniques and adjustments studied from data science forums and documentation to improve transcription accuracy.",
+        "due_date": "2026-02-23 00:00:00",
+        "trello_id": "691d6957f31278bc04161b86"
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.10/3.10.19_2/Frameworks/Python.framework/Versions/3.10/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.19_2/Frameworks/Python.framework/Versions/3.10/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/Users/tabiakarim/ByteBrains-DS2/Backend/vr_worker.py", line 47, in <module>
+    main()
+  File "/Users/tabiakarim/ByteBrains-DS2/Backend/vr_worker.py", line 29, in main
+    res = vr_process(meeting_id)  # <-- your existing VR integration
+  File "/Users/tabiakarim/ByteBrains-DS2/Backend/pipeline_stub.py", line 43, in vr_process
+    process_meeting(run_dir)
+  File "/Users/tabiakarim/ByteBrains-DS2/VoiceRecognitionModule/src/pipeline/run_pipeline.py", line 88, in process_meeting
+    preprocess_audio(recording, processed_wav)
+  File "/Users/tabiakarim/ByteBrains-DS2/VoiceRecognitionModule/src/audio/preprocess.py", line 50, in preprocess_audio
+    convert_any_to_wav(input_audio, output_wav)
+  File "/Users/tabiakarim/ByteBrains-DS2/VoiceRecognitionModule/src/audio/preprocess.py", line 36, in convert_any_to_wav
+    raise RuntimeError(f"FFmpeg failed to convert: {input_audio}")
+RuntimeError: FFmpeg failed to convert: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771151361/vr.pid
+🎙 Using recording: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771151361/vr.pid
+
+[1/9]  Preprocessing audio...

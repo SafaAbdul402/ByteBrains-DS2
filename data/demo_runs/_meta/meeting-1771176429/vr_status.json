@@ -1,0 +1,6 @@
+{
+  "stage": "error",
+  "error": "[Errno 32] Broken pipe",
+  "trace": "Traceback (most recent call last):\n  File \"/Users/tabiakarim/ByteBrains-DS2/Backend/vr_worker.py\", line 32, in main\n    res = vr_process(meeting_id)\n  File \"/Users/tabiakarim/ByteBrains-DS2/Backend/pipeline_stub.py\", line 43, in vr_process\n    process_meeting(run_dir)\n  File \"/Users/tabiakarim/ByteBrains-DS2/VoiceRecognitionModule/src/pipeline/run_pipeline.py\", line 96, in process_meeting\n    print(\"[✓] Pyannote diarization done\")\nBrokenPipeError: [Errno 32] Broken pipe\n",
+  "updated_at": "2026-02-15T18:31:09"
+}

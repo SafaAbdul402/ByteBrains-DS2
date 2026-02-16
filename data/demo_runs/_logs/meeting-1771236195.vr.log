@@ -1,0 +1,9 @@
+🎙 Using recording: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771236195/Chaotic_Meeting.mp4
+
+[1/9]  Preprocessing audio...
+Preprocessed audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771236195/.voice_internal/processed.wav
+Done in 0.15 sec
+
+[2/9] 🧠 Pyannote diarization...
+/Users/tabiakarim/ByteBrains-DS2/.venv-vr/lib/python3.10/site-packages/pyannote/audio/models/blocks/pooling.py:104: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/native/ReduceOps.cpp:1760.)
+  std = sequences.std(dim=-1, correction=1)

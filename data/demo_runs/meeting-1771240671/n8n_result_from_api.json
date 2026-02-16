@@ -1,0 +1,47 @@
+{
+  "transcript": [
+    {
+      "speaker": "Tabia Karim",
+      "text": "Hello, this is just a test to see if the voice recognition part can work through Streamlit if we are able to start the process. Yes, let's see how it goes."
+    }
+  ],
+  "summary": "- Tabia Karim initiated a test to evaluate the functionality of voice recognition through Streamlit.****- The purpose was to determine if the process can be started successfully.****- An interest in observing the results was expressed.",
+  "tasks": [
+    {
+      "taskName": "Understand Voice Recognition Integration",
+      "descr": "Research the integration process of voice recognition technology into Streamlit using the Streamlit documentation and resources on voice recognition APIs such as Google Cloud Speech-to-Text.",
+      "due_date": "2026-02-18 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Prepare Streamlit Application Structure",
+      "descr": "Design the basic structure of the Streamlit application, ensuring compatibility with voice recognition functionalities. Refer to Streamlit's official documentation and sample projects.",
+      "due_date": "2026-02-19 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Implement Frontend Features for Voice Input",
+      "descr": "Develop the frontend components for handling voice input using Streamlit. Leverage CSS for styling and Streamlit's components guide.",
+      "due_date": "2026-02-20 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Test Voice Recognition Functionality",
+      "descr": "Conduct rigorous testing of the voice recognition component integrated into the Streamlit app using sample voice inputs. Utilize testing frameworks like Pytest and audio testing libraries.",
+      "due_date": "2026-02-21 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Optimize Performance of Streamlit Application",
+      "descr": "Optimize the performance of the Streamlit app to handle voice recognition smoothly. Refer to best practices outlined in Python optimization tutorials and Streamlit's performance guide.",
+      "due_date": "2026-02-22 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Document the Voice Recognition Process",
+      "descr": "Write comprehensive documentation of the voice recognition integration and Streamlit application process. Utilize structured documentation practices outlined in resources like 'Technical Writing for Dummies.'",
+      "due_date": "2026-02-23 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    }
+  ]
+}

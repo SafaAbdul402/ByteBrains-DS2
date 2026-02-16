@@ -1,0 +1,490 @@
+[
+  {
+    "speaker": "SPEAKER_30",
+    "text": "Make sure that I have started recording."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "But, please Safa, you continue your recording, so we have a backup option. Okay, okay. And, I think it's now been recording, but I don't know where the file will be saved. It says that it will be saved in my Google Drive, okay. So, everything. And, I turn the option on, that this recording will have the transcript. Okay. So, I don't know how it will be, but I think it will be okay. Anyone else want to talk about?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "I just wanted to mention that maybe for uploading the recording, as you might remember, I think that was last week or the week before that I created a drive folder for all of our information. Maybe I can share the link again so then we can have everything in one place and everyone has access to it. I think that would be easier than overloading the WhatsApp group, especially if the recordings are a bit longer. And then also I think about what my plan is on the front-end side. I think I explained it already in the meeting and yeah I think this meeting with Johannes was definitely..."
+  },
+  {
+    "speaker": "SPEAKER_37",
+    "text": "Much, much better than last time."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "So, I think, overall, we are on a good track, and, yeah, I hope you had access to the ChatGPT message that I sent after the meeting. It was basically, yeah, I was just talking to ChatGPT, okay, this is our general setup, and then we have this issue of the communication between with n8n and the UI and also the voice recognition, and, yeah, so, basically, the way I understood it, we would have to have a separate backend part, which is just the way I understood it, it would be coordinating all of the three modules that we have, basically, because the way, from my research, what I understood is that the UI and the voice recognition can also not really talk directly with each other, but we need to have a separate, yeah, backend part that does the coordination. Yeah, so, I was talking a little bit more about ChatGPT, and it's like a draft of what our repository could look like. I think we can just take it maybe as a guidance, we don't have to follow it exactly, of course, we can just see what works for us, and, of course, once we properly start developing, I think we will get a better understanding on what is really necessary for us and what is just extra. Yeah, I think that's just what I wanted to let you know."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Tabia, you said that you don't have an initial draft from the UI until now, right?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Until now, no. I have just been testing different Streamlit functions, but basically, like, now, or, like, from tomorrow on or from the weekend on, I will be starting, and then, yeah, I will keep you guys updated on what my progress is."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Okay, thank you. So, one thing that we have to work on is that we will have to see that how we can return information from n8n to UI. For this part, I want to actually also look at Jamie to see that how does that work. Before that, we need to have a UI to test it. So, when it's got processed, please tell us."
+  },
+  {
+    "speaker": "SPEAKER_34",
+    "text": "Yeah, like."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "I wanted to ask something to Tabia first. The thing is like now with this Streamlit you were planning on just assigning the front end, right? Yeah, exactly. Yeah, okay. And now since Farshad was also asked how to integrate n8n with the UI, I think we can do it via an API."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Yeah, I think FastAPI would be the easiest option."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Yeah, so then, uh, when we have these, uh, we, we, we actually have to develop an application, maybe have UI API, and then the process of voice recognition and n8n and all comes under the API, I think. You can actually link n8n, voice recognition, and UI. This is one thing that comes to my mind, uh, maybe there there's a better option, but then like, um, Tabia said earlier, I think we need an API for integration with the UI."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Y-yeah... Um... Hmph! Don't-don't we need it based on-based on you? Um..."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Yeah, yes, that is what I meant like for voice recognition UI and for the integration between voice recognition and UI, we will need an API, but I'm not sure about n8n. I don't know. I'm not sure about how n8n works particularly. So I'm not sure about n8n, but I think we do actually need an API."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Yeah, exactly. And yeah, I think, yeah, from like what I researched, FastAPI should be good enough for us. So, like a very good option. But yeah, I was also like, I think, Farshad and Mobin can probably tell us more. Maybe after they do their research on like how we can access n8n or like communicate with n8n. But yeah, what I understood is we might need to include some type of like HTTP interface. But I don't really have an experience with HTTP. I don't know if anyone else has. That's what I understood. But I think, yeah, we can, we can research about more about that. At least we can do more research about FastAPI. And I think Mobin unfortunately, have to look into, yeah, how to do this HTTP or like output stuff."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I have a question from Christy and Tabia."
+  },
+  {
+    "speaker": "SPEAKER_31",
+    "text": "Let me, uh..."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "connect my device and share paint"
+  },
+  {
+    "speaker": "SPEAKER_36",
+    "text": "Give me a second, please."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Like, I have some experiences with API, but I was working in C-sharp and .NET. I do not have much experience with Python. But I think the concept would be similar."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Please see this chart without using API and tell me what's the problem, because I think without an API we can do that. Suppose that is the UI, okay? We have a workspace here, which is our files, which are stored here, okay? And for example, we have a VR.py, which is a Python code for voice recognition, and we have, for example, voice.mp3, just suppose something, I just want to tell about the concept. Okay, our UI, for example, runs this, and this Python uses this file."
+  },
+  {
+    "speaker": "SPEAKER_7",
+    "text": "Oh, now I see."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "We have to give it to n8n, and right, here is the problem. But we know that n8n can read from Google Drive if this VR.py file can upload this text file to a Google Drive, maybe n8n can read from there. You know, and after all, we need to have a trigger that when n8n completes the work, it does that trigger and this trigger can be somehow recognizable by the UI. It can be a file, it can be a, for example, HTTP request, even, for example, we just do a request. It's just not a complicated API, just for example, a simple request and so on. Okay, no, now I see that somehow we need API for some parts."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Farshad, you said that with n8n, we can actually write the text to Google Drive, right?"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Mobin knows better, but as far as I understand from his work, we can read files from Google Drive. There are a node with Google Drive name in it, but Mobin can't..."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "So the n8 part, maybe we can do that, but then I have a doubt as to whether via the front end, will we be able to access the text documents in Google Drive? Because the processing of everything should be done. Can we do it in front end itself, Tabia?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "I don't know about that. I have not looked into if Streamlit can access Google Drive, but I think maybe I can look into that. And if that does work, then maybe we can favor if maybe Google Drive would be a better option than having to use FastAPI. And I also had another thought that if in the end we're running everything on one machine, do we in that case really need an API? If everything is running on one machine, then..."
+  },
+  {
+    "speaker": "SPEAKER_21",
+    "text": "Maybe."
+  },
+  {
+    "speaker": "SPEAKER_26",
+    "text": "even in one machine."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "We have to do the request on pool."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "And also, even if we're doing it in one machine, the integration has to be done right."
+  },
+  {
+    "speaker": "SPEAKER_19",
+    "text": "Thank you."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "This part can be solved by Google Drive, I think. It's not needed that UI upload anything. It can be hard-coded in, for example, voice recognition.python. In the Python code, you upload the final transcript to Google Drive. So it's not need to be a feature of Streamlit. It can be a feature of Python, and I think Python."
+  },
+  {
+    "speaker": "SPEAKER_20",
+    "text": "uh... has that"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "But here, for this part that Johannes was emphasizing that and it has to tell, for example, the UI that the progress is finished, we have to make a creative way for this. Maybe we use a simple API, or maybe we can do another thing. For example, if UI has access to Google Drive, if, I don't know, if it has, maybe we can put a file like, for example, n.txt on Google Drive. And when we put that in UI, we can see that, OK, a new file, which is called n, is uploaded. And it means that this is finished. If we can access UI to the Google Drive, there is another benefit for that, and which is about the Live Note. Because Live Notes are generated from."
+  },
+  {
+    "speaker": "SPEAKER_14",
+    "text": "And it's in, and..."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "If we can upload the notes on a Google Drive, the notes I mean and you I can read it from Google Drive so it can show the notes."
+  },
+  {
+    "speaker": "SPEAKER_5",
+    "text": "live."
+  },
+  {
+    "speaker": "SPEAKER_13",
+    "text": "On your screen you are."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Um, I think, yeah, I will, I will do some research on what Streamlit, uh, yeah. About the connection to Google Drive, but I'm just like thinking that if we do use that Google Drive connection, then wouldn't it feel like very slow, like wouldn't we have like quite a big latency because of course it's not really a small file, it will be a bit longer and then uploading and then downloading"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "It's not very heavy, it's just lower than one megabyte text."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Yeah, but like even if you upload like in the regular PDF to Google Drive, I mean, it doesn't happen in like milliseconds. It does take like maybe 10 to 20 seconds, let's say. And especially for the Live Notes, I think that would be like, that would be like crazy because you would have to like upload and download from Google Drive like every second. And that's like, I don't I don't know if that's really feasible, but I can check for the Google Drive connection with Streamlit."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Please check that and actually the main aim of our project is to generate tasks just once and it's not important that this process takes for example 20 seconds more or even one minute more because it's just going to be done once."
+  },
+  {
+    "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+    "text": "I have one more doubt, like in the previous meeting with Bhuvra, we have agreed that we are not, we are currently holding the Live Note part."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Yeah, we are holding that. But at the end, if we had time, we can change a bit on our project and make this. We can agree with that, but I just wanted to say that if we can connect UI and Google Drive thing, there will be some other benefits that we don't think about them."
+  },
+  {
+    "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+    "text": "Also do we need to do the live transcript part."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I told you, at first, we complete the project as we agreed on. If we had time, we can change a bit on the project and do the live part, too. Actually, live part is not a very, I mean, intensive, more technical need to do that, but it has a more value. It adds value to the project. You know, with some simple changes, we can add a great value to our project."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "So, are we like putting on hold both live notes and live transcript as well?"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I don't remember that Bhuvra told us that do not do it at all."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "No, he told us to complete the meeting notes first and then go try out meeting later on. But what I'm asking is if we are actually like keeping on hold both live transcript and live notes as well or is it just live notes that we're keeping on hold?"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "No, live transcripts and live notes are in the same process, I mean. Now we don't do it live. We don't do anything live. OK. OK. OK. But actually, because there are some other similar softwares that do that, if we do the live transcripting and the live notes, our software will be more different from the other. And in the time of presentation, I think it's."
+  },
+  {
+    "speaker": "SPEAKER_13",
+    "text": "it has a better view too."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Because if we do the process that we are going to do now, at the end, I'm sure that in the presentation day, someone will tell us that, okay, this is another software that exactly does the thing that you are doing."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Does n8n have a function of like, because the way I understood n8n now is that, okay, you want to start the workload, and then it runs, and then you have the output. To me, it seems like there is not an option that gives you, like, real-time feedback, you know?"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "You can run your flowchart, for example, each 5 seconds, each 10 seconds and this makes that lag."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Okay. But yeah, I think, of course, for now, we should just focus on the uploaded recording. Once we have the upload recording, we can then, I guess, jump to the app letting listen to the meeting. And then once we also have that, and then if we have time, then we can go to the live notes. But yeah, I think the current plan is good."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "This is the path that we are going through. Anything else that we have to work on? About the n8n part, for me and Mobin, we have many things to do. One of them is that we have limitation to upload takes to ChatGPT in terms of a number of tokens. So, we have to work on that. I will write it. Oh, you don't see the word? Let me. Number of tokens and limitation. OpenAI. And we have to work on..."
+  },
+  {
+    "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+    "text": "Akshay, we are not able to see your screen. Are you sending something?"
+  },
+  {
+    "speaker": "SPEAKER_14",
+    "text": "You don't see my board?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "I don't know about stuff increasing, but I can see your Word document."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "And were you seeing that before?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Before you had your paint open right? But in the beginning, yes."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Yeah, in the beginning we could see, but then now we can't see the presentation."
+  },
+  {
+    "speaker": "SPEAKER_33",
+    "text": "Now do you see?"
+  },
+  {
+    "speaker": "SPEAKER_28",
+    "text": "Now do you see? The voice is breaking."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Do you see that I'm writing?"
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "No, maybe we'll try leaving, exiting and joining again."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Tabia, are you seeing that I'm writing in Google, or I'm writing in Microsoft?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Um, yeah, I can see it."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "What about you Mobin? You just wait until Chris joins."
+  },
+  {
+    "speaker": "SPEAKER_3",
+    "text": "So we're going to look at this slide."
+  },
+  {
+    "speaker": "SPEAKER_24",
+    "text": "with the cobwebs here."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Yeah, but I couldn't understand what you said."
+  },
+  {
+    "speaker": "SPEAKER_32",
+    "text": "I said, uh..."
+  },
+  {
+    "speaker": "Mobin",
+    "text": "I have nothing to add. I know it's distracted for a moment. I registered to tell you that if I have something to add, I'm not sure which port was it."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "When the quality of your voice was not good for me."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "We can see the screen now."
+  },
+  {
+    "speaker": "Mobin",
+    "text": "Can you, is it better now? Yeah. OK. My question was, is there a sign-in between the two of you in the team? Have you ever been speaking on this stuff? We haven't had an experience that way before. Which part was it?"
+  },
+  {
+    "speaker": "SPEAKER_23",
+    "text": "Sorry, I couldn't hear you."
+  },
+  {
+    "speaker": "SPEAKER_12",
+    "text": "So, good to see you in the chat."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "yeah yeah of course write it in the chat please sorry because my ears are not very precise"
+  },
+  {
+    "speaker": "SPEAKER_15",
+    "text": "Thank you."
+  },
+  {
+    "speaker": "SPEAKER_22",
+    "text": "Thank you, everyone. We'll see you next time. Bye."
+  },
+  {
+    "speaker": "SPEAKER_35",
+    "text": "China, China, China."
+  },
+  {
+    "speaker": "SPEAKER_4",
+    "text": "Thank you so much."
+  },
+  {
+    "speaker": "Mobin",
+    "text": "I'm going to send you the Google Expo Chat."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "It was a question that, I think, Tabia asked from me. And it was about, breathing a fire, right Tabia?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "I think it was something about the connection from n8n with Google Drive and something like this. I don't remember exactly."
+  },
+  {
+    "speaker": "SPEAKER_5",
+    "text": "Yeah, it was a long time ago."
+  },
+  {
+    "speaker": "SPEAKER_17",
+    "text": "And, uh..."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "The moment I told them that there is a node, if I'm wrong, please correct me. There is a node that it can be connected using some credentials to Google Drive and read or write files."
+  },
+  {
+    "speaker": "Mobin",
+    "text": "we have the node, we have Google Drive access. We can see if a folder or if a file changes, we can define a folder as to the URL set."
+  },
+  {
+    "speaker": "SPEAKER_38",
+    "text": "We can define it as a shared folder."
+  },
+  {
+    "speaker": "Mobin",
+    "text": "so that our credentials won't be accessed by anyone else. I hope so. I have to check that."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "But Tabia, we have a Google Drive for everyone, right?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "I mean the shared folder I made for the groups."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Yeah, I think, did I not show you the link? Maybe it's on my notion, the notion that I sent. I should, I think that's about the link."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I mean, there's a much noise, uh..."
+  },
+  {
+    "speaker": "SPEAKER_3",
+    "text": "In your microphone"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I think, Tabia, you shared a folder inside your email, right? So, you cannot give us the credential for writing or reading a file on that. I think it's better to write, to make a new email for the whole group for this project."
+  },
+  {
+    "speaker": "SPEAKER_7",
+    "text": "Copy. Yeah."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Okay, uh, I thought maybe I gave everyone access maybe you can double check your access, but uh, yes"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Maybe you have access, but for writing and reading files from anything, I think we need more credentials."
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Then so you suggest, OK, I think first we would have to I will have to double check if Google Drive even is a good option. And if yes, then yes, we can create maybe like a joint."
+  },
+  {
+    "speaker": "SPEAKER_9",
+    "text": "Google.com for the project."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "If it was not a good option, please bring us a better option."
+  },
+  {
+    "speaker": "SPEAKER_18",
+    "text": "Yes, we will research."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "We will also do that. And actually, Mobin researched a lot about this, too, receiving a file. And the webhook was his answer about this. Anything else that we want to work on? What about voice recognition? You had to work on comparing different models, which were three, right? Working on person, identification, speaker identification. Anything else? Anyone wants to add anything?"
+  },
+  {
+    "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+    "text": "We don't have anything to add from our side."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "I ... put some of these in red, which I think ... are bottlenecks for now. We need to solve them before we can process to the next steps of the project."
+  },
+  {
+    "speaker": "SPEAKER_12",
+    "text": "This is two things."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Things are... I think these things are more important, and... For the speaker identification, what is the tool that you are going to use? Again, it's the same as transcripting or it's different. You are going to use a different tool."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Yeah, for speaker identification we have planned on designing a model and then using to convert each audio clip into vectors and then compare it with cosine similarity for speaker differentiation. That is our plan as of now."
+  },
+  {
+    "speaker": "SPEAKER_27",
+    "text": "Thank you. Anything else?"
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Should I say goodnight?"
+  },
+  {
+    "speaker": "Tabia Karim",
+    "text": "Yes, I think everybody knows now what we will be working on, so sounds like a plan."
+  },
+  {
+    "speaker": "Farshad Soleimani",
+    "text": "Good night all you guys, and have a nice holiday. See you on the 2nd of January."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Adarsha Anand is the only one. The rest are gone."
+  },
+  {
+    "speaker": "SPEAKER_29",
+    "text": "Moppi didn't do anything!"
+  },
+  {
+    "speaker": "SPEAKER_16",
+    "text": "Thank you."
+  },
+  {
+    "speaker": "Safa V Abdul Ravuf",
+    "text": "Let me stop the recording. It will be 5 minutes"
+  },
+  {
+    "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+    "text": "another love"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "transcript": [
+    {
+      "start": 1.21,
+      "end": 13.21,
+      "speaker": "SPEAKER_0",
+      "text": "Hello, this is just a test to see if the voice recognition part can work through streamlit if we are able to start the process. Yes, let's see how it goes."
+    }
+  ],
+  "speakers": [
+    "SPEAKER_0"
+  ],
+  "speaker_audio": {
+    "SPEAKER_0": "/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771240671/speaker_audio/SPEAKER_0.wav"
+  },
+  "status": "uploaded"
+}

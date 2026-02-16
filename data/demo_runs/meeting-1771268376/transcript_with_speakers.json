@@ -1,0 +1,518 @@
+[
+  {
+    "start": 3.81,
+    "end": 4.8100000000000005,
+    "speaker": "SPEAKER_24",
+    "text": "Hello?"
+  },
+  {
+    "start": 10.97,
+    "end": 12.97,
+    "speaker": "SPEAKER_21",
+    "text": "Especially here in the north, I think."
+  },
+  {
+    "start": 34.88,
+    "end": 37.440000000000005,
+    "speaker": "SPEAKER_0",
+    "text": "Okay, so if you hear us, we don't hear you. You're muted."
+  },
+  {
+    "start": 107.12,
+    "end": 109.12,
+    "speaker": "SPEAKER_20",
+    "text": "So, that's it."
+  },
+  {
+    "start": 125.29,
+    "end": 129.13,
+    "speaker": "SPEAKER_0",
+    "text": "So we'll be able to make it work. Can you hear us by the way?"
+  },
+  {
+    "start": 155.97,
+    "end": 166.13,
+    "speaker": "SPEAKER_16",
+    "text": "I think one of us could, we've created a power point, and if Morgan's okay, maybe he can share his screen, and like one of us can explain it."
+  },
+  {
+    "start": 167.6,
+    "end": 170.0,
+    "speaker": "SPEAKER_4",
+    "text": "I'm going to save it to now."
+  },
+  {
+    "start": 181.02,
+    "end": 182.62,
+    "speaker": "SPEAKER_16",
+    "text": "I don't think he can hear as well."
+  },
+  {
+    "start": 187.24,
+    "end": 188.36,
+    "speaker": "SPEAKER_22",
+    "text": "You can't..."
+  },
+  {
+    "start": 192.52,
+    "end": 194.52,
+    "speaker": "SPEAKER_26",
+    "text": "So Fajr cannot not hear us"
+  },
+  {
+    "start": 198.67,
+    "end": 200.19,
+    "speaker": "SPEAKER_4",
+    "text": "You know, it's so, you know..."
+  },
+  {
+    "start": 200.54,
+    "end": 201.9,
+    "speaker": "SPEAKER_7",
+    "text": "We've got this thing."
+  },
+  {
+    "start": 205.1,
+    "end": 206.38,
+    "speaker": "SPEAKER_35",
+    "text": "Cheerio, uh..."
+  },
+  {
+    "start": 208.07,
+    "end": 251.26999999999998,
+    "speaker": "SPEAKER_3",
+    "text": "We decided to work on the air-wall-floor condition. OK. So we decided on the scope and only of both project topics. We decided on the air-function topic. And we asked some tasks to each."
+  },
+  {
+    "start": 251.86,
+    "end": 254.36,
+    "speaker": "SPEAKER_29",
+    "text": "Go to the toilet? Uh huh. Um..."
+  },
+  {
+    "start": 255.33,
+    "end": 294.21000000000004,
+    "speaker": "SPEAKER_3",
+    "text": "So this was the automation we thought, the steps we thought we would have, we could also have other steps in future. We have a Python code for voice recognition and giving labels to each speaker so we can differentiate between different speakers, then give the voice to the... Sorry, where are you? Are you on the left or are you on the right?"
+  },
+  {
+    "start": 294.79,
+    "end": 296.39000000000004,
+    "speaker": "SPEAKER_25",
+    "text": "Right side, AI meeting assist."
+  },
+  {
+    "start": 295.98,
+    "end": 303.98,
+    "speaker": "SPEAKER_0",
+    "text": "On the left side, I think. Do you see my cursor? Yeah, I see your cursor because you're talking about speaker, but you're pointing to the left. That's why I'm confused."
+  },
+  {
+    "start": 304.81,
+    "end": 315.61,
+    "speaker": "SPEAKER_3",
+    "text": "I'm just first explaining this thing, they will give the transcripts that are generated to"
+  },
+  {
+    "start": 316.29,
+    "end": 318.29,
+    "speaker": "SPEAKER_31",
+    "text": "There are a couple of my API"
+  },
+  {
+    "start": 318.21,
+    "end": 329.57,
+    "speaker": "SPEAKER_3",
+    "text": "uh and giving a point to it so that it could understand and uh differentiate between different speakers"
+  },
+  {
+    "start": 326.98,
+    "end": 333.3,
+    "speaker": "SPEAKER_0",
+    "text": "Sorry, sorry. You're talking about different speakers. You're talking about the right side."
+  },
+  {
+    "start": 339.39,
+    "end": 341.15,
+    "speaker": "SPEAKER_36",
+    "text": "Listen to OOF."
+  },
+  {
+    "start": 342.96,
+    "end": 344.46,
+    "speaker": "SPEAKER_30",
+    "text": "So, oh yes, yes."
+  },
+  {
+    "start": 348.7,
+    "end": 420.53999999999996,
+    "speaker": "SPEAKER_3",
+    "text": "we would make a transcript from the meeting and give it to the API prompts and over in the area API and it would generate tasks and also it would give up all of the meetings invitation for example if we have decided to use API for Treadle 2 but if we had difficulties you may email each people, each person and from the transcripts it will make live meeting notes so it will save notes and transcriptions and it will automatically assign tasks to each person as the input we give the capabilities and roles of each person from that meeting and if anyone new joins give them a label and for example someone joins later to the meeting"
+  },
+  {
+    "start": 421.6,
+    "end": 423.6,
+    "speaker": "SPEAKER_37",
+    "text": "They would also have to..."
+  },
+  {
+    "start": 426.23,
+    "end": 442.65000000000003,
+    "speaker": "SPEAKER_3",
+    "text": "We also discussed about test automation and we evaluated the tests, but we thought that biometrics would be more of a data science project than what we think."
+  },
+  {
+    "start": 444.91,
+    "end": 450.35,
+    "speaker": "SPEAKER_0",
+    "text": "Okay, can you go back? Sorry, can you go back? So, so basically you have, um..."
+  },
+  {
+    "start": 445.01,
+    "end": 446.51,
+    "speaker": "SPEAKER_1",
+    "text": "Okay. Can you go back? Sorry."
+  },
+  {
+    "start": 452.96,
+    "end": 454.2,
+    "speaker": "SPEAKER_34",
+    "text": "Uh..."
+  },
+  {
+    "start": 459.96,
+    "end": 477.96,
+    "speaker": "SPEAKER_0",
+    "text": "Meeting, so this is the audio recording, right? Okay, so the audio recording into voice recognition, speech to text, and did you think also about speaker recognition?"
+  },
+  {
+    "start": 480.23,
+    "end": 481.23,
+    "speaker": "SPEAKER_23",
+    "text": "Yes. Yes."
+  },
+  {
+    "start": 480.97,
+    "end": 502.41,
+    "speaker": "SPEAKER_3",
+    "text": "Yes, we have already talked about that. It's the difference between the speakers. Yeah. As I said, as the input entry, we give the different roles so we can decide which speaker has which role and it will be trained on the voices."
+  },
+  {
+    "start": 506.58,
+    "end": 508.08,
+    "speaker": "SPEAKER_19",
+    "text": "I've got a meeting in a minute. Okay."
+  },
+  {
+    "start": 509.47,
+    "end": 513.11,
+    "speaker": "SPEAKER_28",
+    "text": "Okay, go on."
+  },
+  {
+    "start": 511.97,
+    "end": 515.97,
+    "speaker": "SPEAKER_3",
+    "text": "And so, we have finally decided on this one, and..."
+  },
+  {
+    "start": 517.65,
+    "end": 518.49,
+    "speaker": "SPEAKER_27",
+    "text": "Um."
+  },
+  {
+    "start": 519.71,
+    "end": 522.3100000000001,
+    "speaker": "SPEAKER_3",
+    "text": "I think I already mentioned this slide."
+  },
+  {
+    "start": 522.6,
+    "end": 524.6,
+    "speaker": "SPEAKER_32",
+    "text": "Yes, it's..."
+  },
+  {
+    "start": 527.78,
+    "end": 565.86,
+    "speaker": "SPEAKER_3",
+    "text": "Well, we can, as I said, we want, I think, for now, we want to make it any difficulter, but if we had free, if you were free or we had free time and we end, we can decide if we use our own software, if we make it a software or just an automation like Jamie, and we have discussed on building an user interface as it was, I think, ended."
+  },
+  {
+    "start": 566.14,
+    "end": 567.64,
+    "speaker": "SPEAKER_14",
+    "text": "We have the test suit."
+  },
+  {
+    "start": 568.09,
+    "end": 569.21,
+    "speaker": "SPEAKER_7",
+    "text": "between ourselves."
+  },
+  {
+    "start": 570.03,
+    "end": 578.75,
+    "speaker": "SPEAKER_3",
+    "text": "And I agreed that Tavia would make the frontend and UI interface."
+  },
+  {
+    "start": 579.52,
+    "end": 581.52,
+    "speaker": "SPEAKER_9",
+    "text": "That's the order."
+  },
+  {
+    "start": 581.22,
+    "end": 583.22,
+    "speaker": "SPEAKER_16",
+    "text": "No, no, that was her."
+  },
+  {
+    "start": 582.42,
+    "end": 583.62,
+    "speaker": "SPEAKER_12",
+    "text": "Uh, okay, sorry."
+  },
+  {
+    "start": 584.29,
+    "end": 588.13,
+    "speaker": "SPEAKER_10",
+    "text": "I don't have all the names, but that's okay. Okay, so this was..."
+  },
+  {
+    "start": 589.04,
+    "end": 591.16,
+    "speaker": "SPEAKER_33",
+    "text": "Okay, yep. And..."
+  },
+  {
+    "start": 592.87,
+    "end": 623.87,
+    "speaker": "SPEAKER_3",
+    "text": "For now, I will make the repository, and that is just a matter of seconds, and I will control this. We have OpenAI, and I think we had two APIs, one for the OpenAI API and one for Fisher Trello API, or I think Trello would be fine, or we would use Gmail API. So you could send that email."
+  },
+  {
+    "start": 624.36,
+    "end": 629.36,
+    "speaker": "SPEAKER_0",
+    "text": "Okay, wait, so, okay, so what is open AI task generation?"
+  },
+  {
+    "start": 629.97,
+    "end": 644.97,
+    "speaker": "SPEAKER_3",
+    "text": "And it will generate tasks from the transcripts from what the project is and assign them to members."
+  },
+  {
+    "start": 645.03,
+    "end": 662.87,
+    "speaker": "SPEAKER_0",
+    "text": "basically So this is a point engineer. Yeah. Yeah, so maybe just as a Maybe a diagram would make sense like that that shows what exactly like you have in the beginning you have audio, right? Yes"
+  },
+  {
+    "start": 671.64,
+    "end": 672.92,
+    "speaker": "SPEAKER_13",
+    "text": "Hello, how are you?"
+  },
+  {
+    "start": 677.85,
+    "end": 679.85,
+    "speaker": "SPEAKER_1",
+    "text": "Yes, we can hear you a bit."
+  },
+  {
+    "start": 680.21,
+    "end": 682.21,
+    "speaker": "SPEAKER_11",
+    "text": "Lower so we can hear you."
+  },
+  {
+    "start": 681.66,
+    "end": 683.16,
+    "speaker": "SPEAKER_5",
+    "text": "Oh, it's just annoying, it's better."
+  },
+  {
+    "start": 685.61,
+    "end": 691.61,
+    "speaker": "SPEAKER_3",
+    "text": "Yes, it's Norwegian and your voice is a little bit lower."
+  },
+  {
+    "start": 692.45,
+    "end": 693.45,
+    "speaker": "SPEAKER_17",
+    "text": "That's what I'm used to."
+  },
+  {
+    "start": 695.62,
+    "end": 866.1800000000001,
+    "speaker": "SPEAKER_0",
+    "text": "Okay, but I think it's fine, Fraschad, Movin already talked about this too, so let's just continue. So you're saying that the, so for OpenAI task generation, that's basically, so what I would see maybe that would help you guys as well, if you create kind of a flow diagram, basically we'll say, okay, you have the, I mean, on the one hand, you will have the audio, right, that will be detected, then you need to do some, basically the voice recognition part, right, that has to be done, out of that, you have probably multiple outputs, because one output would be, okay, you will have, you will have the transcript, you will have the amount of speakers, right, you will have also, I mean, you will probably also have the, I guess, so this is still, so probably on the audio level, there's quite some work, because you need to, you have the audio file, then basically, when you do the voice recognition, you will detect all the pieces that have voice, and then those voice pieces will be then, also separated into different speakers, right, and then you would have speaker A, doing audio script, speaker B audio script, and then you have to basically also do like the, and then you do the transcript, right, so getting the audio scripts into the, whatever was said, right, so, okay, and then that's basically the input for the OpenAI task generation, right? Yes. Right, so I think it's there, so it's basically two, kind of two, if you take the whole project, it's two mini projects, not mini, but two different projects within this one, right, so one will be about voice recognition, transcription, and then speaker recognition from the voice on the right, and what you are writing, yes, I think, I think it's definitely, it's probably essential to understand the different speakers, and I guess what your question points to is, if you need to do that from the voice, or if you want to, if AI can do that, right, so I think it's, I mean, if you want a better quality, I think you should do that on the audio level and detect the speakers."
+  },
+  {
+    "start": 866.39,
+    "end": 877.47,
+    "speaker": "SPEAKER_16",
+    "text": "Yeah, because we did look for this voice recognition and we saw that there were some softwares that did help us. But then we were thinking that we could actually create a model or something."
+  },
+  {
+    "start": 877.92,
+    "end": 879.92,
+    "speaker": "SPEAKER_0",
+    "text": "That's, I mean, that's pretty..."
+  },
+  {
+    "start": 880.37,
+    "end": 881.37,
+    "speaker": "SPEAKER_6",
+    "text": "I mean, yeah."
+  },
+  {
+    "start": 881.88,
+    "end": 884.68,
+    "speaker": "SPEAKER_16",
+    "text": "Would that be better without discussing it?"
+  },
+  {
+    "start": 886.19,
+    "end": 888.7900000000001,
+    "speaker": "SPEAKER_0",
+    "text": "if you would create a model and set off."
+  },
+  {
+    "start": 889.04,
+    "end": 913.12,
+    "speaker": "SPEAKER_16",
+    "text": "Instead of using, we did see a software called OpenAI Whisper. Oh, yeah. Yeah. It did say, I mean, according to what I just read, a brief description, it said that it would help us with the voice recognition task. But then we were actually, we thought maybe if we could develop a model, then a bit more of that, we could have hands-on experience with data science."
+  },
+  {
+    "start": 913.24,
+    "end": 924.6,
+    "speaker": "SPEAKER_0",
+    "text": "Yeah, sure. I mean, yeah, I mean, that's, I mean, voice and speaker recognition is a very classical data science task. So..."
+  },
+  {
+    "start": 925.52,
+    "end": 927.52,
+    "speaker": "SPEAKER_16",
+    "text": "What would be your suggestion?"
+  },
+  {
+    "start": 928.51,
+    "end": 955.63,
+    "speaker": "SPEAKER_0",
+    "text": "The thing is, obviously, I mean, if you're using, I think, nowadays, and I compared with when I also, when I was in the TU Darmstadt, I had also lectures about voice and speaker recognition. And at that time, it was a bit of a more challenging problem. I think nowadays, it's a very standard, probably solved problem."
+  },
+  {
+    "start": 957.79,
+    "end": 958.29,
+    "speaker": "SPEAKER_15",
+    "text": "So."
+  },
+  {
+    "start": 961.15,
+    "end": 1004.99,
+    "speaker": "SPEAKER_0",
+    "text": "I think with the libraries today you can easily train a model, but the problem is you would have to take some base model, so you would not train a model from scratch. So with the base models I assume that you would get a decent speaker recognition already. So you can also try with libraries in the beginning and see how good it is and then maybe if you want fine tune it with your own voices for example."
+  },
+  {
+    "start": 1006.47,
+    "end": 1008.27,
+    "speaker": "SPEAKER_18",
+    "text": "That might be something that helps."
+  },
+  {
+    "start": 1010.4,
+    "end": 1047.04,
+    "speaker": "SPEAKER_0",
+    "text": "But I think this is something that is, that is, that should be, I would assume that the results would be decent with, with existing libraries already. I mean, I did it recently for, uh, I did like audio transcription with a library. It was okay. It was not perfect, definitely. Um, but that's like the audio transcription will give you, let's say kind of a 90% text, right? And 10% gibberish, maybe, but then the AI, the AI compensates for this."
+  },
+  {
+    "start": 1044.51,
+    "end": 1045.51,
+    "speaker": "SPEAKER_2",
+    "text": "D.A.I."
+  },
+  {
+    "start": 1048.0,
+    "end": 1107.8,
+    "speaker": "SPEAKER_0",
+    "text": "So that's, I think that's, that's for you guys to find out what's the, um, what's the trade off, right? So where do we, where can we, um, where should we invest time into developing a better model or use AI for this, right? This is also, this is, um, in a problem of, of investment and effort, but also on the other hand, it's, uh, it's a problem of cost obviously, right? So training your own model and, and, and having a local model to detect the speakers is way cheaper. calling the AI for this every time. But that's I think something that you would need to experiment and then decide. So I would try with existing libraries and see how the performance is. When you do those things, always think about how to evaluate it. So when you do the voice recognition, always think about how can we evaluate this."
+  },
+  {
+    "start": 1109.83,
+    "end": 1112.83,
+    "speaker": "SPEAKER_8",
+    "text": "so that we know how good it is. Okay. Right?"
+  },
+  {
+    "start": 1113.12,
+    "end": 1151.6399999999999,
+    "speaker": "SPEAKER_0",
+    "text": "So, I mean, for voice recognition probably you would need some kind of test data. Yeah. I guess you will not, I mean, it will probably take too much time to generate it yourself. So there will be test data sets where you can download audio files with people and then the correct transcripts. So you can do the... Okay. Okay, sorry. I'm looking at the time. I have only four minutes left. So I think we should try to be more organized for the next time. Yes. So..."
+  },
+  {
+    "start": 1152.96,
+    "end": 1162.96,
+    "speaker": "SPEAKER_3",
+    "text": "I have no problem at all, and by the present one, I think it is even better, but just I saw the email."
+  },
+  {
+    "start": 1163.55,
+    "end": 1185.6299999999999,
+    "speaker": "SPEAKER_0",
+    "text": "I'm fine with either. I'm prepared for both. So I will be here in this meeting room and I will be connected to the team. So I'm fine if you join online or remote. Just that, let's try to be on time and also... Okay, anyway. So what else do we have on the list? We have..."
+  },
+  {
+    "start": 1188.98,
+    "end": 1219.98,
+    "speaker": "SPEAKER_3",
+    "text": "That's just part of the API for opening and we are frightening, which is the important part. And we have N8n, one of us will be in charge for having the account. And the rest of us, I think it's good that the rest of us have the experience with N8n too. As the final part, only one person."
+  },
+  {
+    "start": 1220.03,
+    "end": 1313.35,
+    "speaker": "SPEAKER_0",
+    "text": "Yeah so I can I will give you access to this I'm still in contact with Tommy so I will get I'll get that for you guys and to your question I mean it's you guys have to I think what the first thing that you would need to do is and this is basically for because you have a bit of different different tasks so the one is the voice recognition the other one is the anything that is related to the prompt engineering and the task generation so I would recommend you guys that you sit together and you define the tasks that are needed and then basically try to so what you usually do is also try to effort estimate those tasks right so see okay we have I don't know there's a task of setting up setting up github that's something that's five minutes right but then there is a task of speaker recognition right that will take that will take longer so try to and this is this is also a group thing that you should do try to write down all the tasks and then try to find more or less they don't have to be exact sometimes it's enough if you do t-shirt sizing so you say it's an S and M or L right and if you know that then you can then you can start distributing the task properly"
+  },
+  {
+    "start": 1312.43,
+    "end": 1323.27,
+    "speaker": "SPEAKER_16",
+    "text": "You know, according to this task distribution, four people are for voice recognition. Yeah. Do you think we need more or is like four people needed?"
+  },
+  {
+    "start": 1323.98,
+    "end": 1392.0,
+    "speaker": "SPEAKER_0",
+    "text": "That that's why I'm saying so I don't honestly I don't I don't know I don't think it's I mean four people is Uh Maybe maybe too much because you have also on the Everything that is if you go to slide five So right So everything that is on the right side This is also I mean This is also probably a lot of effort to do those things Basically to do the to the right the right problems to come up with With ideas how to extract how to extract tasks from text. Yes, right how to How to do the role mapping and then things that you have planned right so this is um So As I said, I think you have to you have to sit down and write down all the tasks and all the areas that you Want to that you want to focus on and also define And this will also help you to define what the application is capable what the application features are And then and then you can distribute the tasks"
+  },
+  {
+    "start": 1391.93,
+    "end": 1395.93,
+    "speaker": "SPEAKER_16",
+    "text": "So it would be better that we create a list of all the tasks that had to be done."
+  },
+  {
+    "start": 1396.13,
+    "end": 1398.2900000000002,
+    "speaker": "SPEAKER_0",
+    "text": "I mean, not in super detail, right?"
+  },
+  {
+    "start": 1397.62,
+    "end": 1403.9399999999998,
+    "speaker": "SPEAKER_16",
+    "text": "Yeah, but then approximate first and then assign people accordingly."
+  },
+  {
+    "start": 1404.01,
+    "end": 1452.01,
+    "speaker": "SPEAKER_0",
+    "text": "Right, I mean, you would also have different skills, right? So some people are more into the UI. I mean, I don't see, for example, the UI part is not, did you mention that somewhere? Because that will be also, I mean, how do you envision a UI, right? I mean, UI can be just a simple window or it can be super complex platform, right? So that's what I think you still need to define so that you have a clear picture of what the effort is. Okay. Okay. I'm so sorry. I need to go to the next meeting. Okay. So we have the time for next week and I think next week I have also an hour. Oh no, wait. Oh."
+  }
+]

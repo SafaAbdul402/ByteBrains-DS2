@@ -58,11 +58,15 @@ def apply_branding():
         st.sidebar.warning(f"Logo not found: {logo_path}")
 
     st.sidebar.markdown(
-        "<div style='text-align:center; font-weight:700; font-size:20px;'>ByteBrains</div>",
+        "<div style='text-align:center; font-weight:700; font-size:20px;'>ByteMinutes</div>",
         unsafe_allow_html=True,
     )
     st.sidebar.markdown(
-        "<div style='text-align:center; opacity:0.75; margin-top:-6px;'>AI Meeting Assistant</div>",
+        "<div style='text-align:center; opacity:0.75; margin-top:-6px;'>An AI Meeting Assistant</div>",
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown(
+        "<div style='text-align:center; font-weight:700; font-size:14px;'>By ByteBrains</div>",
         unsafe_allow_html=True,
     )
 

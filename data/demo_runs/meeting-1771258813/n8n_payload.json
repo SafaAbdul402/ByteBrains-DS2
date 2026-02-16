@@ -1,0 +1,297 @@
+{
+  "meeting_id": "meeting-1771258813",
+  "transcript": [
+    {
+      "start": 2.01,
+      "end": 15.17,
+      "speaker": "Farshad Soleimani",
+      "text": "Good night, everyone. Welcome to the Digital Workflow Optimization Initiative. Management calls it a project. I call it a cry for help. We are here to fix the boring glue holding us together while the company's on fire."
+    },
+    {
+      "start": 16.01,
+      "end": 19.21,
+      "speaker": "Mobin",
+      "text": "Is this the one where we optimize without knowing what that means?"
+    },
+    {
+      "start": 19.84,
+      "end": 23.84,
+      "speaker": "Farshad Soleimani",
+      "text": "Exactly, documentation, tracking, communication, the works."
+    },
+    {
+      "start": 26.69,
+      "end": 33.57,
+      "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "text": "Can we start with the documentation? Last week's note literally said budget maybe, action item wipes."
+    },
+    {
+      "start": 36.58,
+      "end": 43.699999999999996,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "And the files guys, I found the onboarding checklist in a folder named do not delete, delete on a random desktop. That's digital archeology."
+    },
+    {
+      "start": 44.8,
+      "end": 51.239999999999995,
+      "speaker": "Adarsh Haridas",
+      "text": "The spreadsheets are haunted too. I opened one and Excel crashed like it was protecting state secrets."
+    },
+    {
+      "start": 52.56,
+      "end": 58.32,
+      "speaker": "Tabia Karim",
+      "text": "The UI is basically mad at you for using it. If it takes more than three clicks to find a task, it's a crime."
+    },
+    {
+      "start": 60.54,
+      "end": 65.74,
+      "speaker": "Ananthu Vijayan",
+      "text": "Management wants numbers without KPS, we just optimize it until we die."
+    },
+    {
+      "start": 67.08,
+      "end": 75.36,
+      "speaker": "Mobin",
+      "text": "I think the real lick is the digital bucket brigade. Meeting happens, nodes go somewhere, tasks go maybe on Trello, if you remember."
+    },
+    {
+      "start": 76.58,
+      "end": 83.24,
+      "speaker": "Farshad Soleimani",
+      "text": "Okay, stop. I'm one person. We need owners because everyone owns it means no one does"
+    },
+    {
+      "start": 84.52,
+      "end": 89.8,
+      "speaker": "Mobin",
+      "text": "I'll map the manual steps to the end to end the copy paste suffering"
+    },
+    {
+      "start": 91.97,
+      "end": 98.85,
+      "speaker": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "text": "I think I prefer standardized templates, templates no more writing notes like we are texting."
+    },
+    {
+      "start": 100.35,
+      "end": 106.50999999999999,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "I can do a predictable storage system, no more discovering new civilization every time we search for a PDF."
+    },
+    {
+      "start": 109.09,
+      "end": 114.29,
+      "speaker": "Adarsh Haridas",
+      "text": "No garbage allowed pipeline, if it's a duplicate or outdated, it gets flagged."
+    },
+    {
+      "start": 116.16,
+      "end": 121.2,
+      "speaker": "Tabia Karim",
+      "text": "I will prioritize simplification so we can reduce clicks and I need help messages."
+    },
+    {
+      "start": 124.25,
+      "end": 129.85,
+      "speaker": "Ananthu Vijayan",
+      "text": "Dashboard for time saved plus a matrix for how many times we had to rescind the link."
+    },
+    {
+      "start": 130.98,
+      "end": 134.98,
+      "speaker": "Mobin",
+      "text": "We talk for 40 minutes and forget everything immediately."
+    },
+    {
+      "start": 136.2,
+      "end": 141.98,
+      "speaker": "Farshad Soleimani",
+      "text": "I don't forget. Okay, I forget instantly. I'm Goldfish with Outlook."
+    },
+    {
+      "start": 144.5,
+      "end": 150.34,
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "an AI handles the transcript, summary, and reload pipeline, you might stop losing data."
+    },
+    {
+      "start": 151.38,
+      "end": 157.22,
+      "speaker": "Adarsh Haridas",
+      "text": "We can filter the noise, translate we should maybe consider exploring into no task, just anxiety."
+    },
+    {
+      "start": 159.26,
+      "end": 164.06,
+      "speaker": "Ananthu Vijayan",
+      "text": "And the dashboard proves to management this is just a fancy notepad."
+    },
+    {
+      "start": 165.49,
+      "end": 182.65,
+      "speaker": "Farshad Soleimani",
+      "text": "Okay, so the milestones are for the next week, we draft plans and sample templates from everyone. And in two weeks, we need end-to-end pilot meeting using the AI workflow. And the target is to 30% reduction in manual admin efforts."
+    },
+    {
+      "start": 184.2,
+      "end": 187.07999999999998,
+      "speaker": "Mobin",
+      "text": "30%? Is that real or aspirational?"
+    },
+    {
+      "start": 189.27,
+      "end": 192.71,
+      "speaker": "Ananthu Vijayan",
+      "text": "It's a number that makes management come, so it's real."
+    },
+    {
+      "start": 193.62,
+      "end": 196.38,
+      "speaker": "Adarsh Haridas",
+      "text": "We are the Avengers, the villains are spreadsheets."
+    },
+    {
+      "start": 197.33,
+      "end": 213.17000000000002,
+      "speaker": "Farshad Soleimani",
+      "text": "Great. Okay. Great. For next week, we need updates, templates, workflows, a structure map, KPI definitions. Oh, God, I wish I had an assistant who could organize this mess in my head."
+    }
+  ],
+  "profiles": [
+    {
+      "id": "trello-691cfb6877a5455b0f060b6b",
+      "name": "Adarsh Haridas",
+      "trello_id": "691cfb6877a5455b0f060b6b",
+      "trello_username": "adarshharidas2",
+      "email": "adarsh.haridas@stud.tu-darmstadt.de",
+      "role": "Audio Preprocessing",
+      "skills": [
+        "Python",
+        "AI",
+        "Data Science",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "Passionate about exploring new ideas and transforming them into practical solutions.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cfe3cd850a0c7e050fb0c",
+      "name": "Ananthu Vijayan",
+      "trello_id": "691cfe3cd850a0c7e050fb0c",
+      "trello_username": "ananthuvijayan2",
+      "email": "ananthu.vijayan@stud.tu-darmstadt.de",
+      "role": "Business Analyst",
+      "skills": [
+        "Python",
+        "PyTorch",
+        "ML / AI"
+      ],
+      "notes": "Strategist, Driven by curiosity and in love with problem solving.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691d6957f31278bc04161b86",
+      "name": "CHRISTINE MATHEW VATHIYATH MATHAI",
+      "trello_id": "691d6957f31278bc04161b86",
+      "trello_username": "christinemathewvathiyathmathai",
+      "email": "christinemathewvm@gmail.com",
+      "role": "Audio Transcription Specialist",
+      "skills": [
+        "Python",
+        "Data Science",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "I like to learn new skills and interested in exploring advancements in technology.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691dc049bee1daebfa96ccdb",
+      "name": "Farshad Soleimani",
+      "trello_id": "691dc049bee1daebfa96ccdb",
+      "trello_username": "farshadsoleimani3",
+      "email": "",
+      "role": "Project Coordinator, n8n Automation Engineer",
+      "skills": [
+        "n8n",
+        "Python",
+        "Mcrosoft Project",
+        "Trello"
+      ],
+      "notes": "I am good at time managememt, and I am sociable and eager to learn new things. I like the roles related to applicable softwares which have broad usages.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-6926238add3cf015343d72ad",
+      "name": "Johannes Wowra",
+      "trello_id": "6926238add3cf015343d72ad",
+      "trello_username": "johanneswowra2",
+      "email": "",
+      "role": "Project Supervisor",
+      "skills": [
+        "Management",
+        "Leadership",
+        "Communication"
+      ],
+      "notes": "I have experience in project management and team leadership. I am passionate about guiding teams to success and ensuring effective communication among members.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cde56cb97a82831ddf2df",
+      "name": "Mobin",
+      "trello_id": "691cde56cb97a82831ddf2df",
+      "trello_username": "mobin148",
+      "email": "mobin.liaghi@gmail.com",
+      "role": "n8n Automation Engineer",
+      "skills": [
+        "Python",
+        "n8n",
+        "API",
+        "Microsoft PowerPoint"
+      ],
+      "notes": "I love being in order, learn new things specifically the things related to computer technologies.",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cfa215ae73978990743f6",
+      "name": "Safa V Abdul Ravuf",
+      "trello_id": "691cfa215ae73978990743f6",
+      "trello_username": "safavabdulravuf",
+      "email": "safaravuf98@gmail.com",
+      "role": "Information and Engineering Student",
+      "skills": [
+        "Python",
+        "Data Science",
+        "Machine Learning",
+        "Speaker Diarization"
+      ],
+      "notes": "Organised, enthusisatic about learning new skills, expereince with software development",
+      "photo": null,
+      "status": "imported"
+    },
+    {
+      "id": "trello-691cc9c0b8b51e2811fe2bf4",
+      "name": "Tabia Karim",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4",
+      "trello_username": "tabiakarim",
+      "email": "tabia.karim@stud.tu-darmstadt.de",
+      "role": "Frontend Developer",
+      "skills": [
+        "Python",
+        "Streamlit",
+        "C++",
+        "ROS2",
+        "Java"
+      ],
+      "notes": "A robotics student with an interest in Data Science and AI. I am eager to learn new skills and contribute to the team. My focus is on frontend development, but I am also interested in exploring other areas.",
+      "photo": null,
+      "status": "imported"
+    }
+  ]
+}

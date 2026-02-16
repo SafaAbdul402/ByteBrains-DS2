@@ -1,0 +1,90 @@
+🎙 Using recording: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/WhatsApp Video 2026-02-15 at 22.10.35.mp4
+
+[1/9]  Preprocessing audio...
+Preprocessed audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/.voice_internal/processed.wav
+Done in 0.19 sec
+
+[2/9] 🧠 Pyannote diarization...
+/Users/tabiakarim/ByteBrains-DS2/.venv-vr/lib/python3.10/site-packages/pyannote/audio/models/blocks/pooling.py:104: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/native/ReduceOps.cpp:1760.)
+  std = sequences.std(dim=-1, correction=1)
+[✓] Pyannote diarization done
+Done in 183.33 sec
+
+[3/9] ✂️ Converting annotation to segments...
+✅ Pyannote segments (raw): 42
+✅ Segments after filtering: 35
+✅ Speech segments: 35
+
+[4/9] 🧠 Extracting ECAPA embeddings...
+    Embedding segment 1: 4.44 → 6.24
+    ECAPA 1/35 | elapsed 0.0s | ETA 0.0 min
+    Embedding segment 2: 4.96 → 8.74
+    Embedding segment 3: 9.09 → 12.55
+    Embedding segment 4: 13.48 → 18.10
+    Embedding segment 5: 18.69 → 21.88
+    Embedding segment 6: 22.76 → 26.86
+    Embedding segment 7: 29.60 → 36.57
+    Embedding segment 8: 39.50 → 46.69
+    Embedding segment 9: 47.72 → 54.22
+    Embedding segment 10: 55.47 → 61.25
+    Embedding segment 11: 63.46 → 67.50
+    ECAPA 11/35 | elapsed 0.3s | ETA 0.0 min
+    Embedding segment 12: 69.79 → 71.19
+    Embedding segment 13: 71.46 → 77.94
+    Embedding segment 14: 79.48 → 80.95
+    Embedding segment 15: 80.96 → 82.16
+    Embedding segment 16: 82.70 → 86.36
+    Embedding segment 17: 87.24 → 92.49
+    Embedding segment 18: 94.89 → 100.79
+    Embedding segment 19: 103.26 → 109.35
+    Embedding segment 20: 112.06 → 117.26
+    Embedding segment 21: 119.10 → 124.18
+    ECAPA 21/35 | elapsed 0.6s | ETA 0.0 min
+    Embedding segment 22: 127.18 → 132.80
+    Embedding segment 23: 133.66 → 137.66
+    Embedding segment 24: 139.10 → 140.60
+    Embedding segment 25: 140.99 → 144.73
+    Embedding segment 26: 146.98 → 153.19
+    Embedding segment 27: 154.32 → 160.17
+    Embedding segment 28: 162.18 → 167.03
+    Embedding segment 29: 168.39 → 176.10
+    Embedding segment 30: 176.37 → 185.50
+    Embedding segment 31: 187.97 → 189.81
+    ECAPA 31/35 | elapsed 0.9s | ETA 0.0 min
+    Embedding segment 32: 192.22 → 195.66
+    Embedding segment 33: 196.52 → 199.31
+    Embedding segment 34: 200.35 → 210.60
+    Embedding segment 35: 211.46 → 216.17
+    ECAPA 35/35 | elapsed 1.0s | ETA 0.0 min
+✅ Embeddings extracted: 35
+✅ Done in 0.99 sec
+
+[5/9] 🔗 Clustering embeddings...
+✅ Done in 0.00 sec
+[✓] Clustering done
+
+[6/9] 🧭 Building speaker timeline...
+✅ Done in 0.00 sec
+Diarization saved to: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/.voice_internal
+DEBUG — segments being saved: 35
+[{'start': 4.44, 'end': 6.24, 'speaker': 'SPEAKER_5'}, {'start': 4.96, 'end': 8.74, 'speaker': 'SPEAKER_0'}, {'start': 9.09, 'end': 12.55, 'speaker': 'SPEAKER_0'}, {'start': 13.48, 'end': 18.1, 'speaker': 'SPEAKER_0'}, {'start': 18.69, 'end': 21.88, 'speaker': 'SPEAKER_2'}]
+- /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/.voice_internal/diarization.json
+- /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/.voice_internal/diarization.txt
+
+[9/9] 🔊 Exporting speaker audio snippets...
+Skipping SPEAKER_5 (only 1.80s → likely noise)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_0.wav (59.33s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_2.wav (22.16s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_4.wav (12.87s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_7.wav (19.49s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_1.wav (20.34s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_3.wav (10.86s)
+Saved speaker audio: /Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/speaker_audio/SPEAKER_6.wav (17.95s)
+✅ Done in 0.01 sec
+
+[8/9] 📝 Whisper transcription...
+[2026-02-15 23:28:44.533] [ctranslate2] [thread 6128128] [warning] The compute type inferred from the saved model is float16, but the target device or backend do not support efficient float16 computation. The model weights have been automatically converted to use the float32 compute type instead.
+Transcription Done in 103.80 sec
+Transcript with speakers saved at:
+/Users/tabiakarim/ByteBrains-DS2/data/runs/meeting-1771194335/transcript_with_speakers.json
+✅ Voice pipeline completed successfully

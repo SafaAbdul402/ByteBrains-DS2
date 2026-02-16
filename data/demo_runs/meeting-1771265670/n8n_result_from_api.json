@@ -1,0 +1,347 @@
+{
+  "transcript": [
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Hello. I should hear a voice message. Okay, so if you hear us, we don't hear you. You're muted. So will you make, we'll be able to make it work. Can you hear us by the way?"
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Could we've created a PowerPoint? Yeah, Morgan's okay. Maybe he can share a screen and like one of us can explain it"
+    },
+    {
+      "speaker": "Mobin",
+      "text": "I can also not hear us. So, we have this thing. We decided to work on the AI workflow automation. Okay. This... So, this was the automation we thought. The steps we thought we would have. We could also have other steps in future. We have a Python code for voice recognition and giving labels to each speaker. So, we can differentiate between different speakers. Then give the voice to the... Sorry, are you on the left or are you on the right?"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "On the left side, I think. Do you see my cursor? Yeah, I see your cursor because you're talking about speaker but you're pointing to the left. That's why I'm confused."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "I'm just first explaining this thing, they will give the transcripts that are generated to the OpenAI API and giving a prompt to it so that it could understand and differentiate"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Sorry, sorry, you're talking about different speakers, but this is, you're talking about the right side. I think both are so obvious, yes."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "So we would make a transcript from the meeting and give it to the API prompts and open an array and it would generate tasks and also it would give out all of the meetings invitation. For example, if we have decided to use API for Trello too, but if we have difficulties, we may email each people, each person and from the transcripts it will make live meeting notes. So it will save notes and transcriptions and it will automatically assign tasks to each person. As the input, it will give the capabilities and roles of each person from that meeting and if anyone new joins, it will give them a label. For example, if someone joins later to the meeting, they would also have the assignments. We also discussed about test automation and we evaluated the tests, but we thought that a live meeting assistant would be more of a data science project than something to think about."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "yeah okay can you go back sorry can you go back so so basically you have um uh so when you say meeting so this is the the the audio recording yeah right okay yes so the audio recording you do voice and uh voice recognition speech to text um and did you think also about speaker recognition"
+    },
+    {
+      "speaker": "Mobin",
+      "text": "Yes, we already talked about that. It's the difference between the speakers and as I said,"
+    },
+    {
+      "speaker": "Mobin",
+      "text": "as the input entry would give the different roles so we can decide which speaker has which role and it will be trained on the voices. Okay."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "Yeah, okay, go on."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "So we have finally decided on this one and I think I already mentioned this slide. Yes, we can, as I said, we want, I think, for now, we want to make it any difficult, but if you had free, if you were free or we had free time on the end, we can decide if we use our own software, we make it a software or just an alternation like Jamie, and we have discussed on building an user interface as it was, I think, and we have the tasks here between ourselves and I agree that Tavia would make the frontend and UI interface."
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "No, no, that was her. Oh, it's okay, sorry."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "Okay, so this was okay. Yeah. And for now, I will make the repository. And that is just a matter of seconds. And I will control this. We have OpenAI. I think we had two APIs. One for the OpenAI API and one for Fisher Trello API. Or I think Trello would be fine. Or we would use Gmail API. So you could send an email. Okay. So what is OpenAI task generation? What is this? It will generate the tasks from the transcripts. Okay, okay. From what the project is and assign them to members."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "basically so this is yeah yeah maybe just as a maybe a diagram would make sense like that that shows what exactly like you have in the beginning you have audio right yes"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Yes, we can hear you a bit lower."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "What can you do? I think the noise is better for that What? It's noisy and your voice is a little bit loud No, it's not"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Okay, but I think it's fine, Farshad. Mobin already walked us through, so let's just continue. So, you're saying that the, so for OpenAI task generation, that's basically, so what I would see, maybe that would help you guys as well, if you create kind of a flow diagram, basically where you say, okay, you have the, I mean, on the one hand, you will have the audio, right, that will be detected, then you need to do some, basically, the voice recognition part, right, that has to be done, out of that, you have probably multiple outputs, because one output would be, okay, you will have the transcript, you will have the amount of speakers, right, you will have also, I mean, you will probably also have the, I guess, so this is still, so probably on the, on the audio level, there's some, quite some work, because you need to, you have the audio file, then basically, when you do the voice recognition, you will detect all the pieces that have voice, and then those voice pieces will be then also separated into different speakers, right, and then you would have speaker A, audio script, speaker B audio script, and then you have to basically also do like the, and then you do the transcript, right, so getting the audio scripts into the, whatever was said, right, okay, and then that's basically the input for the OpenAI task generation, right? Yes. So I think, so it's basically two, kind of two, if you take the whole project, it's two mini projects, like, not mini, but two different projects within this one, right, so one will be about voice recognition, transcription, and then speaker recognition from the voice on the right, and Farshad, what you are writing, yes, I think it's definitely probably essential to understand the different speakers, and I guess what your question points to is if you need to do that from the voice, or if you want to, if AI can do that, right, so I think it's, I mean, if you want a better quality, I think you should do that on the audio level and detect the speakers."
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Yeah, because we did look for this voice recognition and we saw that there were some softwares that did help us, but then we were thinking that we could actually create a model or something because..."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "That's, I mean, that's pretty, I mean, yeah."
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Would that be better without discussing it?"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "if you would create a model and set off."
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Instead of using, we did see a software called OpenAI Whisper. Oh, yeah. Yeah. It did say, according to what I just read, a brief description. It said that it would help us with the voice recognition task. But then we thought maybe if we could develop a model, then a bit more of that we could have hands-on experience with data science."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "yeah sure i mean yeah i mean that's uh i mean voice and speaker recognition is a very classical uh data science task so um"
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "What would be your suggestion?"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "The thing is, obviously, I mean, if you're using, I think, nowadays, and I compared with when I also, when I was in the TU Darmstadt, I had also lectures about voice and speaker recognition. And at that time, it was a bit of a more challenging problem. I think nowadays, it's a very standard, probably solved problem. So I mean, I think with the libraries today, you can easily train a model. But the problem is, I mean, you would have to take like a base model, right? So you would not train a model from scratch. So with the base models, I assume that you would get a decent speaker recognition already. So you can also, I mean, you can try with libraries in the beginning and see how good it is. And maybe if you want, fine-tune it with your own voices, for example, right? Okay, okay. That might be something that helps. But I think this is something that should be, I would assume that the results would be decent with existing libraries already. Okay. I mean, I did it recently for, I did like audio transcription with a library, it was okay. It was not perfect, definitely. But that's like, the audio transcription will give you, let's say, kind of a 90% text, right? And 10% gibberish, maybe. But then the AI compensates for this."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "So I think that's for you guys to find out what's the trade-off, right? So where do we, where can we, where should we invest time into developing a better model or use AI for this, right? This is also, this is a problem of investment and effort. But also on the other hand, it's a problem of cost, obviously, right? So training your own model and having a local model to detect the speakers is way cheaper, right? Than calling the AI for this every time. But that's, I think, something that you would need to experiment and then decide. Okay. That's your, I mean, so I would try with existing libraries and see how the performance is. You always, when you do those things, always think about how to evaluate it, right? So when you do the voice recognition, always think about how can we evaluate this so that we know how good it is, right? So I mean, for voice recognition, probably you would need some kind of test data. I guess you will not, I mean, it will probably take too much time to generate it yourself. So there will be test datasets where you can download audio files with people and then the correct transcripts. So you can do the images on this. Okay, sorry, I'm looking at the time. I have only four minutes there. So I think we should try to be more organized for the next time. So it's..."
+    },
+    {
+      "speaker": "Mobin",
+      "text": "I have no problem at all, by the present form, I think it is even better, but just I saw the email."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "I'm fine with either. I'm prepared for both. I will be here in this meeting room and I will be connected to the team so I'm fine if you join online or remote. Just that let's try to be on time and and also yes okay anyway uh so what what else do we have on the list we have um the other product engineering"
+    },
+    {
+      "speaker": "Mobin",
+      "text": "that's just part of the API for the opening and we are finding new, which is the important part and we have N18, one of us will be in charge for having the account and the rest of us I think it's good that the rest of us have the experience with N18 too because as the final part only one person manage"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Yeah, so I can I will give you access to this. I'm still in contact with Tommy So I will get I'll get that for you guys and to your question For sure. I mean, it's you guys have to I think what the first thing that you would need to do is and this is basically for because you have a bit of different different tasks so the one is the voice recognition the other one is the Anything that is related to the prompt engineering and and the task generation So I would recommend you guys that you sit together and you define the tasks that are needed and then basically Try to so what you usually do is also try to effort estimate those tasks, right? So see, okay, we have I don't know. There's a task of setting up setting up GitHub. That's something that's five minutes Right, but then there is a task of speaker recognition, right that will take that will take longer so try to and this is this is also a group thing that you should do try to Write down all the tasks and then try to find more or less. They don't have to be exact Sometimes it's enough if you do t-shirt sizing so you say it's an S and M or L Right, and if you know that then you can then you can start distributing the task properly"
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "You know, according to this task distribution, four people are for voice recognition. Yeah. Do you think we need more or is like four people needed?"
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "that that's why i'm saying so i don't honestly i don't i don't know i don't think it's i mean four people is uh maybe maybe too much because you have also on the everything that is if you go to slide five so right so everything that is on the right side this is also i mean this is also probably a lot of effort to do those things basically to do the to the right the right prompts to come up with uh with ideas how to extract how to extract tasks from text yes right how to um um how to do the role mapping and then things that you have planned right so this is um so as i said i think you have to you have to sit down and write down all the tasks and all the areas that you want to that you want to focus on and also define um and this will also help you to define what the application is capable what the application features are and then and then you can distribute the tasks"
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "So it would be better that we create a list of all the tasks that had to be done."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "I mean, not in super detail, right?"
+    },
+    {
+      "speaker": "Safa V Abdul Ravuf",
+      "text": "Yeah, but then approximate first and then assign people accordingly."
+    },
+    {
+      "speaker": "Johannes Wowra",
+      "text": "Right. I mean, you will also have different skills, right? Yes. So some people are more into the UI. I mean, I thought, for example, the UI part is not... Did you mention that somewhere? Because that will be also... I mean, how do you envision a UI, right? I mean, UI can be just a simple window or it can be super complex platform, right? So that's what I think you still need to define so that you have a clear picture of what the effort is. Okay. Okay. I'm so sorry. I need to go to the next meeting. Okay. So we have the time for next week and I think next week I have also an hour... Oh, no. Wait."
+    }
+  ],
+  "summary": "- Johannes Wowra tried to check if everyone could hear one another in the meeting and discussed the technical issues of audibility among attendees.****- Safa V Abdul Ravuf and Mobin discussed the possibility of sharing a PowerPoint presentation to aid in the explanation of their project.****- Mobin explained their project focused on AI workflow automation, involving voice recognition, transcription, speaker differentiation, and task assignment.****- The process involves using Python code for voice recognition, sending transcripts to OpenAI API, and automating task assignment using tools like Trello or Gmail API.****- Johannes Wowra clarified the steps involved in the audio-to-task automation process, emphasizing the importance of speaker recognition and transcription.****- Discussion about developing a custom model for better speaker recognition versus using existing solutions like OpenAI Whisper, considering effort, cost, and performance trade-offs.****- Johannes advised evaluating the effectiveness of voice recognition and deciding whether to invest in developing a custom solution or using existing libraries.****- Mobin mentioned establishing a repository and managing API integrations, primarily with OpenAI and Trello or Gmail.****- Johannes suggested creating a flow diagram to better understand the project process, outlining audio input to task generation.****- Team members discussed the need for organizing tasks, estimating their efforts, and properly distributing them based on skills and priorities.****- Safa questioned the number of people required for voice recognition, and Johannes recommended further detailed task mapping to optimize task assignments.****- There was a brief mention of a user interface (UI) as part of the project, which needed further definition.****- Johannes had to leave for another meeting, urging the team to prepare for the next meeting and to organize tasks effectively.",
+  "tasks": [
+    {
+      "taskName": "Set Up Audio Preprocessing Environment",
+      "descr": "Use Python to set up a basic environment for audio preprocessing. Refer to online repositories such as GitHub or docs from libraries like librosa for audio processing.",
+      "due_date": "2026-02-18 00:00:00",
+      "trello_id": "691cfb6877a5455b0f060b6b"
+    },
+    {
+      "taskName": "Explore AI Techniques for Audio Preprocessing",
+      "descr": "Research AI models for preprocessing. Consider reading 'Deep Learning for Audio Applications' and try implementations from platforms like Kaggle.",
+      "due_date": "2026-02-22 00:00:00",
+      "trello_id": "691cfb6877a5455b0f060b6b"
+    },
+    {
+      "taskName": "Optimize Transcription Accuracy",
+      "descr": "Improve the accuracy of the audio transcription model. Utilize online machine learning forums and libraries like TensorFlow for adjustments.",
+      "due_date": "2026-02-27 00:00:00",
+      "trello_id": "691d6957f31278bc04161b86"
+    },
+    {
+      "taskName": "Prepare Transcription Reports",
+      "descr": "Compile and document results of transcription accuracy tests using formats from IEEE conference papers.",
+      "due_date": "2026-02-29 00:00:00",
+      "trello_id": "691d6957f31278bc04161b86"
+    },
+    {
+      "taskName": "Coordinate Project Timeline",
+      "descr": "Develop a complete project timeline using Microsoft Project and Gantt Chart methodologies. Refer to PMBOK guidelines for project planning.",
+      "due_date": "2026-02-19 00:00:00",
+      "trello_id": "691dc049bee1daebfa96ccdb"
+    },
+    {
+      "taskName": "Setup n8n Workflow",
+      "descr": "Establish an automated workflow using n8n for handling data from transcription. Use n8n docs for setup instructions.",
+      "due_date": "2026-02-22 00:00:00",
+      "trello_id": "691dc049bee1daebfa96ccdb"
+    },
+    {
+      "taskName": "Monitor Automation Process",
+      "descr": "Regularly monitor the automation process for effectiveness. Reference 'The DevOps Handbook' for maintenance strategies.",
+      "due_date": "2026-02-25 00:00:00",
+      "trello_id": "691dc049bee1daebfa96ccdb"
+    },
+    {
+      "taskName": "Facilitate Team Communication",
+      "descr": "Ensure all team members are updated on workflow developments. Leverage cloud collaboration tools like Trello and Slack.",
+      "due_date": "2026-02-28 00:00:00",
+      "trello_id": "691dc049bee1daebfa96ccdb"
+    },
+    {
+      "taskName": "Craft Project Vision Statement",
+      "descr": "Draft a concise vision statement for the project to guide the team. Consult leadership books such as 'The 7 Habits of Highly Effective People'.",
+      "due_date": "2026-02-18 00:00:00",
+      "trello_id": "6926238add3cf015343d72ad"
+    },
+    {
+      "taskName": "Facilitate Weekly Team Meetings",
+      "descr": "Host and manage weekly meetings. Use 'Meeting Management Skills' by Carole Kanchier for effective meeting strategies.",
+      "due_date": "2026-02-25 00:00:00",
+      "trello_id": "6926238add3cf015343d72ad"
+    },
+    {
+      "taskName": "Develop Resource Allocation Plan",
+      "descr": "Create a detailed plan for resource allocation through the project phase. Our resources include 'Resource Management and Scheduling'.",
+      "due_date": "2026-03-01 00:00:00",
+      "trello_id": "6926238add3cf015343d72ad"
+    },
+    {
+      "taskName": "Ensure Communication Alignment",
+      "descr": "Ensure communication across the team remains clear and all information is documented. Use 'Successful Communication' techniques to aid this.",
+      "due_date": "2026-03-04 00:00:00",
+      "trello_id": "6926238add3cf015343d72ad"
+    },
+    {
+      "taskName": "Develop Preprocessing Pipeline",
+      "descr": "Create a preprocessing pipeline in Python. Look into standard data pipelines in AI and ensure compliance with audio preprocessing norms using resources like Scikit-learn documentation.",
+      "due_date": "2026-02-26 00:00:00",
+      "trello_id": "691cfb6877a5455b0f060b6b"
+    },
+    {
+      "taskName": "Implement n8n for Task Automation",
+      "descr": "Develop automations in n8n to streamline task processes. Reference n8n official documentation and forums for advanced tips.",
+      "due_date": "2026-02-18 00:00:00",
+      "trello_id": "691cde56cb97a82831ddf2df"
+    },
+    {
+      "taskName": "Integrate API with n8n",
+      "descr": "Ensure APIs required for the project are integrated with n8n. Leverage REST API documentation and tutorials on API integrations.",
+      "due_date": "2026-02-23 00:00:00",
+      "trello_id": "691cde56cb97a82831ddf2df"
+    },
+    {
+      "taskName": "Test n8n Workflows",
+      "descr": "Perform extensive testing on n8n workflows using best practices from official n8n community guidelines.",
+      "due_date": "2026-02-26 00:00:00",
+      "trello_id": "691cde56cb97a82831ddf2df"
+    },
+    {
+      "taskName": "Document API Processes",
+      "descr": "Document all API processes used in the project. Reference API documentation formats from Swagger to maintain consistency.",
+      "due_date": "2026-02-29 00:00:00",
+      "trello_id": "691cde56cb97a82831ddf2df"
+    },
+    {
+      "taskName": "Research Speaker Diarization Techniques",
+      "descr": "Investigate various methods for separating speakers in audio. Use 'Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow' for guidance.",
+      "due_date": "2026-02-19 00:00:00",
+      "trello_id": "691cfa215ae73978990743f6"
+    },
+    {
+      "taskName": "Implement Speaker Diarization",
+      "descr": "Apply speaker diarization to audio files using pre-built models. The pyAudioAnalysis library documentation will be helpful.",
+      "due_date": "2026-02-21 00:00:00",
+      "trello_id": "691cfa215ae73978990743f6"
+    },
+    {
+      "taskName": "Evaluate Diarization Accuracy",
+      "descr": "Assess the accuracy and robustness of the speaker diarization. Refer to 'Speech and Audio Signal Processing' for evaluation techniques.",
+      "due_date": "2026-02-25 00:00:00",
+      "trello_id": "691cfa215ae73978990743f6"
+    },
+    {
+      "taskName": "Refine Diarization Model",
+      "descr": "Improve upon the existing model based on the results. Follow detailed use cases and techniques mentioned in 'Pattern Recognition and Machine Learning'.",
+      "due_date": "2026-02-29 00:00:00",
+      "trello_id": "691cfa215ae73978990743f6"
+    },
+    {
+      "taskName": "Design User Interface",
+      "descr": "Draft initial designs of the UI/UX using wireframing tools like Figma. Follow best practices from 'Design of Everyday Things'.",
+      "due_date": "2026-02-19 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Develop UI with Streamlit",
+      "descr": "Use Streamlit to develop the frontend based on design drafts. Streamlit documentation provides comprehensive guidance.",
+      "due_date": "2026-02-22 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Test Preprocessing Pipeline",
+      "descr": "Run unit tests on the preprocessing pipeline. Utilize Pytest and review 'Effective Python Testing' for testing best practices.",
+      "due_date": "2026-02-28 00:00:00",
+      "trello_id": "691cfb6877a5455b0f060b6b"
+    },
+    {
+      "taskName": "Integrate Components into UI",
+      "descr": "Add audio input and output components to the UI. Review 'Full Stack Python' for integration strategies and examples.",
+      "due_date": "2026-02-26 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Perform Usability Testing",
+      "descr": "Carry out usability tests with target users and collect feedback. Reference 'Don't Make Me Think' for efficient usability testing methods.",
+      "due_date": "2026-02-29 00:00:00",
+      "trello_id": "691cc9c0b8b51e2811fe2bf4"
+    },
+    {
+      "taskName": "Analyze Business Requirements",
+      "descr": "Conduct a thorough analysis of the project requirements using stakeholder interviews and business analysis frameworks such as BABOK.",
+      "due_date": "2026-02-19 00:00:00",
+      "trello_id": "691cfe3cd850a0c7e050fb0c"
+    },
+    {
+      "taskName": "Identify Key Performance Indicators",
+      "descr": "Define KPIs for the audio transcription service using documentation on ROI benchmarks and performance metrics in technological projects.",
+      "due_date": "2026-02-21 00:00:00",
+      "trello_id": "691cfe3cd850a0c7e050fb0c"
+    },
+    {
+      "taskName": "Create Dashboard Mockups",
+      "descr": "Prepare mockups for a project dashboard using tools like Adobe XD and consult UI/UX guidelines from 'Don't Make Me Think'.",
+      "due_date": "2026-02-24 00:00:00",
+      "trello_id": "691cfe3cd850a0c7e050fb0c"
+    },
+    {
+      "taskName": "Conduct Stakeholder Presentation",
+      "descr": "Prepare and deliver a presentation of project findings using Microsoft PowerPoint, following techniques from 'Presentation Secrets of Steve Jobs'.",
+      "due_date": "2026-02-27 00:00:00",
+      "trello_id": "691cfe3cd850a0c7e050fb0c"
+    },
+    {
+      "taskName": "Implement Basic Audio Transcription",
+      "descr": "Program a basic audio transcription module using Python. Reference projects from GitHub and the Python 'SpeechRecognition' library documentation.",
+      "due_date": "2026-02-20 00:00:00",
+      "trello_id": "691d6957f31278bc04161b86"
+    },
+    {
+      "taskName": "Evaluate Transcription Models",
+      "descr": "Analyze different transcription models by reviewing research papers on audio transcription techniques and computer science articles.",
+      "due_date": "2026-02-23 00:00:00",
+      "trello_id": "691d6957f31278bc04161b86"
+    }
+  ]
+}

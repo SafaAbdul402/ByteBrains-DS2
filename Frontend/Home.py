@@ -13,10 +13,10 @@ import subprocess, signal
 from Frontend.ui_branding import apply_branding, page_header
 
 ICON = Path(__file__).resolve().parent / "assets" / "favicon.png"
-st.set_page_config(page_title="[APP NAME] – AI Meeting Assistant", layout="wide", page_icon=str(ICON))
+st.set_page_config(page_title="ByteMinutes – AI Meeting Assistant", layout="wide", page_icon=str(ICON))
 
 page_header(
-    "[APP NAME] – Your AI Meeting Assistant",
+    "ByteMinutes – Your AI Meeting Assistant",
     "An intelligen Meeting Assistant by ByteBrains. Upload your meeting recording and let AI handle the rest."
 )
 apply_branding()
@@ -242,6 +242,9 @@ def apply_n8n_status(status: dict | None):
     raw_type = (status.get("type") or "").strip().lower()
     if raw_type == "transcript":
         log(f"[{timestamp}] [n8n→Streamlit] transcript received (ignored for status UI)")
+        return
+    if raw_type == "warning":
+        log(f"[{timestamp}] [n8n→Streamlit] warning received (ignored for status UI)")
         return
     raw_text = status.get("text") or status.get("status") or ""
 
@@ -469,23 +472,23 @@ with left:
         st.session_state.workflow_step = "VR_TRANSCRIPTION"
         st.rerun()
 
-    if st.button("Skip VR (demo)", width="stretch"):
-        st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
-        run_dir = RUNS_DIR / st.session_state.meeting_id
-        run_dir.mkdir(parents=True, exist_ok=True)
+    # if st.button("Skip VR (demo)", width="stretch"):
+    #     st.session_state.meeting_id = f"meeting-{int(datetime.now().timestamp())}"
+    #     run_dir = RUNS_DIR / st.session_state.meeting_id
+    #     run_dir.mkdir(parents=True, exist_ok=True)
 
-        # fake vr_result so UI can continue
-        st.session_state.vr_result = {
-            "speakers": ["Speaker 0", "Speaker 1"],
-            "transcript": [
-                {"speaker": "Speaker 0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
-                {"speaker": "Speaker 1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
-            ],
-        }
+    #     # fake vr_result so UI can continue
+    #     st.session_state.vr_result = {
+    #         "speakers": ["Speaker 0", "Speaker 1"],
+    #         "transcript": [
+    #             {"speaker": "Speaker 0", "start": 0.0, "end": 2.0, "text": "Hello, this is a demo."},
+    #             {"speaker": "Speaker 1", "start": 2.0, "end": 4.0, "text": "Great, testing n8n integration."},
+    #         ],
+    #     }
 
-        st.session_state.detected_speakers = st.session_state.vr_result["speakers"]
-        st.session_state.workflow_step = "UI_ASSIGNMENT"
-        st.rerun()
+    #     st.session_state.detected_speakers = st.session_state.vr_result["speakers"]
+    #     st.session_state.workflow_step = "UI_ASSIGNMENT"
+    #     st.rerun()
 
     ###Track Status
     status_container = st.container()
@@ -683,84 +686,98 @@ with right:
         if not all_assigned:
             st.warning("Please assign all speakers before continuing (choose a person or Noise / Ignore).")
 
-        c1, c2 = st.columns([2, 3])
+        #c1, c2 = st.columns([2, 3])
 
-        with c1:
-            confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
+        #with c1:
+        confirm = st.button("Confirm speaker assignment", disabled=not all_assigned)
 
-            if confirm and all_assigned and not st.session_state.n8n_started:
-                log("Speaker assignment confirmed")
+        if confirm and all_assigned and not st.session_state.n8n_started:
+            log("Speaker assignment confirmed")
 
-                transcript = st.session_state.vr_result.get("transcript")
-                if transcript is None:
-                    st.error("No transcript returned from Voice Recognition module.")
-                    st.stop()
+            # ✅ Phase 1: instant UI feedback
+            st.session_state.status_text = "Connecting to n8n..."
+            st.session_state.progress = max(st.session_state.progress, 0.42)
 
-                # Pass-through to n8n (no final transcript building)
-                profiles = eligible_profiles
-                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
-                final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
-                st.session_state.n8n_started = True
+            # store what we need for next step
+            st.session_state.n8n_started = True
+            st.session_state.workflow_step = "N8N_CONNECTING"
 
-                payload = {
-                    "meeting_id": meeting_id,
-                    "transcript": final_transcript,     # ✅ names are here now
-                    "profiles": profiles,
-                }
-
-                run_dir = RUNS_DIR / meeting_id
-                run_dir.mkdir(parents=True, exist_ok=True)
-
-                payload_path = run_dir / "n8n_payload.json"
-                with payload_path.open("w", encoding="utf-8") as f:
-                    json.dump(payload, f, ensure_ascii=False, indent=2)
-
-                log(f"Saved payload to {payload_path}")
-
-                try:
-                    requests.post(f"{API_BASE}/n8n/start/{meeting_id}", json=payload, timeout=20)
-                except Exception as e:
-                    log(f"[n8n/start] start call failed (will still poll): {e}")
-
-                st.session_state.workflow_step = "n8n_RUNNING"
-                st.session_state.progress = max(st.session_state.progress, 0.45)
-                st.rerun()
+            st.rerun()
             
-            skip_n8n = st.button("Skip n8n (demo)", width="stretch")
-            if skip_n8n and all_assigned:
-                transcript = st.session_state.vr_result.get("transcript") or []
-                speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
-                final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
+            
+            # skip_n8n = st.button("Skip n8n (demo)", width="stretch")
+            # if skip_n8n and all_assigned:
+            #     transcript = st.session_state.vr_result.get("transcript") or []
+            #     speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
+            #     final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
 
-                fake_result = {
-                    "summary": "Demo summary (n8n skipped).",
-                    "tasks": [
-                        {"taskName": "Review meeting summary", "descr": "Validate the demo pipeline output.", "due_date": "", "trello_id": ""},
-                    ],
-                    "transcript": final_transcript,
-                }
+            #     fake_result = {
+            #         "summary": "Demo summary (n8n skipped).",
+            #         "tasks": [
+            #             {"taskName": "Review meeting summary", "descr": "Validate the demo pipeline output.", "due_date": "", "trello_id": ""},
+            #         ],
+            #         "transcript": final_transcript,
+            #     }
 
-                run_dir = RUNS_DIR / meeting_id
-                run_dir.mkdir(parents=True, exist_ok=True)
-                (run_dir / "n8n_result_skipped.json").write_text(
-                    json.dumps(fake_result, indent=2, ensure_ascii=False),
-                    encoding="utf-8"
-                )
+            #     run_dir = RUNS_DIR / meeting_id
+            #     run_dir.mkdir(parents=True, exist_ok=True)
+            #     (run_dir / "n8n_result_skipped.json").write_text(
+            #         json.dumps(fake_result, indent=2, ensure_ascii=False),
+            #         encoding="utf-8"
+            #     )
 
-                st.session_state.n8n_result = fake_result
-                st.session_state.workflow_step = "DONE"
-                st.session_state.progress = 1.0
-                st.rerun()
+            #     st.session_state.n8n_result = fake_result
+            #     st.session_state.workflow_step = "DONE"
+            #     st.session_state.progress = 1.0
+            #     st.rerun()
 
-        with c2:
-            if st.button("Use completed profiles"):
-                demo_profiles = load_completed_profiles()
-                if not demo_profiles:
-                    st.error("profiles_complete.json not found or empty.")
-                else:
-                    st.session_state.team_demo_override = demo_profiles
-                    st.success("Switched to completed demo profiles.")
-                    st.rerun()
+        # with c2:
+        #     if st.button("Use completed profiles"):
+        #         demo_profiles = load_completed_profiles()
+        #         if not demo_profiles:
+        #             st.error("profiles_complete.json not found or empty.")
+        #         else:
+        #             st.session_state.team_demo_override = demo_profiles
+        #             st.success("Switched to completed demo profiles.")
+        #             st.rerun()
+
+if st.session_state.workflow_step == "N8N_CONNECTING":
+    st.session_state.status_text = "Starting n8n workflow..."
+
+    transcript = st.session_state.vr_result.get("transcript")
+    if transcript is None:
+        st.error("No transcript returned from Voice Recognition module.")
+        st.stop()
+
+    # Pass-through to n8n (no final transcript building)
+    profiles = eligible_profiles
+    speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
+    final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
+    st.session_state.n8n_started = True
+
+    payload = {
+        "meeting_id": meeting_id,
+        "transcript": final_transcript,     # ✅ names are here now
+        "profiles": profiles,
+    }
+
+    run_dir = RUNS_DIR / meeting_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    payload_path = run_dir / "n8n_payload.json"
+    with payload_path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    log(f"Saved payload to {payload_path}")
+
+    try:
+        requests.post(f"{API_BASE}/n8n/start/{meeting_id}", json=payload, timeout=20)
+    except Exception as e:
+        log(f"[n8n/start] start call failed (will still poll): {e}")
+
+    st.session_state.workflow_step = "n8n_RUNNING"
+    st.session_state.progress = max(st.session_state.progress, 0.45)
+    st.rerun()
 
 if st.session_state.workflow_step == "n8n_RUNNING":
     meeting_id = st.session_state.meeting_id
@@ -787,7 +804,9 @@ if st.session_state.workflow_step == "n8n_RUNNING":
         data = api_get_n8n_status(meeting_id)
     except Exception as e:
         log(f"[n8n] Poll error: {e}")
-        st.caption("n8n: poll failed, retrying…")
+        st.session_state.status_text = "n8n: Connecting…"
+        # optionally keep progress steady (don’t drop it)
+        st.session_state.progress = max(st.session_state.progress, 0.45)
         time.sleep(1.0)
         st.rerun()
 
