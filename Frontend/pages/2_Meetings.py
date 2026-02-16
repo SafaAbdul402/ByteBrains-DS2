@@ -112,7 +112,7 @@ def load_meetings() -> list[dict]:
     seed_ids = {mid for mid in seed_titles.keys() if mid}
 
     discovered = discover_meeting_ids(RUNS_DIR, DEMO_RUNS_DIR)
-    all_ids = sorted(discovered.union(seed_ids))
+    all_ids = sorted(discovered.union(seed_ids), reverse=True)
 
     overrides = load_overrides()
     meetings: list[dict] = []
