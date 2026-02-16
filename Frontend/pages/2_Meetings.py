@@ -353,7 +353,8 @@ with col_list:
 
         if st.session_state.selected_meeting_id:
             if st.button("🗑️ Delete selected meeting", type="secondary", use_container_width=True):
-                set_override(mid, {"hidden": True})
+                mid_to_hide = st.session_state.selected_meeting_id
+                set_override(mid_to_hide, {"hidden": True})
                 st.success("Hidden meeting.")
                 st.session_state.selected_meeting_id = None
                 st.session_state.force_reload_meetings = True
@@ -404,11 +405,8 @@ with col_details:
         else:
             if st.button("Save title", type="primary", use_container_width=True):
                 new_title = (st.session_state.get(title_text_key, "") or "").strip()
-                if new_title:
-                    set_override(mid, {"title": new_title})
-                else:
-                    set_override(mid, {"title": ""})  # or just do nothing
-                set_override(mid, {"title": new_title})
+                new_title = (st.session_state.get(title_text_key, "") or "").strip()
+                set_override(mid, {"title": new_title})  # empty string means "remove override"
                 st.session_state[title_edit_key] = False
                 st.success("Saved title.")
                 st.rerun()
@@ -419,7 +417,7 @@ with col_details:
 
     # ---------- Transcript
     with st.expander("Transcript", expanded=False):
-        if not run_dir.exists():
+        if not run_dir or not run_dir.exists():
             st.info(f"No run folder found for this meeting yet: {run_dir}")
         else:
             t = load_transcript(run_dir)
