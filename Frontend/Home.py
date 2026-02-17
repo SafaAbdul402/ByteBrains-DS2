@@ -278,6 +278,23 @@ def wake_backend():
     except Exception as e:
         log(f"[backend] wake failed: {e}")
 
+def filter_profiles_to_attendees(profiles: list[dict], mapping: dict) -> list[dict]:
+    """
+    Keep only profiles whose name appears in the speaker mapping (excluding None / Noise).
+    mapping is st.session_state.speaker_mapping (speaker -> selected name or None)
+    """
+    attendee_names = {
+        (name or "").strip()
+        for name in mapping.values()
+        if name and name != "Noise / Ignore"
+    }
+
+    # keep profile if its name is in attendee_names
+    return [
+        p for p in profiles
+        if (p.get("name") or "").strip() in attendee_names
+    ]
+
 def log(msg):
     """Add timestamped message to session logs"""
     print(msg, flush=True)
@@ -697,7 +714,8 @@ with right:
             # ✅ Phase 1: instant UI feedback
             st.session_state.status_text = "Connecting to n8n..."
             st.session_state.progress = max(st.session_state.progress, 0.42)
-
+            st.session_state.n8n_profiles = eligible_profiles  # store profiles
+            st.session_state.n8n_meeting_id = meeting_id
             # store what we need for next step
             st.session_state.n8n_started = True
             st.session_state.workflow_step = "N8N_CONNECTING"
@@ -743,6 +761,15 @@ with right:
 
 if st.session_state.workflow_step == "N8N_CONNECTING":
     st.session_state.status_text = "Starting n8n workflow..."
+    meeting_id = st.session_state.meeting_id  # ✅ ALWAYS safe
+    # OPTION 1 (default): send ALL eligible profiles
+    #profiles = st.session_state.get("n8n_profiles", [])  # saved at confirm step
+
+    # OPTION 2: send ONLY meeting attendees (uncomment to use)
+    profiles = filter_profiles_to_attendees(
+         st.session_state.get("n8n_profiles", []),
+         st.session_state.get("speaker_mapping", {}),
+    )
 
     transcript = st.session_state.vr_result.get("transcript")
     if transcript is None:
@@ -750,7 +777,7 @@ if st.session_state.workflow_step == "N8N_CONNECTING":
         st.stop()
 
     # Pass-through to n8n (no final transcript building)
-    profiles = eligible_profiles
+    #profiles = eligible_profiles
     speaker_mapping = build_speaker_mapping(st.session_state.speaker_mapping)
     final_transcript = apply_speaker_mapping_to_transcript(transcript, speaker_mapping)
     st.session_state.n8n_started = True

@@ -485,7 +485,7 @@ with col_details:
     if not st.session_state[edit_flag_key]:
         if notes.strip():
             # Basic formatting: keep line breaks + bullets if n8n outputs them
-            clean_notes = notes.replace("****", "\n\n")  # your sample had ****
+            clean_notes = notes.replace("\\n", "\n").replace("****", "\n\n")
             st.markdown(clean_notes)
         else:
             st.caption("No notes yet.")
